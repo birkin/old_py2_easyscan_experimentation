@@ -1,6 +1,8 @@
 console.log( "- easyscan.js START" );
 
 
+var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availability": 3 }
+
 $(document).ready(
   function() {
     update_item_table();
@@ -17,10 +19,11 @@ function update_item_table() {
     row = rows[i];
     row_dict = extract_row_data( row );
     link_html = build_link_html( row_dict )
-    last_cell = row.getElementsByTagName("td")[3];
+    last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
     $( last_cell ).after( link_html );
-    row.deleteCell( 2 );
+    row.deleteCell( cell_position_map["barcode"] );
   }
+  delete_header_cell();
 }
 
 function extract_row_data( row ) {
@@ -28,15 +31,31 @@ function extract_row_data( row ) {
    * Called by update_item_table()
    */
   cells = row.getElementsByTagName("td");
-  var row_data = {
-    "location": cells[0].textContent.trim(),
-    "call_number": cells[1].textContent.trim(),
-    "barcode": cells[2].textContent.trim(),
-    "availability": cells[3].textContent.trim()
-  };
+  row_data = {}
+  map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "call_number", etc. ] - compatible with older browsers?
+  for (var i = 0; i < map_keys.length; i++) {
+    key = map_keys[i];
+    value = cells[ cell_position_map[key] ].textContent.trim();
+    row_data[key] = value;
+  }
   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
   return row_data;
 }
+
+// function extract_row_data( row ) {
+//   /* Takes row dom-object; extracts and returns fielded data.
+//    * Called by update_item_table()
+//    */
+//   cells = row.getElementsByTagName("td");
+//   var row_data = {
+//     "location": cells[cell_position_map["location"]].textContent.trim(),
+//     "call_number": cells[cell_position_map["call_number"]].textContent.trim(),
+//     "barcode": cells[cell_position_map["barcode"]].textContent.trim(),
+//     "availability": cells[cell_position_map["availability"]].textContent.trim()
+//   };
+//   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
+//   return row_data;
+// }
 
 function build_link_html( row_dict ) {
   /* Takes row dict; returns html link.
@@ -48,6 +67,16 @@ function build_link_html( row_dict ) {
   console.log( "- link end, " + link );
   return link;
 }
+
+function delete_header_cell() {
+  /* Deletes barcode header cell
+   * Called by update_item_table()
+   */
+  header_row = $( "tr.bibItemsHeader" )[0];
+  header_row.deleteCell( cell_position_map["barcode"] );
+  console.log( "- barcode header cell deleted" );
+}
+
 
 console.log( "- easyscan.js END" );
 
