@@ -33,7 +33,7 @@ function grab_title() {
   update_item_table( title );
 }
 
-function update_item_table() {
+function update_item_table( title ) {
   /* Updates bib-item list to show request-scan button.
    * Called by grab_title()
    */
@@ -41,7 +41,7 @@ function update_item_table() {
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     row_dict = extract_row_data( row );
-    link_html = build_link_html( row_dict )
+    link_html = build_link_html( title, row_dict )
     last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
     $( last_cell ).after( link_html );
     row.deleteCell( cell_position_map["barcode"] );
@@ -65,13 +65,14 @@ function extract_row_data( row ) {
   return row_data;
 }
 
-function build_link_html( row_dict ) {
+function build_link_html( title, row_dict ) {
   /* Takes row dict; returns html link.
    * Called by extract_row_data()
    */
-  link = '<a href="http://127.0.0.1/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE">Request Scan</a>';
+  link = '<a href="http://127.0.0.1/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
   link = link.replace( "THECALLNUMBER", row_dict["call_number"] );
   link = link.replace( "THEBARCODE", row_dict["barcode"] );
+  link = link.replace( "THETITLE", title );
   console.log( "- link end, " + link );
   return link;
 }
