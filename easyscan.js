@@ -27,9 +27,12 @@ function grab_title() {
   /* Grabs bib title; then continues processing.
    * Called by check_already_run()
    */
+  var title = null;
   title_objs = $("tr").find("td").find("strong");
-  title_obj = title_objs[0];
-  title = title_obj.textContent.trim();
+  if ( title_objs.length > 0 ) {
+    title_obj = title_objs[0];
+    title = title_obj.textContent.trim();
+  }
   console.log( "- title, " + title );
   process_item_table( title );
 }
@@ -46,6 +49,7 @@ function process_item_table( title ) {
       console.log( "- continuing row procesing" );
       update_row( title, row_dict )
     }
+    row.deleteCell( cell_position_map["barcode"] );
   }
   delete_header_cell();
 }
@@ -81,14 +85,13 @@ function evaluate_row_data( row_dict ) {
 }
 
 function update_row( title, row_dict ) {
-  /* Updates row html.
+  /* Adds `Request Scan` link to row html.
    * Called by process_item_table()
    */
   link_html = build_link_html( title, row_dict )
   last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
   $( last_cell ).after( link_html );
-  row.deleteCell( cell_position_map["barcode"] );
-  console.log( "- row_updated" );
+  console.log( "- request-scan link added" );
   return;
 }
 
