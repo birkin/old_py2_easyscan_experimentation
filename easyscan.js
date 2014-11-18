@@ -5,16 +5,33 @@ var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availa
 
 $(document).ready(
   function() {
-    update_item_table();
+    // update_item_table();
+    check_already_run();
   }
 );
 
-function update_item_table() {
-  /* Updates bib-item list to show request-scan button.
+function check_already_run() {
+  /* Checks to see if javascript has already been run.
    * Called by document.ready()
    */
+  var all_html = $("body").html().toString();
+  var index = all_html.indexOf( "Request Scan" );
+  if (index != -1) {
+        console.log( "- aready run" );
+  } else {
+  update_item_table();
+  }
+}
+
+// function grab_title() {
+
+// }
+
+function update_item_table() {
+  /* Updates bib-item list to show request-scan button.
+   * Called by check_already_run()
+   */
   rows = $( ".bibItemsEntry" );  // jquery already loaded (whew)
-  console.log( "- rows.length, " + rows.length );
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     row_dict = extract_row_data( row );
@@ -41,21 +58,6 @@ function extract_row_data( row ) {
   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
   return row_data;
 }
-
-// function extract_row_data( row ) {
-//   /* Takes row dom-object; extracts and returns fielded data.
-//    * Called by update_item_table()
-//    */
-//   cells = row.getElementsByTagName("td");
-//   var row_data = {
-//     "location": cells[cell_position_map["location"]].textContent.trim(),
-//     "call_number": cells[cell_position_map["call_number"]].textContent.trim(),
-//     "barcode": cells[cell_position_map["barcode"]].textContent.trim(),
-//     "availability": cells[cell_position_map["availability"]].textContent.trim()
-//   };
-//   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
-//   return row_data;
-// }
 
 function build_link_html( row_dict ) {
   /* Takes row dict; returns html link.
