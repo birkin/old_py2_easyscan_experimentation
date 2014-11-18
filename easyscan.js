@@ -17,19 +17,25 @@ function check_already_run() {
   var all_html = $("body").html().toString();
   var index = all_html.indexOf( "Request Scan" );
   if (index != -1) {
-        console.log( "- aready run" );
+    console.log( "- aready run" );
   } else {
-  update_item_table();
+    console.log( "- not already run" );
+  grab_title();
   }
 }
 
-// function grab_title() {
-
-// }
+function grab_title() {
+  /* Grabs bib title; then continues processing.
+   * Called by check_already_run()
+   */
+  title = "foo-title";
+  console.log( "- title, " + title );
+  update_item_table( title );
+}
 
 function update_item_table() {
   /* Updates bib-item list to show request-scan button.
-   * Called by check_already_run()
+   * Called by grab_title()
    */
   rows = $( ".bibItemsEntry" );  // jquery already loaded (whew)
   for (var i = 0; i < rows.length; i++) {
