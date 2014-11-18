@@ -5,7 +5,7 @@ var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availa
 
 $(document).ready(
   function() {
-    // update_item_table();
+    // process_item_table();
     check_already_run();
   }
 );
@@ -32,10 +32,10 @@ function grab_title() {
   title_obj = title_objs[0];
   title = title_obj.textContent.trim();
   console.log( "- title, " + title );
-  update_item_table( title );
+  process_item_table( title );
 }
 
-function update_item_table( title ) {
+function process_item_table( title ) {
   /* Updates bib-item list to show request-scan button.
    * Called by grab_title()
    */
@@ -55,7 +55,7 @@ function extract_row_data( row ) {
   /* Takes row dom-object; extracts and returns fielded data.
    * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
    *   each key is the label; each value is the correct cell's text.
-   * Called by update_item_table()
+   * Called by process_item_table()
    */
   cells = row.getElementsByTagName("td");
   row_data = {}
@@ -67,6 +67,13 @@ function extract_row_data( row ) {
   }
   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
   return row_data;
+}
+
+function evaluate_row_data( row_dict ) {
+  /* Evaluates whether 'Request Scan' button should appear; returns boolean.
+   * Called by process_item_table()
+   */
+  return { "show_request_scan_button": true };
 }
 
 function build_link_html( title, row_dict ) {
@@ -83,7 +90,7 @@ function build_link_html( title, row_dict ) {
 
 function delete_header_cell() {
   /* Deletes barcode header cell
-   * Called by update_item_table()
+   * Called by process_item_table()
    */
   header_row = $( "tr.bibItemsHeader" )[0];
   header_row.deleteCell( cell_position_map["barcode"] );
