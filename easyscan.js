@@ -5,7 +5,6 @@ var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availa
 
 $(document).ready(
   function() {
-    // process_item_table();
     check_already_run();
   }
 );
@@ -43,12 +42,19 @@ function process_item_table( title ) {
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     row_dict = extract_row_data( row );
-    link_html = build_link_html( title, row_dict )
-    last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
-    $( last_cell ).after( link_html );
-    row.deleteCell( cell_position_map["barcode"] );
+    if ( evaluate_row_data()["show_scan_button"] == true ) {
+      console.log( "- continuing row procesing" );
+      update_row( title, row_dict )
+    }
   }
   delete_header_cell();
+}
+
+function update_row( title, row_dict ) {
+  link_html = build_link_html( title, row_dict )
+  last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
+  $( last_cell ).after( link_html );
+  row.deleteCell( cell_position_map["barcode"] );
 }
 
 function extract_row_data( row ) {
@@ -73,7 +79,9 @@ function evaluate_row_data( row_dict ) {
   /* Evaluates whether 'Request Scan' button should appear; returns boolean.
    * Called by process_item_table()
    */
-  return { "show_request_scan_button": true };
+  row_evaluation = { "show_scan_button": true };
+  console.log( "- row_evaluation, " + row_evaluation );
+  return row_evaluation;
 }
 
 function build_link_html( title, row_dict ) {
