@@ -14,7 +14,7 @@ function check_already_run() {
   /* Checks to see if javascript has already been run.
    * Called by document.ready()
    */
-  var all_html = $("body").html().toString();
+  var all_html = $("body").html().toString();  // jquery already loaded (whew)
   var index = all_html.indexOf( "Request Scan" );
   if (index != -1) {
     console.log( "- aready run" );
@@ -28,7 +28,9 @@ function grab_title() {
   /* Grabs bib title; then continues processing.
    * Called by check_already_run()
    */
-  title = "foo-title";
+  title_objs = $("tr").find("td").find("strong");
+  title_obj = title_objs[0];
+  title = title_obj.textContent.trim();
   console.log( "- title, " + title );
   update_item_table( title );
 }
@@ -37,7 +39,7 @@ function update_item_table( title ) {
   /* Updates bib-item list to show request-scan button.
    * Called by grab_title()
    */
-  rows = $( ".bibItemsEntry" );  // jquery already loaded (whew)
+  rows = $( ".bibItemsEntry" );
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     row_dict = extract_row_data( row );
@@ -51,6 +53,8 @@ function update_item_table( title ) {
 
 function extract_row_data( row ) {
   /* Takes row dom-object; extracts and returns fielded data.
+   * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
+   *   each key is the label; each value is the correct cell's text.
    * Called by update_item_table()
    */
   cells = row.getElementsByTagName("td");
