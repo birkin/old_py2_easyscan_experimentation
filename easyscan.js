@@ -73,7 +73,7 @@ function evaluate_row_data( row_dict ) {
    * Called by process_item_table()
    */
   var row_evaluation = { "show_scan_button": false };
-  if (row_dict["location"] == "ANNEX") {
+  if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
       row_evaluation = { "show_scan_button": true };
   }
   console.log( "- row_evaluation, " + row_evaluation );
