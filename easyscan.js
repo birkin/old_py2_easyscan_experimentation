@@ -42,19 +42,12 @@ function process_item_table( title ) {
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     row_dict = extract_row_data( row );
-    if ( evaluate_row_data()["show_scan_button"] == true ) {
+    if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       console.log( "- continuing row procesing" );
       update_row( title, row_dict )
     }
   }
   delete_header_cell();
-}
-
-function update_row( title, row_dict ) {
-  link_html = build_link_html( title, row_dict )
-  last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
-  $( last_cell ).after( link_html );
-  row.deleteCell( cell_position_map["barcode"] );
 }
 
 function extract_row_data( row ) {
@@ -79,9 +72,24 @@ function evaluate_row_data( row_dict ) {
   /* Evaluates whether 'Request Scan' button should appear; returns boolean.
    * Called by process_item_table()
    */
-  row_evaluation = { "show_scan_button": true };
+  var row_evaluation = { "show_scan_button": false };
+  if (row_dict["location"] == "ANNEX") {
+      row_evaluation = { "show_scan_button": true };
+  }
   console.log( "- row_evaluation, " + row_evaluation );
   return row_evaluation;
+}
+
+function update_row( title, row_dict ) {
+  /* Updates row html.
+   * Called by process_item_table()
+   */
+  link_html = build_link_html( title, row_dict )
+  last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
+  $( last_cell ).after( link_html );
+  row.deleteCell( cell_position_map["barcode"] );
+  console.log( "- row_updated" );
+  return;
 }
 
 function build_link_html( title, row_dict ) {
