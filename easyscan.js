@@ -1,20 +1,32 @@
 console.log( "- easyscan.js START" );
 
 
-// jquery already loaded (whew)
-rows = $( ".bibItemsEntry" );
-console.log( "- rows.length, " + rows.length );
+$(document).ready(
+  function() {
+    update_item_table();
+  }
+);
 
-for (var i = 0; i < rows.length; i++) {
-  row = rows[i];
-  row_dict = extract_row_data( row );
-  link_html = build_link_html( row_dict )
-  last_cell = row.getElementsByTagName("td")[3];
-  // $( last_cell ).after( "<td>HELLO</td>" );
-  $( last_cell ).after( link_html );
+function update_item_table() {
+  /* Updates bib-item list to show request-scan button.
+   * Called by document.ready()
+   */
+  rows = $( ".bibItemsEntry" );  // jquery already loaded (whew)
+  console.log( "- rows.length, " + rows.length );
+  for (var i = 0; i < rows.length; i++) {
+    row = rows[i];
+    row_dict = extract_row_data( row );
+    link_html = build_link_html( row_dict )
+    last_cell = row.getElementsByTagName("td")[3];
+    $( last_cell ).after( link_html );
+    row.deleteCell( 2 );
+  }
 }
 
 function extract_row_data( row ) {
+  /* Takes row dom-object; extracts and returns fielded data.
+   * Called by update_item_table()
+   */
   cells = row.getElementsByTagName("td");
   var row_data = {
     "location": cells[0].textContent.trim(),
@@ -27,7 +39,9 @@ function extract_row_data( row ) {
 }
 
 function build_link_html( row_dict ) {
-  // link = '<a href="http://google.com">LINK</a>';
+  /* Takes row dict; returns html link.
+   * Called by extract_row_data()
+   */
   link = '<a href="http://127.0.0.1/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE">Request Scan</a>';
   link = link.replace( "THECALLNUMBER", row_dict["call_number"] );
   link = link.replace( "THEBARCODE", row_dict["barcode"] );
