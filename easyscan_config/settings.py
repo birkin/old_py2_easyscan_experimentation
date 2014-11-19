@@ -23,9 +23,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ['EZSCAN__SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ['EZSCAN__DEBUG']
+temp_DEBUG = os.environ['EZSCAN__DEBUG']
+assert temp_DEBUG in [ 'True', '' ], Exception( 'DEBUG env setting is, "%s"; must be either "True" or ""' % temp_DEBUG )
+DEBUG = bool( temp_DEBUG )
 
-TEMPLATE_DEBUG = os.environ['EZSCAN__TEMPLATE_DEBUG']
+TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = json.loads( os.environ['EZSCAN__ALLOWED_HOSTS'] )  # list
 
@@ -60,8 +62,8 @@ WSGI_APPLICATION = 'easyscan_config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ['EZSCAN__ENGINE'],
-        'NAME': os.environ['EZSCAN__NAME'],
+        'ENGINE': os.environ['EZSCAN__DATABASES_ENGINE'],
+        'NAME': os.environ['EZSCAN__DATABASES_NAME'],
     }
 }
 
