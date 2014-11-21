@@ -44,7 +44,7 @@ function process_item_table( title ) {
   rows = $( ".bibItemsEntry" );
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
-    row_dict = extract_row_data( row );
+    row_dict = extract_row_data( row.getElementsByTagName("td") );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       console.log( "- continuing row procesing" );
       update_row( title, row_dict )
@@ -54,18 +54,18 @@ function process_item_table( title ) {
   delete_header_cell();
 }
 
-function extract_row_data( row ) {
+function extract_row_data( cells ) {
   /* Takes row dom-object; extracts and returns fielded data.
    * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
    *   each key is the label; each value is the correct cell's text.
    * Called by process_item_table()
    */
-  cells = row.getElementsByTagName("td");
-  row_data = {}
-  map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "call_number", etc. ] - compatible with older browsers?
+  var row_data = {}
+  var map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "call_number", etc. ] - compatible with older browsers?
   for (var i = 0; i < map_keys.length; i++) {
-    key = map_keys[i];
-    value = cells[ cell_position_map[key] ].textContent.trim();
+    var key = map_keys[i];
+    var value = cells[ cell_position_map[key] ].textContent.trim();
+    if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
     row_data[key] = value;
   }
   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
