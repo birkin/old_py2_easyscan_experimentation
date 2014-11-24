@@ -1,9 +1,6 @@
 console.log( "- easyscan.js START" );
 
 
-// var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availability": 3 }
-
-
 var esyscn = new function() {
   /* namespaces easyscan js
    *
@@ -66,8 +63,6 @@ var esyscn = new function() {
      */
     var row_data = {}
     var map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "call_number", etc. ] - compatible with older browsers?
-    console.log( "- cell_position_map, " + cell_position_map );
-    console.log( "- map_keys, " + map_keys );
     for (var i = 0; i < map_keys.length; i++) {
       var key = map_keys[i];
       var value = cells[ cell_position_map[key] ].textContent.trim();
