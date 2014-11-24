@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import os
 from django.http import HttpResponse
+
+
+def js( request ):
+  js_unicode = u''
+  current_directory = os.path.dirname(os.path.abspath(__file__))
+  js_path = u'%s/static/josiah_easyscan.js' % current_directory
+  with open( js_path ) as f:
+      js_utf8 = f.read()
+      js_unicode = js_utf8.decode(u'utf-8')
+  return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
 
 
 def home( request ):
