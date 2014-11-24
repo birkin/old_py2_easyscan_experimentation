@@ -99,7 +99,7 @@ function build_link_html( title, row_dict ) {
   /* Takes row dict; returns html link.
    * Called by extract_row_data()
    */
-  link = '<a href="http://127.0.0.1/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
+  link = '<a href="http://HOST/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
   link = link.replace( "THECALLNUMBER", row_dict["call_number"] );
   link = link.replace( "THEBARCODE", row_dict["barcode"] );
   link = link.replace( "THETITLE", title );
