@@ -11,6 +11,8 @@ urlpatterns = patterns('',
     url( r'^josiah_easyscan.js/$',  'easyscan_app.views.js', name=u'js_url' ),
 
     url( r'^login/$',  'easyscan_app.views.login', name=u'login_url' ),
+    url( r'^shib_login/$',  'easyscan_app.views.shib_login', name=u'shib_login_url' ),
+
 
     url( r'^$', RedirectView.as_view(pattern_name='request_url') ),
 

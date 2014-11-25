@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os
+import logging, os
 from django.http import HttpResponse
 from django.shortcuts import render
+
+
+log = logging.getLogger(__name__)
 
 
 def js( request ):
@@ -19,6 +22,7 @@ def js( request ):
 
 
 def request_def( request ):
+    """ Either displays login buttons, or a form to specify requested scan-content. """
     data_dict = {
         'title': request.GET.get( 'title', u'' ),
         'callnumber': request.GET.get( 'call_number', u'' ),
@@ -28,4 +32,15 @@ def request_def( request ):
 
 
 def login( request ):
+    log.debug( u'in login(); login_type, `%s`' % request.GET.get(u'login_type', u'') )
+    log.debug( u'in login(); request.is_secure(), `%s`' % request.is_secure() )
+    log.debug( u'in login(); request.get_host(), `%s`' % request.get_host() )
+    if request.GET.get(u'login_type', u'') == u'Standard Shib Login':
+        redirect_url = u''  # shib_login_url
     return HttpResponse( u'<p>patience, padawan, you must have</p>' )
+
+
+
+# from django.core.urlresolvers import reverse
+# entry[u'url'] = u'%s://%s%s' % ( url_scheme, server_name, reverse(u'inscription_url', args=(entry[u'id'],)) )
+# request.is_secure(), request.get_host()
