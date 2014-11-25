@@ -19,14 +19,23 @@ def js( request ):
 
 
 def home( request ):
-    title = request.GET.get( 'title', u'' )
-    callnumber = request.GET.get( 'call_number', u'' )
-    barcode = request.GET.get( 'barcode', u'' )
-    html = temp_html( title, callnumber, barcode )
-    # return HttpResponse( html )
-    data_dict = {}
-    data_dict[u'foo'] = "bar"
+    data_dict = {
+        'title': request.GET.get( 'title', u'' ),
+        'callnumber': request.GET.get( 'call_number', u'' ),
+        'barcode': request.GET.get( 'barcode', u'' )
+        }
     return render( request, u'easyscan_app_templates/request.html', data_dict )
+
+
+# def home( request ):
+#     title = request.GET.get( 'title', u'' )
+#     callnumber = request.GET.get( 'call_number', u'' )
+#     barcode = request.GET.get( 'barcode', u'' )
+#     html = temp_html( title, callnumber, barcode )
+#     # return HttpResponse( html )
+#     data_dict = {}
+#     data_dict[u'foo'] = "bar"
+#     return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
 def temp_html( title, callnumber, barcode ):
