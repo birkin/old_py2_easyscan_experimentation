@@ -2,13 +2,13 @@ console.log( "- easyscan.js START" );
 
 
 var esyscn = new function() {
-  /* namespaces easyscan js
+  /* Namespaces this file's function calls.
    *
-   * See <http://stackoverflow.com/a/881611>.
+   * See <http://stackoverflow.com/a/881611> for module-pattern reference.
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    */
 
-  var cell_position_map = { "location": 0, "call_number": 1, "barcode": 2, "availability": 3 };
+  var cell_position_map = { "location": 0, "call_number": 1, "availability": 2, "barcode": 3 };
 
   this.check_already_run = function() {
     /* Checks to see if javascript has already been run.
