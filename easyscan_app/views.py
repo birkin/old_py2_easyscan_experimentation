@@ -27,6 +27,10 @@ def home( request ):
     return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
+def login( request ):
+    return HttpResponse( u'<p>patience, padawan, you must have</p>' )
+
+
 # def home( request ):
 #     title = request.GET.get( 'title', u'' )
 #     callnumber = request.GET.get( 'call_number', u'' )
