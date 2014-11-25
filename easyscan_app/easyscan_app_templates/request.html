@@ -1,6 +1,72 @@
 {% extends "easyscan_app_templates/base.html" %}
 
+{% block page_title %}
+easyScan request
+{% endblock page_title %}
+
+
 {% block content %}
+
+<style>
+    h1 {
+        font-size: 2.5em;
+        margin-top: 2em;
+        text-transform: none }
+    h3#please {
+        font-size: 1.5em;
+        color: maroon;
+        margin-top: 2em; }
+    hr {
+        margin-top: 2em; }
+    form {
+        margin-top: 2em; }
+    div#requested_item {
+        margin-top: 4em;
+        color: gray; }
+    dt, dd {
+        font-family:sans-serif;
+        margin-top: .5em; }
+    dt {
+       float:left;
+       clear:left;
+       text-align:right;
+       width:15%;
+       color:#bbb; }
+    dd {
+       float:left;
+       margin-left:2em;
+       color:#999; }
+</style>
+
+ <h1>easyScan request</h1>
+
+<h3 id="please">Please login...</h3>
+
+<form id="choose_login" action="/easyscan/login/" method="GET">
+    <input type="submit" name="login_type" value="Standard Shib Login">
+    <span>&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;</span>
+    <input type="submit" name="login_type"value="Suspicious Character Login">
+</form>
+
+<hr/>
+
+<div id="requested_item">
+
+    <p>You're requesting a scan for part of...</p>
+    <br/>
+    <dl>
+        <dt>title:</dt>
+        <dd>{{ title }}</dd>
+
+        <dt>call-number, etc info:</dt>
+        <dd>{{ callnumber }}</dd>
+
+        <dt>barcode:</dt>
+        <dd>{{ barcode }}</dd>
+    </dl>
+
+</div>
+<!--
 <p>Thanks for testing!</p>
 <br/>
 <p>The item info that would be processed...</p>
@@ -10,4 +76,5 @@
     <li>call-number, etc info: `{{ callnumber }}`</li>
     <li>barcode: `{{ barcode }}`</li>
 </ul>
+ -->
 {% endblock content %}
