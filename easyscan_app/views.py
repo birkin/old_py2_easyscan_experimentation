@@ -2,9 +2,12 @@
 
 import os
 from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def js( request ):
+    """ Returns javascript file.
+        May switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
     js_unicode = u''
     current_directory = os.path.dirname(os.path.abspath(__file__))
     js_path = u'%s/lib/josiah_easyscan.js' % current_directory
@@ -20,7 +23,10 @@ def home( request ):
     callnumber = request.GET.get( 'call_number', u'' )
     barcode = request.GET.get( 'barcode', u'' )
     html = temp_html( title, callnumber, barcode )
-    return HttpResponse( html )
+    # return HttpResponse( html )
+    data_dict = {}
+    data_dict[u'foo'] = "bar"
+    return render( request, u'easyscan_app_templates/base.html', data_dict )
 
 
 def temp_html( title, callnumber, barcode ):
