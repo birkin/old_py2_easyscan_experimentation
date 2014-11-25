@@ -26,7 +26,7 @@ def home( request ):
     # return HttpResponse( html )
     data_dict = {}
     data_dict[u'foo'] = "bar"
-    return render( request, u'easyscan_app_templates/base.html', data_dict )
+    return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
 def temp_html( title, callnumber, barcode ):
