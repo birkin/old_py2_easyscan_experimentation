@@ -4,9 +4,11 @@ import logging, os
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from easyscan_app import models
 
 
 log = logging.getLogger(__name__)
+rv = models.RequestValidator()
 
 
 def js( request ):
@@ -24,7 +26,7 @@ def js( request ):
 
 def request_def( request ):
     """ Either displays login buttons, or a form to specify requested scan-content. """
-    https_check = helper_check_https(
+    https_check = rv.check_https(
         request.is_secure(), request.get_host(), request.get_full_path() )
     if https_check[u'is_secure'] == False:
         return HttpResponseRedirect( https_check[u'redirect_url'] )
@@ -36,24 +38,17 @@ def request_def( request ):
     return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
-def helper_check_https( is_secure, get_host, full_path ):
-    """ helper """
-    if (is_secure == False) and (get_host != u'127.0.0.1'):
-        redirect_url = redirect_url = u'https://%s%s' % ( get_host, full_path )
-        log.debug( u'in views.helper_check_https(); redirect_url, `%s`' % redirect_url )
-        return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
-    else:
-        return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
-    log.debug( u'in views.helper_check_https(); return_dict, `%s`' % return_dict )
-    return return_dict
-
-
 def shib_login( request ):
-    log.debug( u'in views.shib_login' )
+    log.debug( u'in shib_login()' )
     return HttpResponse( u'will handle shib-login' )
 
 
 def barcode_login( request ):
-    log.debug( u'in views.barcode_login' )
+    log.debug( u'in barcode_login()' )
+    data_dict = {
+        u'title': request.GET.get( u'title', u'' ),
+        u'callnumber': request.GET.get( u'call_number', u'' ),
+        u'barcode': request.GET.get( u'barcode', u'' )
+        }
     return HttpResponse( u'will handle barcode_login-login' )
 
