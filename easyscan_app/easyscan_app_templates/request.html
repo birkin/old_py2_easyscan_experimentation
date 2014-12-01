@@ -47,13 +47,19 @@ easyScan request
 <div id="forms">
 
     <form id="shib_login" action="/easyscan/shib_login/" method="GET">
-        <input type="submit" name="login_type" value="Standard Shib Login">
+        <input type="hidden" name="title" value="{{ title }}">
+        <input type="hidden" name="callnumber" value="{{ callnumber }}">
+        <input type="hidden" name="barcode" value="{{ barcode }}">
+        <input type="submit" value="Standard Shib Login">
     </form>
 
     <p id="or">… or …</p>
 
     <form id="barcode_login" action="/easyscan/barcode_login/" method="GET">
-        <input type="submit" name="login_type"value="Old-School Barcode Login">
+        <input type="hidden" name="title" value="{{ title }}">
+        <input type="hidden" name="callnumber" value="{{ callnumber }}">
+        <input type="hidden" name="barcode" value="{{ barcode }}">
+        <input type="submit" value="Old-School Barcode Login">
     </form>
 
 </div>
