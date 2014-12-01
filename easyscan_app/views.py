@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging, os
-from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 
 
@@ -23,24 +24,35 @@ def js( request ):
 
 def request_def( request ):
     """ Either displays login buttons, or a form to specify requested scan-content. """
+    https_check = helper_check_https( request.is_secure(), request.get_host() )
+    if https_check[u'is_secure'] == False:
+        return HttpResponseRedirect( https_check[u'redirect_url'] )
     data_dict = {
-        'title': request.GET.get( 'title', u'' ),
-        'callnumber': request.GET.get( 'call_number', u'' ),
-        'barcode': request.GET.get( 'barcode', u'' )
+        u'title': request.GET.get( u'title', u'' ),
+        u'callnumber': request.GET.get( u'call_number', u'' ),
+        u'barcode': request.GET.get( u'barcode', u'' )
         }
     return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
-def login( request ):
-    log.debug( u'in login(); login_type, `%s`' % request.GET.get(u'login_type', u'') )
-    log.debug( u'in login(); request.is_secure(), `%s`' % request.is_secure() )
-    log.debug( u'in login(); request.get_host(), `%s`' % request.get_host() )
-    if request.GET.get(u'login_type', u'') == u'Standard Shib Login':
-        redirect_url = u''  # shib_login_url
-    return HttpResponse( u'<p>patience, padawan, you must have</p>' )
+def helper_check_https( is_secure, get_host ):
+    """ helper """
+    if (is_secure == False) and (get_host != u'127.0.0.1'):
+        redirect_url = u'https://%s/%s' % ( get_host, reverse(u'request_url') )
+        log.debug( u'in views.helper_check_https(); redirect_url, `%s`' % redirect_url )
+        return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
+    else:
+        return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
+    log.debug( u'in views.helper_check_https(); return_dict, `%s`' % return_dict )
+    return return_dict
 
 
+def shib_login( request ):
+    log.debug( u'in views.shib_login' )
+    return HttpResponse( u'will handle shib-login' )
 
-# from django.core.urlresolvers import reverse
-# entry[u'url'] = u'%s://%s%s' % ( url_scheme, server_name, reverse(u'inscription_url', args=(entry[u'id'],)) )
-# request.is_secure(), request.get_host()
+
+def barcode_login( request ):
+    log.debug( u'in views.barcode_login' )
+    return HttpResponse( u'will handle barcode_login-login' )
+

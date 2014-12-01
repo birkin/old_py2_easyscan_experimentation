@@ -36,23 +36,33 @@ easyScan request
        float:left;
        margin-left:2em;
        color:#999; }
+    p#or {
+        margin-top: 2em; }
 </style>
 
  <h1>easyScan request</h1>
 
 <h3 id="please">Please login...</h3>
 
-<form id="choose_login" action="/easyscan/login/" method="GET">
-    <input type="submit" name="login_type" value="Standard Shib Login">
-    <span>&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;</span>
-    <input type="submit" name="login_type"value="Suspicious Character Login">
-</form>
+<div id="forms">
+
+    <form id="shib_login" action="/easyscan/shib_login/" method="GET">
+        <input type="submit" name="login_type" value="Standard Shib Login">
+    </form>
+
+    <p id="or">… or …</p>
+
+    <form id="barcode_login" action="/easyscan/barcode_login/" method="GET">
+        <input type="submit" name="login_type"value="Old-School Barcode Login">
+    </form>
+
+</div>
 
 <hr/>
 
 <div id="requested_item">
 
-    <p>You're requesting a scan for part of...</p>
+    <p>You're requesting a scan for part of …</p>
     <br/>
     <dl>
         <dt>title:</dt>
