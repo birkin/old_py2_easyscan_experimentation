@@ -24,7 +24,8 @@ def js( request ):
 
 def request_def( request ):
     """ Either displays login buttons, or a form to specify requested scan-content. """
-    https_check = helper_check_https( request.is_secure(), request.get_host() )
+    https_check = helper_check_https(
+        request.is_secure(), request.get_host(), request.get_full_path() )
     if https_check[u'is_secure'] == False:
         return HttpResponseRedirect( https_check[u'redirect_url'] )
     data_dict = {
@@ -35,10 +36,10 @@ def request_def( request ):
     return render( request, u'easyscan_app_templates/request.html', data_dict )
 
 
-def helper_check_https( is_secure, get_host ):
+def helper_check_https( is_secure, get_host, full_path ):
     """ helper """
     if (is_secure == False) and (get_host != u'127.0.0.1'):
-        redirect_url = u'https://%s/%s' % ( get_host, reverse(u'request_url') )
+        redirect_url = redirect_url = u'https://%s%s' % ( get_host, full_path )
         log.debug( u'in views.helper_check_https(); redirect_url, `%s`' % redirect_url )
         return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
     else:
