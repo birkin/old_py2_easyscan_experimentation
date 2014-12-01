@@ -30,13 +30,17 @@ def request_def( request ):
         request.is_secure(), request.get_host(), request.get_full_path() )
     if https_check[u'is_secure'] == False:
         return HttpResponseRedirect( https_check[u'redirect_url'] )
+    if not u'authz_info' in request.session:
+        request.session[u'authz_info'] = { u'authorized': False }
     data_dict = {
         u'title': request.GET.get( u'title', u'' ),
         u'callnumber': request.GET.get( u'call_number', u'' ),
-        u'barcode': request.GET.get( u'barcode', u'' )
+        u'barcode': request.GET.get( u'barcode', u'' ),
         }
-    return render( request, u'easyscan_app_templates/request.html', data_dict )
-
+    if request.session[u'authz_info'] == False:
+        return render( request, u'easyscan_app_templates/request_login.html', data_dict )
+    else:
+        return render( request, u'easyscan_app_templates/request_form.html', data_dict )
 
 def shib_login( request ):
     log.debug( u'in shib_login()' )
