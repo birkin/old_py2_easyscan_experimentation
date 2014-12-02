@@ -8,7 +8,7 @@ var esyscn = new function() {
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    */
 
-  var cell_position_map = { "location": 0, "call_number": 1, "availability": 2, "barcode": 3 };
+  var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
 
   this.check_already_run = function() {
     /* Checks to see if javascript has already been run.
@@ -62,7 +62,7 @@ var esyscn = new function() {
      * Called by process_item_table()
      */
     var row_data = {}
-    var map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "call_number", etc. ] - compatible with older browsers?
+    var map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
     for (var i = 0; i < map_keys.length; i++) {
       var key = map_keys[i];
       var value = cells[ cell_position_map[key] ].textContent.trim();
@@ -100,8 +100,8 @@ var esyscn = new function() {
     /* Takes row dict; returns html link.
      * Called by extract_row_data()
      */
-    link = '<a href="http://HOST/easyscan/request?call_number=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
-    link = link.replace( "THECALLNUMBER", row_dict["call_number"] );
+    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
+    link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
     console.log( "- link end, " + link );

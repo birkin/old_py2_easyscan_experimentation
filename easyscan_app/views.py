@@ -9,6 +9,7 @@ from easyscan_app import models
 
 log = logging.getLogger(__name__)
 rv = models.RequestValidator()
+request_page_helper = models.RequestPageHelper()
 
 
 def js( request ):
@@ -32,15 +33,12 @@ def request_def( request ):
         return HttpResponseRedirect( https_check[u'redirect_url'] )
     if not u'authz_info' in request.session:
         request.session[u'authz_info'] = { u'authorized': False }
-    data_dict = {
-        u'title': request.GET.get( u'title', u'' ),
-        u'callnumber': request.GET.get( u'call_number', u'' ),
-        u'barcode': request.GET.get( u'barcode', u'' ),
-        }
-    if request.session[u'authz_info'] == False:
+    data_dict = request_page_helper.build_data_dict( request )
+    if request.session[u'authz_info'][u'authorized'] == False:
         return render( request, u'easyscan_app_templates/request_login.html', data_dict )
     else:
         return render( request, u'easyscan_app_templates/request_form.html', data_dict )
+
 
 def shib_login( request ):
     log.debug( u'in shib_login()' )
@@ -48,11 +46,14 @@ def shib_login( request ):
 
 
 def barcode_login( request ):
+    """ Displays barcode login form.
+        Redirects to request form on success. """
     log.debug( u'in barcode_login()' )
+    if request.method == u'POST':
+        return HttpResponse( u'submitted data will be handled here.' )
     data_dict = {
         u'title': request.GET.get( u'title', u'' ),
-        u'callnumber': request.GET.get( u'call_number', u'' ),
+        u'callnumber': request.GET.get( u'callnumber', u'' ),
         u'barcode': request.GET.get( u'barcode', u'' )
         }
-    return HttpResponse( u'will handle barcode_login-login' )
-
+    return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )

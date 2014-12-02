@@ -36,23 +36,32 @@ easyScan request
        float:left;
        margin-left:2em;
        color:#999; }
-    p#or {
-        margin-top: 2em; }
+    input#login_button {
+        margin-left:10em;
+        }
+    input[type=text] {
+        margin-top:.25em;
+        }
 </style>
 
  <h1>easyScan request</h1>
 
-<h3 id="please">Please submit page-range and additional information...</h3>
+<h3 id="please">Please login...</h3>
 
 <div id="form">
 
-    <form id="shib_login" action="/easyscan/shib_login/" method="GET">
-        <textarea rows="4" cols="50">
-        </textarea>
-        <input type="hidden" name="title" value="{{ title|urlencode|iriencode }}">
-        <input type="hidden" name="callnumber" value="{{ callnumber|urlencode }}">
+    <form id="barcode_login" action="/easyscan/barcode_login/" method="POST">{% csrf_token %}
+        First or Last Name:<br>
+        <input type="text" name="name">
+        <br/>
+        <br/>
+        Barcode:<br/>
+        ( 14-digit barcode, beginning with 21236... )<br/>
+        <input type="text" name="lastname">
+        <input type="hidden" name="title" value="{{ title }}">
+        <input type="hidden" name="callnumber" value="{{ callnumber }}">
         <input type="hidden" name="barcode" value="{{ barcode }}">
-        <input type="submit" value="Request Scan">
+        <input type="submit" value="Login" id="login_button">
     </form>
 
 </div>

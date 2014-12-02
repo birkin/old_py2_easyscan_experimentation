@@ -11,9 +11,6 @@ class RequestValidator( object ):
     """ Container for request-validation helpers.
         Non-django, plain-python model. """
 
-    # def __init__( self ):
-    #     """ Settings. """
-
     def check_https( self, is_secure, get_host, full_path ):
         """ Checks for https; returns dict with result and redirect-url.
             Called by views.request_def() """
@@ -24,3 +21,19 @@ class RequestValidator( object ):
             return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
         log.debug( u'in RequestValidator.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
+
+
+class RequestPageHelper( object ):
+    """ Container for request-page helpers.
+        Non-django, plain-python model. """
+
+    def build_data_dict( self, request ):
+        """ Builds and returns data-dict for request page.
+            Called by views.request_def() """
+        context = {
+            u'title': request.GET.get( u'title', u'' ),
+            u'callnumber': request.GET.get( u'callnumber', u'' ),
+            u'barcode': request.GET.get( u'barcode', u'' ),
+            }
+        log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % context )
+        return context
