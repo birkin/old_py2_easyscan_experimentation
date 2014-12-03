@@ -9,8 +9,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 log = logging.getLogger(__name__)
 
 
-class RequestValidator( object ):
-    """ Container for request-validation helpers.
+class RequestViewHelper( object ):
+    """ Container for views.request_def() helpers.
         Non-django, plain-python model. """
 
     def check_https( self, is_secure, get_host, full_path ):
@@ -23,11 +23,6 @@ class RequestValidator( object ):
             return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
         log.debug( u'in RequestValidator.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
-
-
-class RequestPageHelper( object ):
-    """ Container for request-page helpers.
-        Non-django, plain-python model. """
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
@@ -62,7 +57,7 @@ class BarcodeViewHelper( object ):
 
 
 class BarcodeValidator( object ):
-    """ Container for helpers checking submitted patron barcode & name.
+    """ Container for helpers to check submitted patron barcode & name.
         Non-django, plain-python model. """
 
     def __init__( self ):

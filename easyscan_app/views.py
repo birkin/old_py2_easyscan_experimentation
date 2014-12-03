@@ -8,8 +8,7 @@ from easyscan_app import models
 
 
 log = logging.getLogger(__name__)
-request_validator = models.RequestValidator()
-request_page_helper = models.RequestPageHelper()
+request_view_helper = models.RequestViewHelper()
 barcode_view_helper = models.BarcodeViewHelper()
 
 
@@ -28,13 +27,13 @@ def js( request ):
 
 def request_def( request ):
     """ Either displays login buttons, or a form to specify requested scan-content. """
-    https_check = request_validator.check_https(
+    https_check = request_view_helper.check_https(
         request.is_secure(), request.get_host(), request.get_full_path() )
     if https_check[u'is_secure'] == False:
         return HttpResponseRedirect( https_check[u'redirect_url'] )
     if not u'authz_info' in request.session:
         request.session[u'authz_info'] = { u'authorized': False }
-    data_dict = request_page_helper.build_data_dict( request )
+    data_dict = request_view_helper.build_data_dict( request )
     if request.session[u'authz_info'][u'authorized'] == False:
         return render( request, u'easyscan_app_templates/request_login.html', data_dict )
     else:
