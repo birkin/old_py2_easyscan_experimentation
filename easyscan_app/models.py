@@ -51,7 +51,7 @@ class BarcodeValidator( object ):
         """ Controller function: calls request, parse, and evaluate functions. """
         raw_data = self.grab_raw_data( barcode )
         log.debug( u'in BarcodeValidator.check_barcode(); raw_data, `%s`' % raw_data )
-        if (u'403 Forbidden' in raw_data) or raw_data.startswith( u'Exception' ):
+        if ( u'403 Forbidden' in raw_data ) or ( u'Invalid patron barcode' in raw_data ) or ( raw_data.startswith(u'Exception') ):
             return { u'validity': u'invalid', u'error': raw_data }
         parsed_data = self.parse_raw_data( raw_data )
         evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
