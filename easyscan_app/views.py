@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging, os
+import logging, os, pprint
 # from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -50,6 +50,9 @@ def barcode_login( request ):
     log.debug( u'in barcode_login()' )
     if request.method == u'POST':
         return_response = barcode_view_helper.handle_post( request )
+        log.debug( u'in barcode_login(); request.session[authz_info], `%s`' % pprint.pformat(request.session[u'authz_info']) )
+        log.debug( u'in barcode_login(); request.session[user_info], `%s`' % pprint.pformat(request.session[u'user_info']) )
+        log.debug( u'in barcode_login(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return return_response
     else:
         data_dict = {
