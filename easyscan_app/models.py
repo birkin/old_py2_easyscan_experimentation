@@ -43,8 +43,9 @@ class BarcodeViewHelper( object ):
     def handle_post( self, request ):
         """ Evaluates barcode-page POST; returns response.
             Called by views.barcode_login() """
+        log.debug( u'in BarcodeViewHelper.handle_post(); patron_barcode, `%s`' % request.POST.get(u'patron_barcode', u'') )
         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
-        barcode_check = barcode_validator.check_barcode( request.POST.get(u'barcode', u''), request.POST.get(u'name', u'') )
+        barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.POST.get(u'name', u'') )
         if barcode_check[u'validity'] == u'valid':
             request.session[u'authz_info'][u'authorized'] = True
             request.session[u'user_info'] = { u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
