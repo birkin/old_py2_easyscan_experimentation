@@ -69,11 +69,23 @@ class BarcodeValidator( object ):
             Called by views.barcode_login() """
         raw_data = self.grab_raw_data( barcode )
         log.debug( u'in BarcodeValidator.check_barcode(); raw_data, `%s`' % raw_data )
-        if ( u'403 Forbidden' in raw_data ) or ( u'Invalid patron barcode' in raw_data ) or ( raw_data.startswith(u'Exception') ):
-            return { u'validity': u'invalid', u'error': raw_data }
+        for condition in self.get_bad_conditions( raw_data ):
+            if condition == True:
+                return { u'validity': u'invalid', u'error': raw_data }
         parsed_data = self.parse_raw_data( raw_data )
         evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
         return evaluation_dict
+
+    def get_bad_conditions( self, raw_data ):
+        """ Returns list of invalid conditions.
+            Called by check_barcode() """
+        bad_conditions = [
+            ( u'403 Forbidden' in raw_data ),
+            ( u'Invalid patron barcode' in raw_data ),
+            ( u'Requested record not found' in raw_data ),
+            ( raw_data.startswith(u'Exception') )
+            ]
+        return bad_conditions
 
     def grab_raw_data( self, barcode ):
         """ Hits api; returns raw data.
