@@ -50,8 +50,8 @@ def barcode_login( request ):
         Redirects to request form on success. """
     log.debug( u'in barcode_login()' )
     if request.method == u'POST':
-        response = barcode_view_helper.handle_post( request )
-        return response
+        return_response = barcode_view_helper.handle_post( request )
+        return return_response
     else:
         data_dict = {
             u'title': request.GET.get( u'title', u'' ),

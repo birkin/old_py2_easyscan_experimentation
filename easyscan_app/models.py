@@ -47,9 +47,12 @@ class BarcodeViewHelper( object ):
         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
         barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.POST.get(u'name', u'') )
         if barcode_check[u'validity'] == u'valid':
+            log.debug( u'in BarcodeViewHelper.handle_post(); barcode_check passed' )
             request.session[u'authz_info'][u'authorized'] = True
             request.session[u'user_info'] = { u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
+            log.debug( u'in BarcodeViewHelper.handle_post(); request.session updated' )
             redirect_url = u'https://%s%s' % ( request.get_host(), reverse(u'request_url') )
+            log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
             return_response = HttpResponseRedirect( redirect_url )
         else:
             return_response = HttpResponse( u'submitted data will be handled here.' )
@@ -66,14 +69,14 @@ class BarcodeValidator( object ):
 
     def check_barcode( self, barcode, name ):
         """ Controller function: calls request, parse, and evaluate functions.
-            Called by views.barcode_login() """
+            Called by models.BarcodeViewHelper.handle_post() """
         raw_data = self.grab_raw_data( barcode )
         for condition in self.get_bad_conditions( raw_data ):
             if condition == True:
                 return { u'validity': u'invalid', u'error': raw_data }
         parsed_data = self.parse_raw_data( raw_data )
         evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
-        log.debug( u'in BarcodeValidator.check_barcode();returning evaluation_dict' )
+        log.debug( u'in BarcodeValidator.check_barcode(); returning evaluation_dict' )
         return evaluation_dict
 
     def get_bad_conditions( self, raw_data ):
