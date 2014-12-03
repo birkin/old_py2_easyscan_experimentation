@@ -48,7 +48,8 @@ class BarcodeValidator( object ):
         self.api_root_url = os.environ.get(u'EZSCAN__PATRONAPI_ROOT_URL', u'')
 
     def check_barcode( self, barcode, name ):
-        """ Controller function: calls request, parse, and evaluate functions. """
+        """ Controller function: calls request, parse, and evaluate functions.
+            Called by views.barcode_login() """
         raw_data = self.grab_raw_data( barcode )
         log.debug( u'in BarcodeValidator.check_barcode(); raw_data, `%s`' % raw_data )
         if ( u'403 Forbidden' in raw_data ) or ( u'Invalid patron barcode' in raw_data ) or ( raw_data.startswith(u'Exception') ):
@@ -58,6 +59,8 @@ class BarcodeValidator( object ):
         return evaluation_dict
 
     def grab_raw_data( self, barcode ):
+        """ Hits api; returns raw data.
+            Called by check_barcode() """
         try:
             url = u'%s/%s/dump' % ( self.api_root_url, barcode )
             r = requests.get( url, timeout=10 )
@@ -67,6 +70,8 @@ class BarcodeValidator( object ):
         return raw_data
 
     def parse_raw_data( self, raw_data ):
+        """ Extracts name and email elements from raw_data; returns dict.
+            Called by check_barcode() """
         lines = raw_data.split( u'\n' )
         parsed_data = {}
         for line in lines:
@@ -80,25 +85,31 @@ class BarcodeValidator( object ):
         return parsed_data
 
     def parse_name( self, name_line ):
+        """ Takes raw name line; returns name data.
+            Called by parse_raw_data() """
         start_position = len( u'PATRN NAME[pn]=' )
         end_position = name_line.find( u'<BR>' )
         name = name_line[start_position:end_position]
         return name
 
     def parse_email( self, email_line ):
+        """ Takes raw email line; returns email data.
+            Called by parse_raw_data() """
         start_position = len( u'E-MAIL[pe]=' )
         end_position = email_line.find( u'<BR>' )
         email = email_line[start_position:end_position].lower()
         return email
 
     def evaluate_parsed_data( self, parsed_data, name ):
+        """ Takes parsed_data dict and submitted name string; returns dict.
+            Called by check_barcode() """
         all_parts = []
         last_first_elements = parsed_data[u'name'].split( u',' )  # 'last, first middle' becomes ['last', 'first middle']
         for element in last_first_elements:
             split_parts = element.strip().split()
             for part in split_parts:
                 all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
-        if name.lower() in all_parts:
+        if name.lower() in all_parts:  # the simple test
             evaluation_dict = { u'validity': u'valid', u'name': name, u'email': parsed_data[u'email'] }
         else:
             evaluation_dict = { u'validity': u'invalid' }
