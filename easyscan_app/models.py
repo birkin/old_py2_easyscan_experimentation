@@ -60,7 +60,7 @@ class BarcodeValidator( object ):
     def grab_raw_data( self, barcode ):
         try:
             url = u'%s/%s/dump' % ( self.api_root_url, barcode )
-            r = requests.get( url )
+            r = requests.get( url, timeout=10 )
             raw_data = r.content.decode( u'utf-8' )
         except Exception as e:
             raw_data = u'Exception, `%s`' % unicode(repr(e))
