@@ -68,12 +68,12 @@ class BarcodeValidator( object ):
         """ Controller function: calls request, parse, and evaluate functions.
             Called by views.barcode_login() """
         raw_data = self.grab_raw_data( barcode )
-        log.debug( u'in BarcodeValidator.check_barcode(); raw_data, `%s`' % raw_data )
         for condition in self.get_bad_conditions( raw_data ):
             if condition == True:
                 return { u'validity': u'invalid', u'error': raw_data }
         parsed_data = self.parse_raw_data( raw_data )
         evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
+        log.debug( u'in BarcodeValidator.check_barcode();returning evaluation_dict' )
         return evaluation_dict
 
     def get_bad_conditions( self, raw_data ):
@@ -85,6 +85,7 @@ class BarcodeValidator( object ):
             ( u'Requested record not found' in raw_data ),
             ( raw_data.startswith(u'Exception') )
             ]
+        log.debug( u'in BarcodeValidator.get_bad_conditions(); bad_conditions, `%s`' % bad_conditions )
         return bad_conditions
 
     def grab_raw_data( self, barcode ):
@@ -96,6 +97,7 @@ class BarcodeValidator( object ):
             raw_data = r.content.decode( u'utf-8' )
         except Exception as e:
             raw_data = u'Exception, `%s`' % unicode(repr(e))
+        log.debug( u'in BarcodeValidator.grab_raw_data(); raw_data, `%s`' % raw_data )
         return raw_data
 
     def parse_raw_data( self, raw_data ):
@@ -136,10 +138,10 @@ class BarcodeValidator( object ):
         last_first_elements = parsed_data[u'name'].split( u',' )  # 'last, first middle' becomes ['last', 'first middle']
         for element in last_first_elements:
             split_parts = element.strip().split()
-            for part in split_parts:
-                all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
+            for part in split_parts: all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
         if name.lower() in all_parts:  # the simple test
             evaluation_dict = { u'validity': u'valid', u'name': name, u'email': parsed_data[u'email'] }
         else:
             evaluation_dict = { u'validity': u'invalid' }
+        log.debug( u'in BarcodeValidator.evaluate_parsed_data(); evaluation_dict, `%s`' % evaluation_dict )
         return evaluation_dict
