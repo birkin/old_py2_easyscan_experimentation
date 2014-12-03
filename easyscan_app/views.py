@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging, os
-from django.core.urlresolvers import reverse
+# from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from easyscan_app import models
