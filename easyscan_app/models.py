@@ -25,14 +25,28 @@ class RequestViewHelper( object ):
         log.debug( u'in RequestValidator.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
 
+    def initialize_session( self, request ):
+        """ Initializes session vars if needed.
+            Called by views.request_def() """
+        if not u'authz_info' in request.session:
+            request.session[u'authz_info'] = { u'authorized': False }
+        if not u'user_info' in request.session:
+            request.session[u'user_info'] = { u'name': u'', u'email': u'' }
+        if not u'item_info' in request.session:
+            request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
+        return
+
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
             Called by views.request_def() """
         context = {
-            u'title': request.GET.get( u'title', u'' ),
-            u'callnumber': request.GET.get( u'callnumber', u'' ),
-            u'barcode': request.GET.get( u'barcode', u'' ),
-            }
+            u'title': request.GET.get(u'title', u''), u'callnumber': request.GET.get(u'callnumber', u''), u'barcode': request.GET.get(u'barcode', u'') }
+        if context[u'title'] == u'':
+            context[u'title'] = request.session[u'item_info'][u'title']
+        if context[u'callnumber'] == u'':
+            context[u'callnumber'] = request.session[u'item_info'][u'callnumber']
+        if context[u'barcode'] == u'':
+            context[u'barcode'] = request.session[u'item_info'][u'barcode']
         log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % context )
         return context
 
@@ -44,22 +58,28 @@ class BarcodeViewHelper( object ):
     def handle_post( self, request ):
         """ Evaluates barcode-page POST; returns response.
             Called by views.barcode_login() """
-        log.debug( u'in BarcodeViewHelper.handle_post(); patron_barcode, `%s`' % request.POST.get(u'patron_barcode', u'') )
         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
         barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.POST.get(u'name', u'') )
         if barcode_check[u'validity'] == u'valid':
-            log.debug( u'in BarcodeViewHelper.handle_post(); barcode_check passed' )
-            request.session[u'authz_info'][u'authorized'] = True
-            request.session[u'user_info'] = { u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
-            log.debug( u'in BarcodeViewHelper.handle_post(); request.session updated' )
+            self.update_session( request, barcode_check )
             redirect_url = u'https://%s%s' % ( request.get_host(), reverse(u'request_url') )
-            log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
             return_response = HttpResponseRedirect( redirect_url )
         else:
             return_response = HttpResponse( u'submitted data will be handled here.' )
         log.debug( u'in BarcodeViewHelper.handle_post(); barcode_check, `%s`' % barcode_check )
         return return_response
 
+    def update_session( self, request, barcode_check ):
+        """ Updates session after successful barcode authentication.
+            Called by handle_post() """
+        request.session[u'authz_info'][u'authorized'] = True
+        request.session[u'user_info'] = {
+            u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
+        request.session[u'item_ifo'] = {
+            u'callnumber': request.POST.get(u'callnumber', u''),
+            u'barcode': request.POST[u'barcode'],
+            u'title': request.POST.get(u'title', u'') }
+        return
 
 class BarcodeValidator( object ):
     """ Container for helpers to check submitted patron barcode & name.
