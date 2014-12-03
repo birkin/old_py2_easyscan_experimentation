@@ -3,6 +3,7 @@
 import logging, os
 import requests
 from django.db import models
+from django.http import HttpResponse, HttpResponseRedirect
 
 
 log = logging.getLogger(__name__)
@@ -38,6 +39,26 @@ class RequestPageHelper( object ):
             }
         log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % context )
         return context
+
+
+class BarcodeViewHelper( object ):
+    """ Container for views.barcode_login() helpers.
+        Non-django, plain-python model. """
+
+    def handle_post( self, request ):
+        """ Evaluates barcode-page POST; returns response.
+            Called by views.barcode_login() """
+        ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
+        barcode_check = barcode_validator.check_barcode( request.POST.get(u'barcode', u''), request.POST.get(u'name', u'') )
+        if barcode_check[u'validity'] == u'valid':
+            request.session[u'authz_info'][u'authorized'] = True
+            request.session[u'user_info'] = { u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
+            redirect_url = u'https://%s%s' % ( request.get_host(), reverse(u'request_url') )
+            return_response = HttpResponseRedirect( redirect_url )
+        else:
+            return_response = HttpResponse( u'submitted data will be handled here.' )
+        log.debug( u'in BarcodeViewHelper.handle_post(); barcode_check, `%s`' % barcode_check )
+        return return_response
 
 
 class BarcodeValidator( object ):
