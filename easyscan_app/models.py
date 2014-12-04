@@ -5,9 +5,30 @@ import requests
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
+from django.utils.encoding import smart_unicode
 
 
 log = logging.getLogger(__name__)
+
+
+## db models ##
+
+
+class ScanRequest( models.Model ):
+    """ Contains user & item data. """
+    item_title = models.CharField( blank=True, max_length=200 )
+    item_barcode = models.CharField( blank=True, max_length=50 )
+    item_callnumber = models.CharField( blank=True, max_length=200 )
+    item_custom_info = models.TextField( blank=True )
+    patron_name = models.CharField( blank=True, max_length=100 )
+    patron_barcode = models.CharField( blank=True, max_length=50 )
+    patron_email = models.CharField( blank=True, max_length=100 )
+
+    def __unicode__(self):
+        return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
+
+
+## non db models below  ##
 
 
 class RequestViewHelper( object ):
