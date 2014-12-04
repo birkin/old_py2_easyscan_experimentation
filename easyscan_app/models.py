@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging, os
+import logging, os, pprint
 import requests
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -34,20 +34,23 @@ class RequestViewHelper( object ):
             request.session[u'user_info'] = { u'name': u'', u'email': u'' }
         if not u'item_info' in request.session:
             request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
+        for key in [ u'callnumber', u'barcode', u'title' ]:
+            if request.session[u'item_info'][key] == u'':
+                request.session[u'item_info'][key] = request.GET.get( key, u'' )
+        log.debug( u'in barcode_login(); request.session[authz_info], `%s`' % pprint.pformat(request.session[u'authz_info']) )
+        log.debug( u'in barcode_login(); request.session[user_info], `%s`' % pprint.pformat(request.session[u'user_info']) )
+        log.debug( u'in barcode_login(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
             Called by views.request_def() """
         context = {
-            u'title': request.GET.get(u'title', u''), u'callnumber': request.GET.get(u'callnumber', u''), u'barcode': request.GET.get(u'barcode', u'') }
-        if context[u'title'] == u'':
-            context[u'title'] = request.session[u'item_info'][u'title']
-        if context[u'callnumber'] == u'':
-            context[u'callnumber'] = request.session[u'item_info'][u'callnumber']
-        if context[u'barcode'] == u'':
-            context[u'barcode'] = request.session[u'item_info'][u'barcode']
-        log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % context )
+            u'title': request.session[u'item_info'][u'title'],
+            u'callnumber': request.session[u'item_info'][u'callnumber'],
+            u'barcode': request.session[u'item_info'][u'barcode']
+            }
+        log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
 
 
