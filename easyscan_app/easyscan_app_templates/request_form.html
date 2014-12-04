@@ -52,7 +52,9 @@ easyScan request
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
         <textarea rows="4" cols="50"></textarea>
-        <input type="submit" value="Submit Scan Request">
+        <div>
+            <input type="submit" value="Submit Scan Request">
+        </div>
     </form>
 
 </div>
