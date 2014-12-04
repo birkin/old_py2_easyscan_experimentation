@@ -15,6 +15,6 @@ urlpatterns = patterns('',
 
     url( r'^confirmation/$',  'easyscan_app.views.confirmation', name=u'confirmation_url' ),
 
-    url( r'^$', RedirectView.as_view(pattern_name='request_url') ),
+    url( r'^$',  RedirectView.as_view(pattern_name=u'request_url') ),
 
     )

@@ -38,6 +38,8 @@ easyScan request
        color:#999; }
     div#info {
        margin-top: 2em; }
+    div#input {
+        margin-top: 1em; }
 </style>
 
  <h1>easyScan request</h1>
@@ -52,7 +54,7 @@ easyScan request
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
         <textarea rows="4" cols="50"></textarea>
-        <div>
+        <div id="input">
             <input type="submit" value="Submit Scan Request">
         </div>
     </form>
