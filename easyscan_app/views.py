@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging, os, pprint
-# from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from easyscan_app import models
@@ -31,13 +31,20 @@ def request_def( request ):
         request.is_secure(), request.get_host(), request.get_full_path() )
     if https_check[u'is_secure'] == False:
         return HttpResponseRedirect( https_check[u'redirect_url'] )
-    request_view_helper.initialize_session( request )
-    data_dict = request_view_helper.build_data_dict( request )
-    log.debug( u'in request_def(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
-    if request.session[u'authz_info'][u'authorized'] == False:
-        return render( request, u'easyscan_app_templates/request_login.html', data_dict )
-    else:
-        return render( request, u'easyscan_app_templates/request_form.html', data_dict )
+    if request.method == u'GET':
+        request_view_helper.initialize_session( request )
+        data_dict = request_view_helper.build_data_dict( request )
+        log.debug( u'in request_def(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+        if request.session[u'authz_info'][u'authorized'] == False:
+            return render( request, u'easyscan_app_templates/request_login.html', data_dict )
+        else:
+            return render( request, u'easyscan_app_templates/request_form.html', data_dict )
+    else:  # POST of form
+        ## save data here
+        request.session[u'authz_info'][u'authorized'] = False
+        scheme = u'https' if request.is_secure() else u'http'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+        return  HttpResponseRedirect( redirect_url )
 
 
 def shib_login( request ):
@@ -62,3 +69,13 @@ def barcode_login( request ):
             }
         log.debug( u'in barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
+
+
+def confirmation( request ):
+    data_dict = {
+        u'title': request.session[u'item_info'][u'title'],
+        u'callnumber': request.session[u'item_info'][u'callnumber'],
+        u'barcode': request.session[u'item_info'][u'barcode'],
+        u'email': request.session[u'user_info'][u'email']
+        }
+    return render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )

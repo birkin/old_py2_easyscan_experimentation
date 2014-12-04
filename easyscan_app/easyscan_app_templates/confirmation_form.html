@@ -1,7 +1,7 @@
 {% extends "easyscan_app_templates/base.html" %}
 
 {% block page_title %}
-easyScan request
+easyScan confirmation
 {% endblock page_title %}
 
 
@@ -12,7 +12,7 @@ easyScan request
         font-size: 2.5em;
         margin-top: 2em;
         text-transform: none }
-    h3#please {
+    h3#main_title {
         font-size: 1.5em;
         color: maroon;
         margin-top: 2em; }
@@ -36,33 +36,24 @@ easyScan request
        float:left;
        margin-left:2em;
        color:#999; }
-    p#or {
-        margin-top: 2em; }
+    div#info {
+       margin-top: 2em; }
 </style>
 
- <h1>easyScan request</h1>
+ <h1>easyScan confirmation</h1>
 
-<h3 id="please">Please submit page-range and additional information...</h3>
+<h3 id="main_title">All set!</h3>
 
 <div id="info">
-<p>This scanning service allows Brown University Library patrons to request scans of up to 30 pages for an item.</p>
-</div>
-
-<div id="form">
-
-    <form id="citation_form" action="/easyscan/request/" method="POST">
-        <textarea rows="4" cols="50">
-        </textarea>
-        <input type="submit" value="Request Scan">
-    </form>
-
+<p>Your scan-request has been submitted and should be processed within one business day.</p>
+<p>It will be emailed to &lt;{{ email }}&gt;.</p>
 </div>
 
 <hr/>
 
 <div id="requested_item">
 
-    <p>You're requesting a scan for part of …</p>
+    <p>You requested a scan for part of …</p>
     <br/>
     <dl>
         <dt>title:</dt>

@@ -95,6 +95,8 @@ TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
 
 # sessions
 
+# <https://docs.djangoproject.com/en/1.6/ref/settings/#std:setting-SESSION_SAVE_EVERY_REQUEST>
+# Thinking: not that many concurrent users, and no pages where session info isn't required, so overhead is reasonable.
 SESSION_SAVE_EVERY_REQUEST = True
 
 
