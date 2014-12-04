@@ -52,7 +52,7 @@ class RequestViewHelper( object ):
         if not u'authz_info' in request.session:
             request.session[u'authz_info'] = { u'authorized': False }
         if not u'user_info' in request.session:
-            request.session[u'user_info'] = { u'name': u'', u'email': u'' }
+            request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         if not u'item_info' in request.session:
             request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
         for key in [ u'callnumber', u'barcode', u'title' ]:  # ensures new url always updates session
@@ -93,7 +93,7 @@ class BarcodeViewHelper( object ):
         if barcode_check[u'validity'] == u'valid':
             request.session[u'authz_info'][u'authorized'] = True
             request.session[u'user_info'] = {
-                u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
+                u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
             request.session[u'barcode_login_info'][u'name'] = u''
             request.session[u'barcode_login_info'][u'error'] = u''
             redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )

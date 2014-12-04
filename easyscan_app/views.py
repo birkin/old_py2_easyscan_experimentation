@@ -41,15 +41,18 @@ def request_def( request ):
             return render( request, u'easyscan_app_templates/request_form.html', data_dict )
     else:  # POST of form
         ## save data here
-        scnrqst = models.ScanRequest()
-        scnrqst.item_title = request.session[u'item_info'][u'title']
-        scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
-        scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
-        scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
-        scnrqst.patron_name = request.session[u'user_info'][u'name']
-        scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
-        scnrqst.patron_email = request.session[u'user_info'][u'email']
-        scnrqst.save()
+        try:
+            scnrqst = models.ScanRequest()
+            scnrqst.item_title = request.session[u'item_info'][u'title']
+            scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
+            scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
+            scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
+            scnrqst.patron_name = request.session[u'user_info'][u'name']
+            scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
+            scnrqst.patron_email = request.session[u'user_info'][u'email']
+            scnrqst.save()
+        except Exception as e:
+            log.debug( u'in request_def(); exception, `%s`' % unicode(repr(e)) )
         request.session[u'authz_info'][u'authorized'] = False
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
