@@ -49,7 +49,7 @@ def request_def( request ):
 
 def shib_login( request ):
     log.debug( u'in shib_login()' )
-    return HttpResponse( u'will handle shib-login' )
+    return HttpResponse( u'will handle shib-login; barcode-login has been implemented, try that for now' )
 
 
 def barcode_login( request ):
