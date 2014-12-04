@@ -57,7 +57,8 @@ def barcode_login( request ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
-            u'login_error': request.session[u'barcode_login_info'][u'error']
+            u'login_error': request.session[u'barcode_login_info'][u'error'],
+            u'login_name': request.session[u'barcode_login_info'][u'name']
             }
         log.debug( u'in barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )

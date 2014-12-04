@@ -57,7 +57,7 @@ easyScan barcode login
     <form id="barcode_login" action="/easyscan/barcode_login/" method="POST">{% csrf_token %}
         {% if login_error %}<p id="login_error">Error: {{ login_error }}</p>{% endif %}
         <p>First or Last Name:</p>
-        <input type="text" name="name">
+        <input type="text" name="name" value="{{ login_name }}">
         <br/>
         <br/>
         <p>Barcode:</p>
