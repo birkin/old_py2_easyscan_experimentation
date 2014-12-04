@@ -93,6 +93,11 @@ STATIC_URL = os.environ['EZSCAN__STATIC_URL']
 TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
 
 
+# sessions
+
+SESSION_SAVE_EVERY_REQUEST = True
+
+
 # logging
 
 LOGGING = {

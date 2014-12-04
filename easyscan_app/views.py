@@ -33,6 +33,7 @@ def request_def( request ):
         return HttpResponseRedirect( https_check[u'redirect_url'] )
     request_view_helper.initialize_session( request )
     data_dict = request_view_helper.build_data_dict( request )
+    log.debug( u'in request_def(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
     if request.session[u'authz_info'][u'authorized'] == False:
         return render( request, u'easyscan_app_templates/request_login.html', data_dict )
     else:
@@ -47,16 +48,16 @@ def shib_login( request ):
 def barcode_login( request ):
     """ Displays barcode login form.
         Redirects to request form on success. """
-    log.debug( u'in barcode_login()' )
+    log.debug( u'in barcode_login(); request.session[barcode_login_info], `%s`' % pprint.pformat(request.session[u'barcode_login_info']) )
     if request.method == u'POST':
         return_response = barcode_view_helper.handle_post( request )
-        log.debug( u'in barcode_login(); request.session[authz_info], `%s`' % pprint.pformat(request.session[u'authz_info']) )
-        log.debug( u'in barcode_login(); request.session[user_info], `%s`' % pprint.pformat(request.session[u'user_info']) )
-        log.debug( u'in barcode_login(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return return_response
     else:
         data_dict = {
-            u'title': request.GET.get( u'title', u'' ),
-            u'callnumber': request.GET.get( u'callnumber', u'' ),
-            u'barcode': request.GET.get( u'barcode', u'' ) }
+            u'title': request.session[u'item_info'][u'title'],
+            u'callnumber': request.session[u'item_info'][u'callnumber'],
+            u'barcode': request.session[u'item_info'][u'barcode'],
+            u'login_error': request.session[u'barcode_login_info'][u'error']
+            }
+        log.debug( u'in barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )

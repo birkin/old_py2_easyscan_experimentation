@@ -37,9 +37,11 @@ class RequestViewHelper( object ):
         for key in [ u'callnumber', u'barcode', u'title' ]:
             if request.session[u'item_info'][key] == u'':
                 request.session[u'item_info'][key] = request.GET.get( key, u'' )
-        log.debug( u'in barcode_login(); request.session[authz_info], `%s`' % pprint.pformat(request.session[u'authz_info']) )
-        log.debug( u'in barcode_login(); request.session[user_info], `%s`' % pprint.pformat(request.session[u'user_info']) )
-        log.debug( u'in barcode_login(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+        if not u'barcode_login_info' in request.session:
+            request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
+        else:
+            request.session[u'barcode_login_info'][u'error'] = u''
+        log.debug( u'in RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
     def build_data_dict( self, request ):
@@ -62,27 +64,27 @@ class BarcodeViewHelper( object ):
         """ Evaluates barcode-page POST; returns response.
             Called by views.barcode_login() """
         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
-        barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.POST.get(u'name', u'') )
+        request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
+        log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after name inserted, `%s`' % request.session[u'barcode_login_info'] )
+        barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
+        scheme = u'https' if request.is_secure() else u'http'
         if barcode_check[u'validity'] == u'valid':
-            self.update_session( request, barcode_check )
-            redirect_url = u'https://%s%s' % ( request.get_host(), reverse(u'request_url') )
-            return_response = HttpResponseRedirect( redirect_url )
+            request.session[u'authz_info'][u'authorized'] = True
+            request.session[u'user_info'] = {
+                u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
+            request.session[u'barcode_login_info'][u'name'] = u''
+            request.session[u'barcode_login_info'][u'error'] = u''
+            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
         else:
-            return_response = HttpResponse( u'submitted data will be handled here.' )
-        log.debug( u'in BarcodeViewHelper.handle_post(); barcode_check, `%s`' % barcode_check )
+            log.debug( u'in BarcodeViewHelper.handle_post(); about to update session object with error string' )
+            request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
+            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
+        log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after error inserted, `%s`' % request.session[u'barcode_login_info'] )
+        log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
+        return_response = HttpResponseRedirect( redirect_url )
+        log.debug( u'in BarcodeViewHelper.handle_post(); returning' )
         return return_response
 
-    def update_session( self, request, barcode_check ):
-        """ Updates session after successful barcode authentication.
-            Called by handle_post() """
-        request.session[u'authz_info'][u'authorized'] = True
-        request.session[u'user_info'] = {
-            u'name': barcode_check[u'name'], u'email': barcode_check[u'email'] }
-        request.session[u'item_ifo'] = {
-            u'callnumber': request.POST.get(u'callnumber', u''),
-            u'barcode': request.POST[u'barcode'],
-            u'title': request.POST.get(u'title', u'') }
-        return
 
 class BarcodeValidator( object ):
     """ Container for helpers to check submitted patron barcode & name.

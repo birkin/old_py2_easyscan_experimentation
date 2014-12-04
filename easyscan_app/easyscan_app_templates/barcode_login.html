@@ -43,6 +43,9 @@ easyScan barcode login
     p#barcode_help {
         color: gray;
         margin-top:.25em; }
+    p#login_error {
+        color: red;
+        margin-bottom: 1em; }
 </style>
 
  <h1>easyScan request</h1>
@@ -52,6 +55,7 @@ easyScan barcode login
 <div id="form">
 
     <form id="barcode_login" action="/easyscan/barcode_login/" method="POST">{% csrf_token %}
+        {% if login_error %}<p id="login_error">Error: {{ login_error }}</p>{% endif %}
         <p>First or Last Name:</p>
         <input type="text" name="name">
         <br/>
@@ -59,9 +63,6 @@ easyScan barcode login
         <p>Barcode:</p>
         <p id="barcode_help">( 14-digit barcode, beginning with 21236... )</p>
         <input type="text" name="patron_barcode">
-        <input type="hidden" name="title" value="{{ title }}">
-        <input type="hidden" name="callnumber" value="{{ callnumber }}">
-        <input type="hidden" name="barcode" value="{{ barcode }}">
         <input type="submit" value="Login" id="login_button">
     </form>
 
