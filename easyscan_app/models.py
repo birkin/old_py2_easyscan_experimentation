@@ -34,9 +34,10 @@ class RequestViewHelper( object ):
             request.session[u'user_info'] = { u'name': u'', u'email': u'' }
         if not u'item_info' in request.session:
             request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
-        for key in [ u'callnumber', u'barcode', u'title' ]:
-            if request.session[u'item_info'][key] == u'':
-                request.session[u'item_info'][key] = request.GET.get( key, u'' )
+        for key in [ u'callnumber', u'barcode', u'title' ]:  # ensures new url always updates session
+            value = request.GET.get( key, u'' )
+            if value:
+                request.session[u'item_info'][key] = value
         if not u'barcode_login_info' in request.session:
             request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
         else:
