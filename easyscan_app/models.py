@@ -23,6 +23,8 @@ class ScanRequest( models.Model ):
     patron_name = models.CharField( blank=True, max_length=100 )
     patron_barcode = models.CharField( blank=True, max_length=50 )
     patron_email = models.CharField( blank=True, max_length=100 )
+    create_datetime = models.DateTimeField( auto_now_add=True, blank=True )  # blank=True for backward compatibility
+    las_conversion = models.TextField( blank=True )
 
     def __unicode__(self):
         return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
