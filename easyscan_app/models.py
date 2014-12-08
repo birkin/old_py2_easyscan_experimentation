@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging, os, pprint
+import csv, datetime, logging, os, pprint, StringIO
 import requests
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -29,8 +29,55 @@ class ScanRequest( models.Model ):
     def __unicode__(self):
         return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
 
+    def save(self):
+        super( ScanRequest, self ).save() # Call the "real" save() method
+        maker = LasDataMaker()
+        las_string = maker.make_csv_string(
+            self.item_barcode, self.patron_name, self.patron_barcode, self.item_title, self.create_datetime, self.item_custom_info )
+        self.las_conversion = las_string
+        super( ScanRequest, self ).save() # Call the "real" save() method
+
 
 ## non db models below  ##
+
+
+class LasDataMaker( object ):
+    """ Container for code to make comma-delimited las string.
+        Non-django, plain-python model. """
+
+    def make_csv_string(
+        self, item_barcode, patron_name, patron_barcode, item_title, date_string, item_custom_info ):
+        """ Makes and returns csv string from database data.
+            Called by ScanRequest.save() """
+        modified_date_string = self.make_date_string( date_string )
+        utf8_data_list = self.make_utf8_data_list(
+            modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info )
+        utf8_csv_string = self.make_utf8_csv_string( utf8_data_list )
+        csv_string = utf8_csv_string.decode( u'utf-8' )
+        return csv_string
+
+    def make_date_string( self, date_string ):
+        return unicode( date_string )
+
+    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info ):
+        utf8_data_list = [
+            'coming',
+            item_barcode.encode( u'utf-8', u'replace' ),
+            patron_name.encode( u'utf-8', u'replace' ),
+            patron_barcode.encode( u'utf-8', u'replace' ),
+            item_title.encode( u'utf-8', u'replace' ),
+            modified_date_string.encode( u'utf-8', u'replace' ),
+            item_custom_info.encode( u'utf-8', u'replace' ),
+            ]
+        return utf8_data_list
+
+    def make_utf8_csv_string( self, utf8_data_list ):
+        output = StringIO.StringIO()
+        out = csv.writer( output, delimiter=',', quoting=csv.QUOTE_ALL )
+        out.writerow( utf8_data_list )
+        csv_string = output.getvalue()
+        output.close()
+        return csv_string
 
 
 class RequestViewHelper( object ):
