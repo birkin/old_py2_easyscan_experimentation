@@ -52,31 +52,41 @@ class LasDataMaker( object ):
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
             modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info )
-        utf8_csv_string = self.make_utf8_csv_string( utf8_data_list )
+        utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_string = utf8_csv_string.decode( u'utf-8' )
         return csv_string
 
     def make_date_string( self, date_string ):
+        """ Will convert datetime-stamp to date format required by LAS. """
         return unicode( date_string )
 
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info ):
+        """ Assembles data elements in order required by LAS.
+            Called by make_csv_string() """
         utf8_data_list = [
-            'coming',
+            'item_id_not_applicable',
             item_barcode.encode( u'utf-8', u'replace' ),
+            'ED',
+            'QS',
             patron_name.encode( u'utf-8', u'replace' ),
             patron_barcode.encode( u'utf-8', u'replace' ),
             item_title.encode( u'utf-8', u'replace' ),
             modified_date_string.encode( u'utf-8', u'replace' ),
-            item_custom_info.encode( u'utf-8', u'replace' ),
-            ]
+            item_custom_info.encode( u'utf-8', u'replace' ), ]
         return utf8_data_list
 
-    def make_utf8_csv_string( self, utf8_data_list ):
-        output = StringIO.StringIO()
-        out = csv.writer( output, delimiter=',', quoting=csv.QUOTE_ALL )
-        out.writerow( utf8_data_list )
-        csv_string = output.getvalue()
-        output.close()
+    def utf8list_to_utf8csv( self, utf8_data_list ):
+        """ Converts list into utf8 string.
+            Called by make_csv_string()
+            Note; this python2 csv module requires utf-8 strings. """
+        for entry in utf8_data_list:
+            if not type(entry) == str:
+                raise Exception( u'entry `%s` not of type str' % unicode(repr(entry)) )
+        io = StringIO.StringIO()
+        writer = csv.writer( io, delimiter=',', quoting=csv.QUOTE_ALL )
+        writer.writerow( utf8_data_list )
+        csv_string = io.getvalue()
+        io.close()
         return csv_string
 
 
