@@ -7,9 +7,12 @@ from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.encoding import smart_unicode
+from easyscan_app.lib.magic_bus import Prepper, Sender
 
 
 log = logging.getLogger(__name__)
+prepper = Prepper()
+sender = Sender()
 
 
 ## db models ##
@@ -176,6 +179,15 @@ class RequestViewHelper( object ):
             scnrqst.save()
         except Exception as e:
             log.debug( u'in models.RequestPageHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
+        return
+
+    def transfer_data( self, scnrqst ):
+        """ Transfers data.
+            Called by views.request_def() """
+        ( data_filename, count_filename ) = prepper.make_data_files(
+            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        sender.transfer_files( data_filename, count_filename )
+        log.debug( u'in models.RequestPageHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         return
 
 
