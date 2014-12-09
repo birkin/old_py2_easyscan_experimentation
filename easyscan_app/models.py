@@ -294,6 +294,7 @@ class BarcodeValidator( object ):
         start_position = len( u'PATRN NAME[pn]=' )
         end_position = name_line.find( u'<BR>' )
         name = name_line[start_position:end_position]
+        log.debug( u'in BarcodeValidator.parse_name(); name, `%s`' % name )
         return name
 
     def parse_email( self, email_line ):
@@ -313,7 +314,7 @@ class BarcodeValidator( object ):
             split_parts = element.strip().split()
             for part in split_parts: all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
         if name.lower() in all_parts:  # the simple test
-            evaluation_dict = { u'validity': u'valid', u'name': name, u'email': parsed_data[u'email'] }
+            evaluation_dict = { u'validity': u'valid', u'name': parsed_data[u'name'], u'email': parsed_data[u'email'] }
         else:
             evaluation_dict = { u'validity': u'invalid' }
         log.debug( u'in BarcodeValidator.evaluate_parsed_data(); evaluation_dict, `%s`' % evaluation_dict )
