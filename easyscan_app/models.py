@@ -5,6 +5,7 @@ import requests
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.encoding import smart_unicode
 
 
@@ -94,9 +95,23 @@ class RequestViewHelper( object ):
     """ Container for views.request_def() helpers.
         Non-django, plain-python model. """
 
+    def handle_get( self, request ):
+        """ Handles request-page GET; returns response. """
+        https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
+        if https_check[u'is_secure'] == False:
+            return_response = HttpResponseRedirect( https_check[u'redirect_url'] )
+            return return_response
+        self.initialize_session( request )
+        if request.session[u'authz_info'][u'authorized'] == False:
+            return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
+        else:
+            return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+        log.debug( u'in RequestViewHelper.handle_get(); returning' )
+        return return_response
+
     def check_https( self, is_secure, get_host, full_path ):
         """ Checks for https; returns dict with result and redirect-url.
-            Called by views.request_def() """
+            Called by handle_get() """
         if (is_secure == False) and (get_host != u'127.0.0.1'):
             redirect_url = u'https://%s%s' % ( get_host, full_path )
             return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
@@ -107,7 +122,7 @@ class RequestViewHelper( object ):
 
     def initialize_session( self, request ):
         """ Initializes session vars if needed.
-            Called by views.request_def() """
+            Called by handle_get() """
         if not u'authz_info' in request.session:
             request.session[u'authz_info'] = { u'authorized': False }
         if not u'user_info' in request.session:
@@ -133,7 +148,7 @@ class RequestViewHelper( object ):
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
-            Called by views.request_def() """
+            Called by handle_get() """
         context = {
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],

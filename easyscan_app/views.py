@@ -24,21 +24,11 @@ def js( request ):
     js_unicode = js_unicode.replace( u'HOST', request.get_host() )
     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
 
-
 def request_def( request ):
     """ Either displays login buttons, or a form to specify requested scan-content. """
-    https_check = request_view_helper.check_https(
-        request.is_secure(), request.get_host(), request.get_full_path() )
-    if https_check[u'is_secure'] == False:
-        return HttpResponseRedirect( https_check[u'redirect_url'] )
     if request.method == u'GET':
-        request_view_helper.initialize_session( request )
-        data_dict = request_view_helper.build_data_dict( request )
-        log.debug( u'in request_def(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
-        if request.session[u'authz_info'][u'authorized'] == False:
-            return render( request, u'easyscan_app_templates/request_login.html', data_dict )
-        else:
-            return render( request, u'easyscan_app_templates/request_form.html', data_dict )
+        return_response = request_view_helper.handle_get( request )
+        return return_response
     else:  # POST of form
         ## save data here
         try:
@@ -57,6 +47,39 @@ def request_def( request ):
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
         return  HttpResponseRedirect( redirect_url )
+
+# def request_def( request ):
+#     """ Either displays login buttons, or a form to specify requested scan-content. """
+#     https_check = request_view_helper.check_https(
+#         request.is_secure(), request.get_host(), request.get_full_path() )
+#     if https_check[u'is_secure'] == False:
+#         return HttpResponseRedirect( https_check[u'redirect_url'] )
+#     if request.method == u'GET':
+#         request_view_helper.initialize_session( request )
+#         data_dict = request_view_helper.build_data_dict( request )
+#         log.debug( u'in request_def(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+#         if request.session[u'authz_info'][u'authorized'] == False:
+#             return render( request, u'easyscan_app_templates/request_login.html', data_dict )
+#         else:
+#             return render( request, u'easyscan_app_templates/request_form.html', data_dict )
+#     else:  # POST of form
+#         ## save data here
+#         try:
+#             scnrqst = models.ScanRequest()
+#             scnrqst.item_title = request.session[u'item_info'][u'title']
+#             scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
+#             scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
+#             scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
+#             scnrqst.patron_name = request.session[u'user_info'][u'name']
+#             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
+#             scnrqst.patron_email = request.session[u'user_info'][u'email']
+#             scnrqst.save()
+#         except Exception as e:
+#             log.debug( u'in request_def(); exception, `%s`' % unicode(repr(e)) )
+#         request.session[u'authz_info'][u'authorized'] = False
+#         scheme = u'https' if request.is_secure() else u'http'
+#         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+#         return  HttpResponseRedirect( redirect_url )
 
 
 def shib_login( request ):
