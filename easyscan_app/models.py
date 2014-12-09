@@ -131,26 +131,6 @@ class RequestViewHelper( object ):
                 request.session[u'item_info'][key] = value
         return
 
-    # def initialize_session( self, request ):
-    #     """ Initializes session vars if needed.
-    #         Called by views.request_def() """
-    #     if not u'authz_info' in request.session:
-    #         request.session[u'authz_info'] = { u'authorized': False }
-    #     if not u'user_info' in request.session:
-    #         request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
-    #     if not u'item_info' in request.session:
-    #         request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
-    #     for key in [ u'callnumber', u'barcode', u'title' ]:  # ensures new url always updates session
-    #         value = request.GET.get( key, u'' )
-    #         if value:
-    #             request.session[u'item_info'][key] = value
-    #     if not u'barcode_login_info' in request.session:
-    #         request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
-    #     else:
-    #         request.session[u'barcode_login_info'][u'error'] = u''
-    #     log.debug( u'in RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
-    #     return
-
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
             Called by views.request_def() """
@@ -172,25 +152,59 @@ class BarcodeViewHelper( object ):
             Called by views.barcode_login() """
         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
         request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
-        log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after name inserted, `%s`' % request.session[u'barcode_login_info'] )
         barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
         scheme = u'https' if request.is_secure() else u'http'
         if barcode_check[u'validity'] == u'valid':
-            request.session[u'authz_info'][u'authorized'] = True
-            request.session[u'user_info'] = {
-                u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
-            request.session[u'barcode_login_info'][u'name'] = u''
-            request.session[u'barcode_login_info'][u'error'] = u''
-            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+            redirect_url = self.handle_valid_barcode( request, scheme )
         else:
-            log.debug( u'in BarcodeViewHelper.handle_post(); about to update session object with error string' )
-            request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
-            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
-        log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after error inserted, `%s`' % request.session[u'barcode_login_info'] )
+            redirect_url = self.handle_invalid_barcode( request, scheme )
         log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
         return_response = HttpResponseRedirect( redirect_url )
-        log.debug( u'in BarcodeViewHelper.handle_post(); returning' )
         return return_response
+
+    def handle_valid_barcode( self, request, scheme ):
+        """ Updates session keys for valid barcode and returns redirect url to request form.
+            Called by: handle_post() """
+        request.session[u'authz_info'][u'authorized'] = True
+        request.session[u'user_info'] = {
+            u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
+        request.session[u'barcode_login_info'][u'name'] = u''
+        request.session[u'barcode_login_info'][u'error'] = u''
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+        return redirect_url
+
+    def handle_invalid_barcode( self, request, scheme ):
+        """ Updates session keys for invalid barcode and returns redirect url to barcode login form.
+            Called by: handle_post() """
+        log.debug( u'in BarcodeViewHelper.handle_invalid_barcode(); about to update session object with error string' )
+        request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
+        return redirect_url
+
+    # def handle_post( self, request ):
+    #     """ Evaluates barcode-page POST; returns response.
+    #         Called by views.barcode_login() """
+    #     ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
+    #     request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
+    #     log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after name inserted, `%s`' % request.session[u'barcode_login_info'] )
+    #     barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
+    #     scheme = u'https' if request.is_secure() else u'http'
+    #     if barcode_check[u'validity'] == u'valid':
+    #         request.session[u'authz_info'][u'authorized'] = True
+    #         request.session[u'user_info'] = {
+    #             u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
+    #         request.session[u'barcode_login_info'][u'name'] = u''
+    #         request.session[u'barcode_login_info'][u'error'] = u''
+    #         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+    #     else:
+    #         log.debug( u'in BarcodeViewHelper.handle_post(); about to update session object with error string' )
+    #         request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
+    #         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
+    #     log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after error inserted, `%s`' % request.session[u'barcode_login_info'] )
+    #     log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
+    #     return_response = HttpResponseRedirect( redirect_url )
+    #     log.debug( u'in BarcodeViewHelper.handle_post(); returning' )
+    #     return return_response
 
 
 class BarcodeValidator( object ):
