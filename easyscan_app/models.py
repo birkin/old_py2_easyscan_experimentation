@@ -155,14 +155,14 @@ class BarcodeViewHelper( object ):
         barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
         scheme = u'https' if request.is_secure() else u'http'
         if barcode_check[u'validity'] == u'valid':
-            redirect_url = self.handle_valid_barcode( request, scheme )
+            redirect_url = self.handle_valid_barcode( request, barcode_check, scheme )
         else:
             redirect_url = self.handle_invalid_barcode( request, scheme )
         log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
         return_response = HttpResponseRedirect( redirect_url )
         return return_response
 
-    def handle_valid_barcode( self, request, scheme ):
+    def handle_valid_barcode( self, request, barcode_check, scheme ):
         """ Updates session keys for valid barcode and returns redirect url to request form.
             Called by: handle_post() """
         request.session[u'authz_info'][u'authorized'] = True
