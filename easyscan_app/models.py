@@ -132,7 +132,7 @@ class RequestViewHelper( object ):
             request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
         else:
             request.session[u'barcode_login_info'][u'error'] = u''
-        log.debug( u'in RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+        log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
     def update_session_iteminfo( self, request ):
@@ -154,8 +154,25 @@ class RequestViewHelper( object ):
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode']
             }
-        log.debug( u'in RequestPageHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
+        log.debug( u'in models.RequestPageHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
+
+    def save_post_data( self, request ):
+        """ Saves posted data to db.
+            Called by views.request_def() """
+        try:
+            scnrqst = ScanRequest()
+            scnrqst.item_title = request.session[u'item_info'][u'title']
+            scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
+            scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
+            scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
+            scnrqst.patron_name = request.session[u'user_info'][u'name']
+            scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
+            scnrqst.patron_email = request.session[u'user_info'][u'email']
+            scnrqst.save()
+        except Exception as e:
+            log.debug( u'in models.RequestPageHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
+        return
 
 
 class BarcodeViewHelper( object ):
