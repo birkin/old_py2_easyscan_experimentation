@@ -3,13 +3,15 @@
 import datetime
 from django.test import TestCase
 from easyscan_app.models import LasDataMaker
+from easyscan_app.lib.magic_bus import Prepper
 
 
 maker = LasDataMaker()
+prepper = Prepper()
 
 
 class LasDataMakerTest( TestCase ):
-    """ Tests models.LasDataMaker(). """
+    """ Tests models.LasDataMaker() """
 
     def test__utf8list_to_utf8csv__str( self ):
         """ Tests good utf8 strings (required by csv module). """
@@ -40,4 +42,16 @@ class LasDataMakerTest( TestCase ):
         self.assertEqual(
             u'Mon Dec 08 2014',
             maker.make_date_string( dt )
+            )
+
+
+class MagicBusPrepperTest( TestCase ):
+    """ Tests magic_bus.py Prepper() """
+
+    def test__make_filename_datestring( self ):
+        """ Tests conversion of datetime object to string for filename. """
+        dt = datetime.datetime( 2014, 12, 8, 15, 40, 59 )
+        self.assertEqual(
+            u'2014-12-08T15:40:59',
+            prepper.make_filename_datestring( dt )
             )

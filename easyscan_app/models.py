@@ -59,10 +59,10 @@ class LasDataMaker( object ):
 
     def make_date_string( self, datetime_object ):
         """ Will convert datetime_object to date format required by LAS.
-            Example format, `Mon Dec 05 2014`.
+            Example returned format, `Mon Dec 05 2014`.
             Called by make_csv_string() """
-        utf_date_string = datetime_object.strftime( u'%a %b %d %Y' )
-        date_string = utf_date_string.decode( u'utf-8' )
+        utf8_date_string = datetime_object.strftime( u'%a %b %d %Y' )
+        date_string = utf8_date_string.decode( u'utf-8' )
         return date_string
 
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info ):
