@@ -3,10 +3,11 @@
 """ Transports scan-request files to LAS location. """
 
 import os
+import paramiko
 
 
 class Prepper( object ):
-    """ Container for sender code. """
+    """ Container for data-preparation code. """
 
     def __init__( self ):
         self.source_transfer_dir_path = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
@@ -19,9 +20,9 @@ class Prepper( object ):
             Job triggered by (we'll see). """
         self.ensure_empty_dir()
         filename_datestring = self.make_filename_datestring( datetime_object )
-        self.save_data_file( filename_datestring, data_string )
-        self.save_count_file( filename_datestring )
-        return
+        data_filename = self.save_data_file( filename_datestring, data_string )
+        count_filename = self.save_count_file( filename_datestring )
+        return ( data_filename, count_filename )
 
     def ensure_empty_dir( self ):
         """ Raises exception if directory is not empty.
@@ -47,7 +48,7 @@ class Prepper( object ):
         utf8_data_string = buffer2.encode( u'utf-8', u'replace' )
         with open( filepath, u'w' ) as f:
             f.write( utf8_data_string )
-        return
+        return filepath
 
     def save_count_file( self, filename_datestring ):
         """ Saves count file.
@@ -57,4 +58,37 @@ class Prepper( object ):
         with open( filepath, u'w' ) as f:
             f.write( '1\n' )
         return
+
+
+class Sender( object ):
+    """ Container for file-transfer code. """
+
+    def __init__( self ):
+        self.SERVER = unicode( os.environ[u'EZSCAN__REMOTE_SERVER'] )
+        self.USERNAME = unicode( os.environ[u'EZSCAN__TRANSFER_USERNAME'] )
+        self.PASSWORD = unicode( os.environ[u'EZSCAN__TRANSFER_PASSWORD'] )
+        self.LOCAL_DIR = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
+        self.REMOTE_DIR = unicode( os.environ[u'EZSCAN__REMOTE_TRANSFER_DIR_PATH'] )
+
+    def transfer_files( self, data_filename, count_filename ):
+        """ Transfers data-file and count-file. """
+        ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths()
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+        ssh.load_host_keys( os.path.expanduser(os.path.join(u'~', u'.ssh', u'known_hosts')) )
+        ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
+        sftp = ssh.open_sftp()
+        sftp.put( data_source_fp, data_remote_fp )
+        sftp.put( count_source_fp, count_remote_fp )
+        sftp.close()
+        ssh.close()
+
+    def build_filepaths( self ):
+        """ Builds and returns tuple of source and remote filepaths.
+            Called by transfer_files() """
+        data_source_fp = u'%s/%s' % ( self.LOCAL_DIR, data_filename )
+        data_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, data_filename )
+        count_source_fp = u'%s/%s' % ( self.LOCAL_DIR, count_filename )
+        count_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, count_filename )
+        return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
 

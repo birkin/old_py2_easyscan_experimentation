@@ -34,6 +34,7 @@ def request_def( request ):
     else:  # POST of form
         request_view_helper.save_post_data( request )
         request.session[u'authz_info'][u'authorized'] = False
+        # request_view_helper.transfer_data()
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
         return  HttpResponseRedirect( redirect_url )
