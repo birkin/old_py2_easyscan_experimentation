@@ -147,6 +147,18 @@ class BarcodeViewHelper( object ):
     """ Container for views.barcode_login() helpers.
         Non-django, plain-python model. """
 
+    def build_data_dict( self, request ):
+        """ Builds template-context on GET.
+            Called by views.barcode_login() """
+        data_dict = {
+            u'title': request.session[u'item_info'][u'title'],
+            u'callnumber': request.session[u'item_info'][u'callnumber'],
+            u'barcode': request.session[u'item_info'][u'barcode'],
+            u'login_error': request.session[u'barcode_login_info'][u'error'],
+            u'login_name': request.session[u'barcode_login_info'][u'name']
+            }
+        return data_dict
+
     def handle_post( self, request ):
         """ Evaluates barcode-page POST; returns response.
             Called by views.barcode_login() """
@@ -181,31 +193,6 @@ class BarcodeViewHelper( object ):
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
         return redirect_url
 
-    # def handle_post( self, request ):
-    #     """ Evaluates barcode-page POST; returns response.
-    #         Called by views.barcode_login() """
-    #     ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
-    #     request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
-    #     log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after name inserted, `%s`' % request.session[u'barcode_login_info'] )
-    #     barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
-    #     scheme = u'https' if request.is_secure() else u'http'
-    #     if barcode_check[u'validity'] == u'valid':
-    #         request.session[u'authz_info'][u'authorized'] = True
-    #         request.session[u'user_info'] = {
-    #             u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
-    #         request.session[u'barcode_login_info'][u'name'] = u''
-    #         request.session[u'barcode_login_info'][u'error'] = u''
-    #         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
-    #     else:
-    #         log.debug( u'in BarcodeViewHelper.handle_post(); about to update session object with error string' )
-    #         request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
-    #         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
-    #     log.debug( u'in BarcodeViewHelper.handle_post(); request.session[barcode_login_info] after error inserted, `%s`' % request.session[u'barcode_login_info'] )
-    #     log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
-    #     return_response = HttpResponseRedirect( redirect_url )
-    #     log.debug( u'in BarcodeViewHelper.handle_post(); returning' )
-    #     return return_response
-
 
 class BarcodeValidator( object ):
     """ Container for helpers to check submitted patron barcode & name.
@@ -226,18 +213,6 @@ class BarcodeValidator( object ):
         log.debug( u'in BarcodeValidator.check_barcode(); returning evaluation_dict' )
         return evaluation_dict
 
-    def get_bad_conditions( self, raw_data ):
-        """ Returns list of invalid conditions.
-            Called by check_barcode() """
-        bad_conditions = [
-            ( u'403 Forbidden' in raw_data ),
-            ( u'Invalid patron barcode' in raw_data ),
-            ( u'Requested record not found' in raw_data ),
-            ( raw_data.startswith(u'Exception') )
-            ]
-        log.debug( u'in BarcodeValidator.get_bad_conditions(); bad_conditions, `%s`' % bad_conditions )
-        return bad_conditions
-
     def grab_raw_data( self, barcode ):
         """ Hits api; returns raw data.
             Called by check_barcode() """
@@ -249,6 +224,18 @@ class BarcodeValidator( object ):
             raw_data = u'Exception, `%s`' % unicode(repr(e))
         log.debug( u'in BarcodeValidator.grab_raw_data(); raw_data, `%s`' % raw_data )
         return raw_data
+
+    def get_bad_conditions( self, raw_data ):
+        """ Returns list of invalid conditions.
+            Called by check_barcode() """
+        bad_conditions = [
+            ( u'403 Forbidden' in raw_data ),
+            ( u'Invalid patron barcode' in raw_data ),
+            ( u'Requested record not found' in raw_data ),
+            ( raw_data.startswith(u'Exception') )
+            ]
+        log.debug( u'in BarcodeValidator.get_bad_conditions(); bad_conditions, `%s`' % bad_conditions )
+        return bad_conditions
 
     def parse_raw_data( self, raw_data ):
         """ Extracts name and email elements from raw_data; returns dict.
