@@ -56,18 +56,6 @@ def barcode_login( request ):
         return return_response
 
 
-# def barcode_login( request ):
-#     """ On GET, displays barcode login form.
-#         On POST, redirects to request form on success, or barcode login form again on fail. """
-#     if request.method == u'POST':
-#         return_response = barcode_view_helper.handle_post( request )
-#         return return_response
-#     else:
-#         data_dict = barcode_view_helper.build_data_dict( request )
-#         log.debug( u'in barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
-#         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
-
-
 def confirmation( request ):
     """ Displays confirmation screen after submission. """
     data_dict = {

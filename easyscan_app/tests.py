@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from django.test import TestCase
 from easyscan_app.models import LasDataMaker
+
+
+maker = LasDataMaker()
 
 
 class LasDataMakerTest( TestCase ):
@@ -9,7 +13,6 @@ class LasDataMakerTest( TestCase ):
 
     def test__utf8list_to_utf8csv__str( self ):
         """ Tests good utf8 strings (required by csv module). """
-        maker = LasDataMaker()
         utf8_list = [ 'foo', 'bar', '“iñtërnâtiônàlĭzætiøn”' ]
         result = maker.utf8list_to_utf8csv( utf8_list )
         self.assertEqual(
@@ -21,7 +24,6 @@ class LasDataMakerTest( TestCase ):
 
     def test__utf8list_to_utf8csv__unicode( self ):
         """ Tests bad unicode strings. """
-        maker = LasDataMaker()
         unicode_list = [ u'foo', u'bar', u'“iñtërnâtiônàlĭzætiøn”' ]
         result = u'init'
         try:
@@ -31,3 +33,11 @@ class LasDataMakerTest( TestCase ):
         self.assertEqual(
             u"entry `u'foo'` not of type str",
             result )
+
+    def test__make_date_string( self ):
+        """ Tests conversion of datetime object to string required by LAS. """
+        dt = datetime.datetime( 2014, 12, 8, 12, 40, 59 )
+        self.assertEqual(
+            u'Mon Dec 08 2014',
+            maker.make_date_string( dt )
+            )
