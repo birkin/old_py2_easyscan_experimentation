@@ -21,15 +21,11 @@ class Prepper( object ):
     def make_data_files( self, datetime_object, data_string ):
         """ Creates data files that will be transferred to remote server.
             Job triggered by (we'll see). """
-        log.debug( u'in magic_bus.Prepper.make_data_files(); starting' )
         self.ensure_empty_dir()
-        log.debug( u'in magic_bus.Prepper.make_data_files(); dir is empty' )
         filename_datestring = self.make_filename_datestring( datetime_object )
-        log.debug( u'in magic_bus.Prepper.make_data_files(); filename_datestring made' )
         data_filename = self.save_data_file( filename_datestring, data_string )
-        log.debug( u'in magic_bus.Prepper.make_data_files(); data_filename made' )
         count_filename = self.save_count_file( filename_datestring )
-        log.debug( u'in magic_bus.Prepper.make_data_files(); count_filename made; returning' )
+        log.debug( u'in magic_bus.Prepper.make_data_files(); data_filename, `%s`; count_filename, `%s`' % (data_filename, count_filename) )
         return ( data_filename, count_filename )
 
     def ensure_empty_dir( self ):
@@ -40,8 +36,6 @@ class Prepper( object ):
             delete_path = u'%s/%s' % ( self.source_transfer_dir_path, filename )
             os.remove( delete_path )
         return
-        # if not os.listdir( self.source_transfer_dir_path ) == []:
-        #     raise Exception( u'Source path `%s` must be empty.' % self.source_transfer_dir_path )
 
     def make_filename_datestring( self, datetime_object ):
         """ Returns formatted date string.
@@ -86,30 +80,17 @@ class Sender( object ):
 
     def transfer_files( self, data_filename, count_filename ):
         """ Transfers data-file and count-file. """
-        log.debug( u'in magic_bus.Sender.transfer_files(); starting' )
         ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
-        log.debug( u'in magic_bus.Sender.transfer_files(); paths built' )
-        log.debug( u'in magic_bus.Sender.transfer_files(); data_source_fp, `%s`' % data_source_fp )
-        log.debug( u'in magic_bus.Sender.transfer_files(); data_remote_fp, `%s`' % data_remote_fp )
-        log.debug( u'in magic_bus.Sender.transfer_files(); count_source_fp, `%s`' % count_source_fp )
-        log.debug( u'in magic_bus.Sender.transfer_files(); count_remote_fp, `%s`' % count_remote_fp )
-        try:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
-            # ssh.load_host_keys( os.path.expanduser(os.path.join(u'~', u'.ssh', u'known_hosts')) )
-            ssh.load_host_keys( os.path.expanduser(os.path(self.KNOWN_HOSTS)) )
-        except Exception as e:
-            log.debug( u'in magic_bus.Sender.transfer_files(); exception, `%s`' % unicode(repr(e)) )
-        log.debug( u'in magic_bus.Sender.transfer_files(); ssh prep done' )
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+        ssh.load_host_keys( os.path.expanduser(os.path(self.KNOWN_HOSTS)) )
         ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
-        log.debug( u'in magic_bus.Sender.transfer_files(); ssh connection made' )
         sftp = ssh.open_sftp()
         sftp.put( data_source_fp, data_remote_fp )
         sftp.put( count_source_fp, count_remote_fp )
-        log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
         sftp.close()
         ssh.close()
-        log.debug( u'in magic_bus.Sender.transfer_files(); connections closed' )
+        log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
         return
 
     def build_filepaths( self, data_filename, count_filename ):

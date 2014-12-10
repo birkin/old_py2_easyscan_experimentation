@@ -185,15 +185,10 @@ class RequestViewHelper( object ):
     def transfer_data( self, scnrqst ):
         """ Transfers data.
             Called by views.request_def() """
-        log.debug( u'in models.RequestPageHelper.transfer_data(); starting' )
-        try:
-            ( data_filename, count_filename ) = prepper.make_data_files(
-                datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
-        except Exception as e:
-            log.debug( u'in models.RequestPageHelper.transfer_data(); exception, `%s`' % unicode(repr(e)) )
-        log.debug( u'in models.RequestPageHelper.transfer_data(); prepper.make_data_files() completed' )
+        ( data_filename, count_filename ) = prepper.make_data_files(
+            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion
+            )
         sender.transfer_files( data_filename, count_filename )
-        log.debug( u'in models.RequestPageHelper.transfer_data(); sender.transfer_files() completed' )
         log.debug( u'in models.RequestPageHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         return
 
