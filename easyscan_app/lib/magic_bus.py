@@ -80,7 +80,7 @@ class Sender( object ):
 
     def transfer_files( self, data_filename, count_filename ):
         """ Transfers data-file and count-file. """
-        ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths()
+        ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
         ssh.load_host_keys( os.path.expanduser(os.path.join(u'~', u'.ssh', u'known_hosts')) )
@@ -91,7 +91,7 @@ class Sender( object ):
         sftp.close()
         ssh.close()
 
-    def build_filepaths( self ):
+    def build_filepaths( self, data_filename, count_filename ):
         """ Builds and returns tuple of source and remote filepaths.
             Called by transfer_files() """
         data_source_fp = u'%s/%s' % ( self.LOCAL_DIR, data_filename )
