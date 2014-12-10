@@ -76,24 +76,25 @@ class Sender( object ):
         self.PASSWORD = unicode( os.environ[u'EZSCAN__TRANSFER_PASSWORD'] )
         self.LOCAL_DIR = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
         self.REMOTE_DIR = unicode( os.environ[u'EZSCAN__REMOTE_TRANSFER_DIR_PATH'] )
-        self.KNOWN_HOSTS = unicode( os.environ[u'EZSCAN__KNOWN_HOSTS_PATH'] )
 
     def transfer_files( self, data_filename, count_filename ):
         """ Transfers data-file and count-file. """
-        try:
-            ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
-            ssh.load_host_keys( os.path.expanduser(os.path(self.KNOWN_HOSTS)) )
-            ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
-            sftp = ssh.open_sftp()
-            sftp.put( data_source_fp, data_remote_fp )
-            sftp.put( count_source_fp, count_remote_fp )
-            sftp.close()
-            ssh.close()
-            log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
-        except Exception as e:
-            log.debug( u'in magic_bus.Sender.transfer_files(); exception, `%s`' % unicode(repr(e)) )
+        ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
+        ssh = paramiko.SSHClient()
+        log.debug( u'in magic_bus.Sender.transfer_files(); ssh client instantiated' )
+        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+        log.debug( u'in magic_bus.Sender.transfer_files(); ssh missing key policy set' )
+        ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
+        log.debug( u'in magic_bus.Sender.transfer_files(); ssh client set' )
+        sftp = ssh.open_sftp()
+        sftp.put( data_source_fp, data_remote_fp )
+        sftp.put( count_source_fp, count_remote_fp )
+        log.debug( u'in magic_bus.Sender.transfer_files(); sftp executed' )
+        sftp.close()
+        ssh.close()
+        log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
+        # except Exception as e:
+        #     log.debug( u'in magic_bus.Sender.transfer_files(); exception, `%s`' % unicode(repr(e)) )
         return
 
     def build_filepaths( self, data_filename, count_filename ):
@@ -103,4 +104,5 @@ class Sender( object ):
         data_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, data_filename )
         count_source_fp = u'%s/%s' % ( self.LOCAL_DIR, count_filename )
         count_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, count_filename )
+        log.debug( u'in magic_bus.Sender.build_filepaths(); paths built' )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
