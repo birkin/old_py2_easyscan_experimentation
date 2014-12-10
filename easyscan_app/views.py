@@ -32,11 +32,15 @@ def request_def( request ):
         return_response = request_view_helper.handle_get( request )
         return return_response
     else:  # POST of form
+        log.debug( u'in views.request_def(); POST detected' )
         scnrqst = request_view_helper.save_post_data( request )
+        log.debug( u'in views.request_def() (post); data saved' )
         request.session[u'authz_info'][u'authorized'] = False
         request_view_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+        log.debug( u'in views.request_def() (post); data transfered' )
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+        log.debug( u'in views.request_def() (post); about to redirect' )
         return  HttpResponseRedirect( redirect_url )
 
 
@@ -50,7 +54,7 @@ def barcode_login( request ):
         On POST, redirects to request form on success, or barcode login form again on fail. """
     if request.method == u'GET':
         data_dict = barcode_view_helper.build_data_dict( request )
-        log.debug( u'in barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
+        log.debug( u'in views.barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
     else:  # POST of form
         return_response = barcode_view_helper.handle_post( request )

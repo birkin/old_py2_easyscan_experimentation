@@ -167,6 +167,7 @@ class RequestViewHelper( object ):
     def save_post_data( self, request ):
         """ Saves posted data to db.
             Called by views.request_def() """
+        scnrqst = None
         try:
             scnrqst = ScanRequest()
             scnrqst.item_title = request.session[u'item_info'][u'title']
@@ -179,14 +180,20 @@ class RequestViewHelper( object ):
             scnrqst.save()
         except Exception as e:
             log.debug( u'in models.RequestPageHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
-        return
+        return scnrqst
 
     def transfer_data( self, scnrqst ):
         """ Transfers data.
             Called by views.request_def() """
-        ( data_filename, count_filename ) = prepper.make_data_files(
-            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        log.debug( u'in models.RequestPageHelper.transfer_data(); starting' )
+        try:
+            ( data_filename, count_filename ) = prepper.make_data_files(
+                datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        except Exception as e:
+            log.debug( u'in models.RequestPageHelper.transfer_data(); exception, `%s`' % unicode(repr(e)) )
+        log.debug( u'in models.RequestPageHelper.transfer_data(); prepper.make_data_files() completed' )
         sender.transfer_files( data_filename, count_filename )
+        log.debug( u'in models.RequestPageHelper.transfer_data(); sender.transfer_files() completed' )
         log.debug( u'in models.RequestPageHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         return
 

@@ -2,8 +2,11 @@
 
 """ Transports scan-request files to LAS location. """
 
-import os
+import logging, os
 import paramiko
+
+
+log = logging.getLogger(__name__)
 
 
 class Prepper( object ):
@@ -18,10 +21,15 @@ class Prepper( object ):
     def make_data_files( self, datetime_object, data_string ):
         """ Creates data files that will be transferred to remote server.
             Job triggered by (we'll see). """
+        log.debug( u'in magic_bus.Prepper.make_data_files(); starting' )
         self.ensure_empty_dir()
+        log.debug( u'in magic_bus.Prepper.make_data_files(); dir is empty' )
         filename_datestring = self.make_filename_datestring( datetime_object )
+        log.debug( u'in magic_bus.Prepper.make_data_files(); filename_datestring made' )
         data_filename = self.save_data_file( filename_datestring, data_string )
+        log.debug( u'in magic_bus.Prepper.make_data_files(); data_filename made' )
         count_filename = self.save_count_file( filename_datestring )
+        log.debug( u'in magic_bus.Prepper.make_data_files(); count_filename made; returning' )
         return ( data_filename, count_filename )
 
     def ensure_empty_dir( self ):
