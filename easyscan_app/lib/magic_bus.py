@@ -80,17 +80,20 @@ class Sender( object ):
 
     def transfer_files( self, data_filename, count_filename ):
         """ Transfers data-file and count-file. """
-        ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
-        ssh.load_host_keys( os.path.expanduser(os.path(self.KNOWN_HOSTS)) )
-        ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
-        sftp = ssh.open_sftp()
-        sftp.put( data_source_fp, data_remote_fp )
-        sftp.put( count_source_fp, count_remote_fp )
-        sftp.close()
-        ssh.close()
-        log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
+        try:
+            ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+            ssh.load_host_keys( os.path.expanduser(os.path(self.KNOWN_HOSTS)) )
+            ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
+            sftp = ssh.open_sftp()
+            sftp.put( data_source_fp, data_remote_fp )
+            sftp.put( count_source_fp, count_remote_fp )
+            sftp.close()
+            ssh.close()
+            log.debug( u'in magic_bus.Sender.transfer_files(); files transferred' )
+        except Exception as e:
+            log.debug( u'in magic_bus.Sender.transfer_files(); exception, `%s`' % unicode(repr(e)) )
         return
 
     def build_filepaths( self, data_filename, count_filename ):
@@ -101,18 +104,3 @@ class Sender( object ):
         count_source_fp = u'%s/%s' % ( self.LOCAL_DIR, count_filename )
         count_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, count_filename )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
-
-
-# class Cleaner( object ):
-#     """ Contain for cleanup code. """
-
-#     def __init__( self ):
-#         self.LOCAL_DIR = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
-
-#     def empty_source_directory( self ):
-#         """ Ensures target directory is empty. """
-#         filelist = os.listdir( self.LOCAL_DIR )
-#         for filename in filelist:
-#             delete_path = u'%s/%s' % ( self.LOCAL_DIR, filename )
-#             os.remove( delete_path )
-#         return
