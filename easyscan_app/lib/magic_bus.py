@@ -33,10 +33,15 @@ class Prepper( object ):
         return ( data_filename, count_filename )
 
     def ensure_empty_dir( self ):
-        """ Raises exception if directory is not empty.
+        """ Empties source-transfer directory.
             Called by make_data_files() """
-        if not os.listdir( self.source_transfer_dir_path ) == []:
-            raise Exception( u'Source path `%s` must be empty.' % self.source_transfer_dir_path )
+        filelist = os.listdir( self.LOCAL_DIR )
+        for filename in filelist:
+            delete_path = u'%s/%s' % ( self.LOCAL_DIR, filename )
+            os.remove( delete_path )
+        return
+        # if not os.listdir( self.source_transfer_dir_path ) == []:
+        #     raise Exception( u'Source path `%s` must be empty.' % self.source_transfer_dir_path )
 
     def make_filename_datestring( self, datetime_object ):
         """ Returns formatted date string.
@@ -100,3 +105,17 @@ class Sender( object ):
         count_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, count_filename )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
 
+
+# class Cleaner( object ):
+#     """ Contain for cleanup code. """
+
+#     def __init__( self ):
+#         self.LOCAL_DIR = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
+
+#     def empty_source_directory( self ):
+#         """ Ensures target directory is empty. """
+#         filelist = os.listdir( self.LOCAL_DIR )
+#         for filename in filelist:
+#             delete_path = u'%s/%s' % ( self.LOCAL_DIR, filename )
+#             os.remove( delete_path )
+#         return
