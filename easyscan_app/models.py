@@ -7,6 +7,7 @@ from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.encoding import smart_unicode
+from django.conf import settings as project_settings
 from easyscan_app.lib.magic_bus import Prepper, Sender
 
 
@@ -132,6 +133,8 @@ class RequestViewHelper( object ):
             Called by handle_get() """
         if not u'authz_info' in request.session:
             request.session[u'authz_info'] = { u'authorized': False }
+        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
+            request.session[u'authz_info'] = { u'authorized': True }
         if not u'user_info' in request.session:
             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         self.update_session_iteminfo( request )
@@ -141,6 +144,21 @@ class RequestViewHelper( object ):
             request.session[u'barcode_login_info'][u'error'] = u''
         log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
+
+    # def initialize_session( self, request ):
+    #     """ Initializes session vars if needed.
+    #         Called by handle_get() """
+    #     if not u'authz_info' in request.session:
+    #         request.session[u'authz_info'] = { u'authorized': False }
+    #     if not u'user_info' in request.session:
+    #         request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
+    #     self.update_session_iteminfo( request )
+    #     if not u'barcode_login_info' in request.session:
+    #         request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
+    #     else:
+    #         request.session[u'barcode_login_info'][u'error'] = u''
+    #     log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+    #     return
 
     def update_session_iteminfo( self, request ):
         """ Updates 'item_info' session key data.
