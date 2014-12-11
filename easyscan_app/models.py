@@ -47,8 +47,7 @@ class ScanRequest( models.Model ):
 
 
 class LasDataMaker( object ):
-    """ Container for code to make comma-delimited las string.
-        Non-django, plain-python model. """
+    """ Container for code to make comma-delimited las string. """
 
     def make_csv_string(
         self, item_barcode, patron_name, patron_barcode, item_title, date_string, item_custom_info ):
@@ -100,8 +99,7 @@ class LasDataMaker( object ):
 
 
 class RequestViewGetHelper( object ):
-    """ Container for views.request_def() helpers for handling GET.
-        Non-django, plain-python model. """
+    """ Container for views.request_def() helpers for handling GET. """
 
     def handle_get( self, request ):
         """ Handles request-page GET; returns response. """
@@ -184,8 +182,14 @@ class RequestViewGetHelper( object ):
 
 
 class RequestViewPostHelper( object ):
-    """ Container for views.request_def() helpers for handling POST.
-        Non-django, plain-python model. """
+    """ Container for views.request_def() helpers for handling POST. """
+
+    def update_session( self, request ):
+        """ Updates session vars.
+            Called by views.request_def() """
+        request.session[u'authz_info'][u'authorized'] = False
+        request.session[u'item_info'][u'callnumber'] = request.POST.get( u'custom_info'.strip(), u'' )
+        return
 
     def save_post_data( self, request ):
         """ Saves posted data to db.
@@ -196,7 +200,6 @@ class RequestViewPostHelper( object ):
             scnrqst.item_title = request.session[u'item_info'][u'title']
             scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
             scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
-            # scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
             scnrqst.item_custom_info = u'%s -- %s' % (
                 request.session[u'user_info'][u'email'], request.POST.get(u'custom_info'.strip(), u'') )
             log.debug( u'in models.RequestViewPostHelper.save_post_data(); scnrqst.item_custom_info, `%s`' % scnrqst.item_custom_info )
@@ -220,8 +223,7 @@ class RequestViewPostHelper( object ):
 
 
 class BarcodeViewHelper( object ):
-    """ Container for views.barcode_login() helpers.
-        Non-django, plain-python model. """
+    """ Container for views.barcode_login() helpers. """
 
     def build_data_dict( self, request ):
         """ Builds template-context on GET.
@@ -271,8 +273,7 @@ class BarcodeViewHelper( object ):
 
 
 class BarcodeValidator( object ):
-    """ Container for helpers to check submitted patron barcode & name.
-        Non-django, plain-python model. """
+    """ Container for helpers to check submitted patron barcode & name. """
 
     def __init__( self ):
         self.api_root_url = os.environ.get(u'EZSCAN__PATRONAPI_ROOT_URL', u'')

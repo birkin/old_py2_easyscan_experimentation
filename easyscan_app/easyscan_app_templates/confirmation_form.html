@@ -15,7 +15,7 @@ easyScan confirmation
     h3#main_title {
         font-size: 1.5em;
         color: maroon;
-        margin-top: 2em; }
+        margin-top: 4em; }
     hr {
         margin-top: 2em; }
     form {
@@ -31,27 +31,24 @@ easyScan confirmation
        clear:left;
        text-align:right;
        width:15%;
-       color:#bbb; }
+       color:#bbb;
+       font-size: 125%; }
     dd {
        float:left;
        margin-left:2em;
-       color:#999; }
+       color:#999;
+       font-size: 125%; }
     div#info {
        margin-top: 2em; }
     p.additional_lines {
-        margin-top: .25em; }
+        margin-top: .5em; }
+    p {
+        font-size: 125%; }
+    span#email {
+      color: red;}
 </style>
 
- <h1>easyScan confirmation</h1>
-
-<h3 id="main_title">All set!</h3>
-
-<div id="info">
-<p>Your scan-request has been submitted and should be processed within one business day.</p>
-<p class="additional_lines">It will be emailed to &lt;{{ email }}&gt;.</p>
-</div>
-
-<hr/>
+<h1>easyScan confirmation</h1>
 
 <div id="requested_item">
 
@@ -63,11 +60,17 @@ easyScan confirmation
 
         <dt>call-number, etc info:</dt>
         <dd>{{ callnumber }}</dd>
-
-        <dt>barcode:</dt>
-        <dd>{{ barcode }}</dd>
     </dl>
 
 </div>
+
+<h3 id="main_title">All set!</h3>
+
+<div id="info">
+<p>Your scan-request has been submitted and should be processed within one business day.</p>
+<p class="additional_lines">It will be emailed to &lt;<span id="email">{{ email }}</span>&gt;.</p>
+</div>
+
+<hr/>
 
 {% endblock content %}

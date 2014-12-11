@@ -33,12 +33,9 @@ def request_def( request ):
         return_response = request_view_get_helper.handle_get( request )
         return return_response
     else:  # POST of form
-        log.debug( u'in views.request_def(); POST detected' )
+        request_view_post_helper.update_session( request )
         scnrqst = request_view_post_helper.save_post_data( request )
-        log.debug( u'in views.request_def() (post); data saved' )
-        request.session[u'authz_info'][u'authorized'] = False
         request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
-        log.debug( u'in views.request_def() (post); data transfered' )
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
         log.debug( u'in views.request_def() (post); about to redirect' )
