@@ -40,6 +40,8 @@ easyScan request
        font-size: 125%; }
     div#info {
        margin-top: 2em; }
+   div#info p {
+      margin-bottom: 1em; }
     div#input {
         margin-top: 1em; }
     p {
@@ -65,14 +67,14 @@ easyScan request
 
 </div>
 
-<h3 id="please">Please submit additional information...</h3>
+<h3 id="please">Please edit/add additional information...</h3>
 
 <div id="info">
-    <p>The additional information should include...</p>
+    <p>Ok, the title "{{ title }}" will be sent. The additional information below should include...</p>
     <ul>
-        <li>Your email address.</li>
         <li>Chapter title if applicable.</li>
         <li>Volume number if applicable.</li>
+        <li>Year of publication if applicable.</li>
         <li>The page-range you would like scanned.</li>
     </ul>
 </div>
@@ -80,7 +82,7 @@ easyScan request
 <div id="form">
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
-        <textarea name="custom_info" rows="4" cols="50"></textarea>
+        <textarea name="custom_info" rows="4" cols="50">{{ callnumber }}</textarea>
         <div id="input">
             <input type="submit" value="Submit Scan Request">
         </div>

@@ -133,8 +133,6 @@ class RequestViewHelper( object ):
             Called by handle_get() """
         if not u'authz_info' in request.session:
             request.session[u'authz_info'] = { u'authorized': False }
-        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
-            request.session[u'authz_info'] = { u'authorized': True }
         if not u'user_info' in request.session:
             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         self.update_session_iteminfo( request )
@@ -142,6 +140,10 @@ class RequestViewHelper( object ):
             request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
         else:
             request.session[u'barcode_login_info'][u'error'] = u''
+        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
+            request.session[u'authz_info'] = { u'authorized': True }
+            request.session[u'user_info'][u'email'] = u'fir_las@misc.edu'
+            request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
         log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
