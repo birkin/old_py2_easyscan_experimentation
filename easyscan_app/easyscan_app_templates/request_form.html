@@ -15,7 +15,7 @@ easyScan request
     h3#please {
         font-size: 1.5em;
         color: maroon;
-        margin-top: 2em; }
+        margin-top: 3.5em; }
     hr {
         margin-top: 2em; }
     form {
@@ -31,23 +31,50 @@ easyScan request
        clear:left;
        text-align:right;
        width:15%;
-       color:#bbb; }
+       color:#bbb;
+       font-size: 125%; }
     dd {
        float:left;
        margin-left:2em;
-       color:#999; }
+       color:#999;
+       font-size: 125%; }
     div#info {
        margin-top: 2em; }
     div#input {
         margin-top: 1em; }
+    p {
+        font-size: 125%; }
+    ul {
+        list-style-type: square;
+        margin-left: 2em;
+        font-size: 125%; }
+    li {
+        margin-top: .5em; }
 </style>
 
  <h1>easyScan request</h1>
 
-<h3 id="please">Please submit page-range and additional information...</h3>
+<div id="requested_item">
+
+    <p>You're requesting a scan for part of …</p>
+    <br/>
+    <dl>
+        <dt>title:</dt>
+        <dd>{{ title }}</dd>
+    </dl>
+
+</div>
+
+<h3 id="please">Please submit additional information...</h3>
 
 <div id="info">
-<p>This scanning service allows Brown University Library patrons to request scans of up to 30 pages for an item.</p>
+    <p>The additional information should include...</p>
+    <ul>
+        <li>Your email address.</li>
+        <li>Chapter title if applicable.</li>
+        <li>Volume number if applicable.</li>
+        <li>The page-range you would like scanned.</li>
+    </ul>
 </div>
 
 <div id="form">
@@ -63,21 +90,5 @@ easyScan request
 
 <hr/>
 
-<div id="requested_item">
-
-    <p>You're requesting a scan for part of …</p>
-    <br/>
-    <dl>
-        <dt>title:</dt>
-        <dd>{{ title }}</dd>
-
-        <dt>call-number, etc info:</dt>
-        <dd>{{ callnumber }}</dd>
-
-        <dt>barcode:</dt>
-        <dd>{{ barcode }}</dd>
-    </dl>
-
-</div>
 
 {% endblock content %}

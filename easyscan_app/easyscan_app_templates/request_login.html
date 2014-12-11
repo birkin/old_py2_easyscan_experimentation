@@ -15,7 +15,7 @@ easyScan choose login
     h3#please {
         font-size: 1.5em;
         color: maroon;
-        margin-top: 2em; }
+        margin-top: 6em; }
     hr {
         margin-top: 2em; }
     form {
@@ -31,18 +31,41 @@ easyScan choose login
        clear:left;
        text-align:right;
        width:15%;
-       color:#bbb; }
+       color:#bbb;
+       font-size: 125%; }
     dd {
        float:left;
        margin-left:2em;
-       color:#999; }
+       color:#999;
+       font-size: 125%; }
+    p {
+        font-size: 125%; }
     p#or {
         margin-top: 2em; }
 </style>
 
  <h1>easyScan request</h1>
 
-<h3 id="please">Please login...</h3>
+ <div id="requested_item">
+
+    <p>You're requesting a scan for part of …</p>
+    <br/>
+    <dl>
+        <dt>title:</dt>
+        <dd>{{ title }}</dd>
+
+        <dt>call-number, etc info:</dt>
+        <dd>{{ callnumber }}</dd>
+
+        <dt>barcode:</dt>
+        <dd>{{ barcode }}</dd>
+    </dl>
+
+</div>
+
+<div>
+    <h3 id="please">Please login...</h3>
+</div>
 
 <div id="forms">
 
@@ -59,22 +82,5 @@ easyScan choose login
 </div>
 
 <hr/>
-
-<div id="requested_item">
-
-    <p>You're requesting a scan for part of …</p>
-    <br/>
-    <dl>
-        <dt>title:</dt>
-        <dd>{{ title }}</dd>
-
-        <dt>call-number, etc info:</dt>
-        <dd>{{ callnumber }}</dd>
-
-        <dt>barcode:</dt>
-        <dd>{{ barcode }}</dd>
-    </dl>
-
-</div>
 
 {% endblock content %}
