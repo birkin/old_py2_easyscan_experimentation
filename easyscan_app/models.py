@@ -99,8 +99,8 @@ class LasDataMaker( object ):
         return csv_string
 
 
-class RequestViewHelper( object ):
-    """ Container for views.request_def() helpers.
+class RequestViewGetHelper( object ):
+    """ Container for views.request_def() helpers for handling GET.
         Non-django, plain-python model. """
 
     def handle_get( self, request ):
@@ -114,7 +114,7 @@ class RequestViewHelper( object ):
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
             return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
-        log.debug( u'in RequestViewHelper.handle_get(); returning' )
+        log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
         return return_response
 
     def check_https( self, is_secure, get_host, full_path ):
@@ -125,7 +125,7 @@ class RequestViewHelper( object ):
             return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
         else:
             return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
-        log.debug( u'in RequestValidator.check_https(); return_dict, `%s`' % return_dict )
+        log.debug( u'in models.RequestViewGetHelper.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
 
     def initialize_session( self, request ):
@@ -136,31 +136,10 @@ class RequestViewHelper( object ):
         if not u'user_info' in request.session:
             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         self.update_session_iteminfo( request )
-        if not u'barcode_login_info' in request.session:
-            request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
-        else:
-            request.session[u'barcode_login_info'][u'error'] = u''
-        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
-            request.session[u'authz_info'] = { u'authorized': True }
-            request.session[u'user_info'][u'email'] = u'fir_las@misc.edu'
-            request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
-        log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+        self.update_session_barcodelogininfo( request )
+        self.update_session_devinfo( request )
+        log.debug( u'in models.RequestViewGetHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
-
-    # def initialize_session( self, request ):
-    #     """ Initializes session vars if needed.
-    #         Called by handle_get() """
-    #     if not u'authz_info' in request.session:
-    #         request.session[u'authz_info'] = { u'authorized': False }
-    #     if not u'user_info' in request.session:
-    #         request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
-    #     self.update_session_iteminfo( request )
-    #     if not u'barcode_login_info' in request.session:
-    #         request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
-    #     else:
-    #         request.session[u'barcode_login_info'][u'error'] = u''
-    #     log.debug( u'in models.RequestViewHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
-    #     return
 
     def update_session_iteminfo( self, request ):
         """ Updates 'item_info' session key data.
@@ -173,6 +152,25 @@ class RequestViewHelper( object ):
                 request.session[u'item_info'][key] = value
         return
 
+    def update_session_barcodelogininfo( self, request ):
+        """ Initializes or resets the barcode_login_info data.
+            Called by initialize_session() """
+        if not u'barcode_login_info' in request.session:
+            request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
+        else:
+            request.session[u'barcode_login_info'][u'error'] = u''
+        return
+
+    def update_session_devinfo( self, request ):
+        """ Updates a few session variables with dummy data.
+            Allows easy viewing of request form for development.
+            Called by initialize_session() """
+        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
+            request.session[u'authz_info'] = { u'authorized': True }
+            request.session[u'user_info'] = { u'email': u'fir_las@misc.edu', u'name': u'fir las', u'patron_barcode': u'3.14etc' }
+            request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
+        return
+
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
             Called by handle_get() """
@@ -181,8 +179,13 @@ class RequestViewHelper( object ):
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode']
             }
-        log.debug( u'in models.RequestPageHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
+        log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
+
+
+class RequestViewPostHelper( object ):
+    """ Container for views.request_def() helpers for handling POST.
+        Non-django, plain-python model. """
 
     def save_post_data( self, request ):
         """ Saves posted data to db.
@@ -193,13 +196,16 @@ class RequestViewHelper( object ):
             scnrqst.item_title = request.session[u'item_info'][u'title']
             scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
             scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
-            scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
+            # scnrqst.item_custom_info = request.POST.get( u'custom_info'.strip(), u'' )
+            scnrqst.item_custom_info = u'%s -- %s' % (
+                request.session[u'user_info'][u'email'], request.POST.get(u'custom_info'.strip(), u'') )
+            log.debug( u'in models.RequestViewPostHelper.save_post_data(); scnrqst.item_custom_info, `%s`' % scnrqst.item_custom_info )
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
             scnrqst.patron_email = request.session[u'user_info'][u'email']
             scnrqst.save()
         except Exception as e:
-            log.debug( u'in models.RequestPageHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
+            log.debug( u'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
         return scnrqst
 
     def transfer_data( self, scnrqst ):
@@ -209,7 +215,7 @@ class RequestViewHelper( object ):
             datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion
             )
         sender.transfer_files( data_filename, count_filename )
-        log.debug( u'in models.RequestPageHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
+        log.debug( u'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         return
 
 
