@@ -75,7 +75,8 @@ class Sender( object ):
         self.USERNAME = unicode( os.environ[u'EZSCAN__TRANSFER_USERNAME'] )
         self.PASSWORD = unicode( os.environ[u'EZSCAN__TRANSFER_PASSWORD'] )
         self.LOCAL_DIR = unicode( os.environ[u'EZSCAN__SOURCE_TRANSFER_DIR_PATH'] )
-        self.REMOTE_DIR = unicode( os.environ[u'EZSCAN__REMOTE_TRANSFER_DIR_PATH'] )
+        self.REMOTE_DATA_DIR = unicode( os.environ[u'EZSCAN__REMOTE_TRANSFER_DATA_DIR_PATH'] )
+        self.REMOTE_COUNT_DIR = unicode( os.environ[u'EZSCAN__REMOTE_TRANSFER_COUNT_DIR_PATH'] )
 
     def transfer_files( self, data_filename, count_filename ):
         """ Transfers data-file and count-file. """
@@ -101,8 +102,8 @@ class Sender( object ):
         """ Builds and returns tuple of source and remote filepaths.
             Called by transfer_files() """
         data_source_fp = u'%s/%s' % ( self.LOCAL_DIR, data_filename )
-        data_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, data_filename )
+        data_remote_fp = u'%s/%s' % ( self.REMOTE_DATA_DIR, data_filename )
         count_source_fp = u'%s/%s' % ( self.LOCAL_DIR, count_filename )
-        count_remote_fp = u'%s/%s' % ( self.REMOTE_DIR, count_filename )
+        count_remote_fp = u'%s/%s' % ( self.REMOTE_COUNT_DIR, count_filename )
         log.debug( u'in magic_bus.Sender.build_filepaths(); paths built' )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
