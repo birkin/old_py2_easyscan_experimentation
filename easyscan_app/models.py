@@ -46,106 +46,13 @@ class ScanRequest( models.Model ):
 ## non db models below  ##
 
 
-class ShibViewHelper( object ):
-    """ Contains helpers for views.shib_login() """
-
-    def check_shib_headers( self, request ):
-        """ Grabs and checks shib headers, returns boolean.
-            Called by views.shib_login() """
-        shib_checker = ShibChecker()
-        shib_dict = shib_checker.grab_shib_info( request )
-        validity = shib_checker.evaluate_shib_info( shib_dict )
-        return validity
-
-    def build_response( self, request ):
-        request.session[u'shib_login_error'] = True
-        scheme = u'https' if request.is_secure() else u'http'
-        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
-        return_response = HttpResponseRedirect( redirect_url )
-        return return_response
-
-
-class ShibChecker( object ):
-    """ Contains helpers for checking Shib. """
-
-    def __init__( self ):
-        self.TEST_SHIB_JSON = os.environ.get( u'EZSCAN__TEST_SHIB_JSON', u'' )
-        self.SHIB_ERESOURCE_PERMISSION = os.environ[u'EZSCAN__SHIB_ERESOURCE_PERMISSION']
-
-    def grab_shib_info( self, request ):
-        """ Grabs shib values from http-header or dev-settings.
-            Called by models.ShibViewHelper.check_shib_headers() """
-        shib_dict = {}
-        if u'Shibboleth-eppn' in request.META:
-            shib_dict = self.grab_shib_from_meta( request )
-        else:
-            if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
-                shib_dict = json.loads( self.TEST_SHIB_JSON )
-        log.debug( u'in models.ShibChecker.grab_shib_info(); request.META is: %s' % pprint.pformat(request.META) )
-        log.debug( u'in models.ShibChecker.grab_shib_info(); shib_dict is: %s' % pprint.pformat(shib_dict) )
-        return shib_dict
-
-    def grab_shib_from_meta( self, request ):
-        """ Extracts shib values from http-header.
-            Called by grab_shib_info() """
-        shib_dict = {
-            u'eppn': request.META.get( u'Shibboleth-eppn', u'' ),
-            u'firstname': request.META.get( u'Shibboleth-givenName', u'' ),
-            u'lastname': request.META.get( u'Shibboleth-eppn', u'' ),
-            u'mail': request.META.get( u'Shibboleth-mail', u'' ),
-            u'patron_barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
-            u'member_of': request.META.get( u'Shibboleth-isMemberOf', u'' ) }
-        return shib_dict
-
-    def evaluate_shib_info( self, shib_dict ):
-        """ Returns boolean.
-            Called by models.ShibViewHelper.check_shib_headers() """
-        validity = False
-        if self.all_values_present(shib_dict) and self.brown_user_confirmed(shib_dict) and self.eresources_allowed(shib_dict):
-            validity = True
-        log.debug( u'in models.ShibChecker.evaluate_shib_info(); validity, `%s`' % validity )
-        return validity
-
-    def all_values_present( self, shib_dict ):
-        """ Returns boolean.
-            Called by evaluate_shib_info() """
-        present_check = False
-        if sorted( shib_dict.keys() ) == [u'eppn', u'firstname', u'lastname', u'mail', u'member_of', u'patron_barcode']:
-            value_test = u'init'
-            for (key, value) in shib_dict.items():
-                if len( value.strip() ) == 0:
-                    value_test = u'fail'
-            if value_test == u'init':
-                present_check = True
-        log.debug( u'in models.ShibChecker.all_values_present(); present_check, `%s`' % present_check )
-        return present_check
-
-    def brown_user_confirmed( self, shib_dict ):
-        """ Returns boolean.
-            Called by evaluate_shib_info() """
-        brown_check = False
-        if u'@brown.edu' in shib_dict[u'eppn']:
-            brown_check = True
-        log.debug( u'in models.ShibChecker.brown_user_confirmed(); brown_check, `%s`' % brown_check )
-        return brown_check
-
-    def eresources_allowed( self, shib_dict ):
-        """ Returns boolean.
-            Called by evaluate_shib_info() """
-        eresources_check = False
-        if self.SHIB_ERESOURCE_PERMISSION in shib_dict[u'member_of']:
-            eresources_check = True
-        log.debug( u'in models.ShibChecker.eresources_allowed(); eresources_check, `%s`' % eresources_check )
-        return eresources_check
-
-
 class LasDataMaker( object ):
     """ Container for code to make comma-delimited las string. """
 
     def make_csv_string(
         self, item_barcode, patron_name, patron_barcode, item_title, date_string, item_custom_info ):
         """ Makes and returns csv string from database data.
-            Called by ScanRequest.save() """
+            Called by models.ScanRequest.save() """
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
             modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info )
@@ -254,16 +161,6 @@ class RequestViewGetHelper( object ):
             request.session[u'barcode_login_info'][u'error'] = u''
         return
 
-    # def update_session_devinfo( self, request ):
-    #     """ Updates a few session variables with dummy data.
-    #         Allows easy viewing of request form for development.
-    #         Called by initialize_session() """
-    #     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
-    #         request.session[u'authz_info'] = { u'authorized': True }
-    #         request.session[u'user_info'] = { u'email': u'fir_las@misc.edu', u'name': u'fir las', u'patron_barcode': u'3.14etc' }
-    #         request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
-    #     return
-
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
             Called by handle_get() """
@@ -318,8 +215,107 @@ class RequestViewPostHelper( object ):
         return
 
 
+class ShibViewHelper( object ):
+    """ Contains helpers for views.shib_login() """
+
+    def check_shib_headers( self, request ):
+        """ Grabs and checks shib headers, returns boolean.
+            Called by views.shib_login() """
+        shib_checker = ShibChecker()
+        shib_dict = shib_checker.grab_shib_info( request )
+        validity = shib_checker.evaluate_shib_info( shib_dict )
+        log.debug( u'in models.ShibViewHelper.check_shib_headers(); returning validity `%s`' % validity )
+        return validity
+
+    def build_response( self, request, validity ):
+        """ Sets session vars and redirects to the request page,
+              which will show the citation form on login-success, and a helpful error message on login-failure.
+            Called by views.shib_login() """
+        request.session[u'shib_login_error'] = validity  # boolean
+        request.session[u'authz_info'][u'authorized'] = validity
+        scheme = u'https' if request.is_secure() else u'http'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+        return_response = HttpResponseRedirect( redirect_url )
+        log.debug( u'in models.ShibViewHelper.build_response(); returning response' )
+        return return_response
+
+
+class ShibChecker( object ):
+    """ Contains helpers for checking Shib. """
+
+    def __init__( self ):
+        self.TEST_SHIB_JSON = os.environ.get( u'EZSCAN__TEST_SHIB_JSON', u'' )
+        self.SHIB_ERESOURCE_PERMISSION = os.environ[u'EZSCAN__SHIB_ERESOURCE_PERMISSION']
+
+    def grab_shib_info( self, request ):
+        """ Grabs shib values from http-header or dev-settings.
+            Called by models.ShibViewHelper.check_shib_headers() """
+        shib_dict = {}
+        if u'Shibboleth-eppn' in request.META:
+            shib_dict = self.grab_shib_from_meta( request )
+        else:
+            if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+                shib_dict = json.loads( self.TEST_SHIB_JSON )
+        log.debug( u'in models.ShibChecker.grab_shib_info(); shib_dict is: %s' % pprint.pformat(shib_dict) )
+        return shib_dict
+
+    def grab_shib_from_meta( self, request ):
+        """ Extracts shib values from http-header.
+            Called by grab_shib_info() """
+        shib_dict = {
+            u'eppn': request.META.get( u'Shibboleth-eppn', u'' ),
+            u'firstname': request.META.get( u'Shibboleth-givenName', u'' ),
+            u'lastname': request.META.get( u'Shibboleth-eppn', u'' ),
+            u'mail': request.META.get( u'Shibboleth-mail', u'' ),
+            u'patron_barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
+            u'member_of': request.META.get( u'Shibboleth-isMemberOf', u'' ) }
+        return shib_dict
+
+    def evaluate_shib_info( self, shib_dict ):
+        """ Returns boolean.
+            Called by models.ShibViewHelper.check_shib_headers() """
+        validity = False
+        if self.all_values_present(shib_dict) and self.brown_user_confirmed(shib_dict) and self.eresources_allowed(shib_dict):
+            validity = True
+        log.debug( u'in models.ShibChecker.evaluate_shib_info(); validity, `%s`' % validity )
+        return validity
+
+    def all_values_present( self, shib_dict ):
+        """ Returns boolean.
+            Called by evaluate_shib_info() """
+        present_check = False
+        if sorted( shib_dict.keys() ) == [u'eppn', u'firstname', u'lastname', u'mail', u'member_of', u'patron_barcode']:
+            value_test = u'init'
+            for (key, value) in shib_dict.items():
+                if len( value.strip() ) == 0:
+                    value_test = u'fail'
+            if value_test == u'init':
+                present_check = True
+        log.debug( u'in models.ShibChecker.all_values_present(); present_check, `%s`' % present_check )
+        return present_check
+
+    def brown_user_confirmed( self, shib_dict ):
+        """ Returns boolean.
+            Called by evaluate_shib_info() """
+        brown_check = False
+        if u'@brown.edu' in shib_dict[u'eppn']:
+            brown_check = True
+        log.debug( u'in models.ShibChecker.brown_user_confirmed(); brown_check, `%s`' % brown_check )
+        return brown_check
+
+    def eresources_allowed( self, shib_dict ):
+        """ Returns boolean.
+            Called by evaluate_shib_info() """
+        eresources_check = False
+        if self.SHIB_ERESOURCE_PERMISSION in shib_dict[u'member_of']:
+            eresources_check = True
+        log.debug( u'in models.ShibChecker.eresources_allowed(); eresources_check, `%s`' % eresources_check )
+        return eresources_check
+
+
 class BarcodeViewHelper( object ):
-    """ Container for views.barcode_login() helpers. """
+    """ Container for views.barcode_login() helpers.
+        Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
 
     def build_data_dict( self, request ):
         """ Builds template-context on GET.
@@ -369,7 +365,8 @@ class BarcodeViewHelper( object ):
 
 
 class BarcodeValidator( object ):
-    """ Container for helpers to check submitted patron barcode & name. """
+    """ Container for helpers to check submitted patron barcode & name.
+        Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
 
     def __init__( self ):
         self.api_root_url = os.environ.get(u'EZSCAN__PATRONAPI_ROOT_URL', u'')
