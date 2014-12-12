@@ -46,6 +46,20 @@ class ScanRequest( models.Model ):
 ## non db models below  ##
 
 
+class ShibViewHelper( object ):
+    """ Contains helpers for views.shib_login() """
+
+    def check_shib_headers( self, request ):
+        return u'foo'
+
+    def build_response( self, request ):
+        request.session[u'shib_login_error'] = True
+        scheme = u'https' if request.is_secure() else u'http'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+        return_response = HttpResponseRedirect( redirect_url )
+        return return_response
+
+
 class LasDataMaker( object ):
     """ Container for code to make comma-delimited las string. """
 
@@ -135,7 +149,9 @@ class RequestViewGetHelper( object ):
             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         self.update_session_iteminfo( request )
         self.update_session_barcodelogininfo( request )
-        self.update_session_devinfo( request )
+        if not u'shib_login_error' in request.session:
+            request.session[u'shib_login_error'] = u''
+        # self.update_session_devinfo( request )
         log.debug( u'in models.RequestViewGetHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
@@ -159,15 +175,15 @@ class RequestViewGetHelper( object ):
             request.session[u'barcode_login_info'][u'error'] = u''
         return
 
-    def update_session_devinfo( self, request ):
-        """ Updates a few session variables with dummy data.
-            Allows easy viewing of request form for development.
-            Called by initialize_session() """
-        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
-            request.session[u'authz_info'] = { u'authorized': True }
-            request.session[u'user_info'] = { u'email': u'fir_las@misc.edu', u'name': u'fir las', u'patron_barcode': u'3.14etc' }
-            request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
-        return
+    # def update_session_devinfo( self, request ):
+    #     """ Updates a few session variables with dummy data.
+    #         Allows easy viewing of request form for development.
+    #         Called by initialize_session() """
+    #     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # allows easy viewing of request for for development
+    #         request.session[u'authz_info'] = { u'authorized': True }
+    #         request.session[u'user_info'] = { u'email': u'fir_las@misc.edu', u'name': u'fir las', u'patron_barcode': u'3.14etc' }
+    #         request.session[u'item_info'][u'callnumber'] = u'call_test, vol_test, year_test'
+    #     return
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
@@ -175,7 +191,8 @@ class RequestViewGetHelper( object ):
         context = {
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
-            u'barcode': request.session[u'item_info'][u'barcode']
+            u'barcode': request.session[u'item_info'][u'barcode'],
+            u'login_error': request.session[u'shib_login_error']
             }
         log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context

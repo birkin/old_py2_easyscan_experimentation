@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 request_view_get_helper = models.RequestViewGetHelper()
 request_view_post_helper = models.RequestViewPostHelper()
 barcode_view_helper = models.BarcodeViewHelper()
+shib_view_helper = models.ShibViewHelper()
 
 
 def js( request ):
@@ -43,8 +44,12 @@ def request_def( request ):
 
 
 def shib_login( request ):
-    log.debug( u'in shib_login()' )
-    return HttpResponse( u'will handle shib-login; barcode-login has been implemented, try that for now' )
+    """ Examines shib headers, sets session-auth, & returns user to request page. """
+    request.session[u'shib_login_error'] = u''
+    shib_view_helper.check_shib_headers( request )
+    return_response = shib_view_helper.build_response( request )
+    log.debug( u'in views.shib_login(); about to return response' )
+    return return_response
 
 
 def barcode_login( request ):

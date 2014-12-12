@@ -1,7 +1,7 @@
 {% extends "easyscan_app_templates/base.html" %}
 
 {% block page_title %}
-easyScan choose login
+easyScan login
 {% endblock page_title %}
 
 
@@ -44,6 +44,11 @@ easyScan choose login
         font-size: 125%; }
     p#or {
         margin-top: 2em; }
+    p.login_error {
+        color: red;
+        margin-bottom: .25em; }
+    input#submit_button {
+        margin-top: 1.5em; }
 </style>
 
  <h1>easyScan request</h1>
@@ -73,13 +78,11 @@ easyScan choose login
 <div id="forms">
 
     <form id="shib_login" action="/easyscan/shib_login/" method="GET">
-        <input type="submit" value="Standard Shib Login">
-    </form>
-
-    <p id="or">… or …</p>
-
-    <form id="barcode_login" action="/easyscan/barcode_login/" method="GET">
-        <input type="submit" value="Old-School Barcode Login">
+        {% if login_error %}
+        <p class="login_error">Problem: based on your login, it appears you're not authorized to request scans from the Annex.</p>
+        <p class="login_error">If you believe you should be able to request scans, please contact Library staff for assistance, either at 401/LIB-HELP, or at {{ "bart_hollingsworth@brown.edu"|urlize }}.</p>
+        {% endif %}
+        <input id="submit_button" type="submit" value="Brown Shibboleth Login">
     </form>
 
 </div>
