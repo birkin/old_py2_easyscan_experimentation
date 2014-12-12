@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import csv, datetime, logging, os, pprint, StringIO
+import csv, datetime, json, logging, os, pprint, StringIO
 import requests
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -70,7 +70,7 @@ class ShibChecker( object ):
 
     def __init__( self ):
         self.TEST_SHIB_JSON = os.environ.get( u'EZSCAN__TEST_SHIB_JSON', u'' )
-        self.ERESOURCE_PERMISSION = os.environ[u'EZSCAN__TEST_SHIB_JSON']
+        self.SHIB_ERESOURCE_PERMISSION = os.environ[u'EZSCAN__SHIB_ERESOURCE_PERMISSION']
 
     def grab_shib_info( self, request ):
         """ Grabs shib values from http-header or dev-settings.
@@ -80,9 +80,9 @@ class ShibChecker( object ):
             shib_dict = self.grab_shib_from_meta( request )
         else:
             if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
-                shib_dict = json.loads( self.TEST_JSON )
-        log.debug( u'in models.ShibViewHelper.grab_shib_info(); request.META is: %s' % pprint.pformat(request.META) )
-        log.debug( u'in models.ShibViewHelper.grab_shib_info(); shib_dict is: %s' % pprint.pformat(shib_dict) )
+                shib_dict = json.loads( self.TEST_SHIB_JSON )
+        log.debug( u'in models.ShibChecker.grab_shib_info(); request.META is: %s' % pprint.pformat(request.META) )
+        log.debug( u'in models.ShibChecker.grab_shib_info(); shib_dict is: %s' % pprint.pformat(shib_dict) )
         return shib_dict
 
     def grab_shib_from_meta( self, request ):
@@ -93,7 +93,7 @@ class ShibChecker( object ):
             u'firstname': request.META.get( u'Shibboleth-givenName', u'' ),
             u'lastname': request.META.get( u'Shibboleth-eppn', u'' ),
             u'mail': request.META.get( u'Shibboleth-mail', u'' ),
-            u'barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
+            u'patron_barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
             u'member_of': request.META.get( u'Shibboleth-isMemberOf', u'' ) }
         return shib_dict
 
@@ -102,30 +102,41 @@ class ShibChecker( object ):
             Called by models.ShibViewHelper.check_shib_headers() """
         validity = False
         if self.all_values_present(shib_dict) and self.brown_user_confirmed(shib_dict) and self.eresources_allowed(shib_dict):
-            validity = True:
+            validity = True
+        log.debug( u'in models.ShibChecker.evaluate_shib_info(); validity, `%s`' % validity )
         return validity
 
     def all_values_present( self, shib_dict ):
         """ Returns boolean.
             Called by evaluate_shib_info() """
-        for key in [ u'eppn', u'firstname', u'lastname', u'mail', u'barcode', u'member_of' ]:
-            if key not in shib_dict.keys():
-                return False
-        return True
+        present_check = False
+        if sorted( shib_dict.keys() ) == [u'eppn', u'firstname', u'lastname', u'mail', u'member_of', u'patron_barcode']:
+            value_test = u'init'
+            for (key, value) in shib_dict.items():
+                if len( value.strip() ) == 0:
+                    value_test = u'fail'
+            if value_test == u'init':
+                present_check = True
+        log.debug( u'in models.ShibChecker.all_values_present(); present_check, `%s`' % present_check )
+        return present_check
 
     def brown_user_confirmed( self, shib_dict ):
         """ Returns boolean.
             Called by evaluate_shib_info() """
-        if u'@brown.edu' not in shib_dict[u'eppn']:
-            return False
-        return True
+        brown_check = False
+        if u'@brown.edu' in shib_dict[u'eppn']:
+            brown_check = True
+        log.debug( u'in models.ShibChecker.brown_user_confirmed(); brown_check, `%s`' % brown_check )
+        return brown_check
 
     def eresources_allowed( self, shib_dict ):
         """ Returns boolean.
             Called by evaluate_shib_info() """
-        if self.ERESOURCE_PERMISSION not in shib_dict[u'member_of']:
-            return False
-        return True
+        eresources_check = False
+        if self.SHIB_ERESOURCE_PERMISSION in shib_dict[u'member_of']:
+            eresources_check = True
+        log.debug( u'in models.ShibChecker.eresources_allowed(); eresources_check, `%s`' % eresources_check )
+        return eresources_check
 
 
 class LasDataMaker( object ):
