@@ -134,11 +134,10 @@ class RequestViewGetHelper( object ):
         if not u'user_info' in request.session:
             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
         self.update_session_iteminfo( request )
-        self.update_session_barcodelogininfo( request )
+        # self.update_session_barcodelogininfo( request )
         if not u'shib_login_error' in request.session:
-            request.session[u'shib_login_error'] = u''
-        # self.update_session_devinfo( request )
-        log.debug( u'in models.RequestViewGetHelper.initialize_session(); request.session[item_info], `%s`' % pprint.pformat(request.session[u'item_info']) )
+            request.session[u'shib_login_error'] = False
+        log.debug( u'in models.RequestViewGetHelper.initialize_session(); session initialized' )
         return
 
     def update_session_iteminfo( self, request ):
@@ -150,16 +149,17 @@ class RequestViewGetHelper( object ):
             value = request.GET.get( key, u'' )
             if value:
                 request.session[u'item_info'][key] = value
+        log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
-    def update_session_barcodelogininfo( self, request ):
-        """ Initializes or resets the barcode_login_info data.
-            Called by initialize_session() """
-        if not u'barcode_login_info' in request.session:
-            request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
-        else:
-            request.session[u'barcode_login_info'][u'error'] = u''
-        return
+    # def update_session_barcodelogininfo( self, request ):
+    #     """ Initializes or resets the barcode_login_info data.
+    #         Called by initialize_session() """
+    #     if not u'barcode_login_info' in request.session:
+    #         request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
+    #     else:
+    #         request.session[u'barcode_login_info'][u'error'] = u''
+    #     return
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
@@ -225,19 +225,28 @@ class ShibViewHelper( object ):
         shib_dict = shib_checker.grab_shib_info( request )
         validity = shib_checker.evaluate_shib_info( shib_dict )
         log.debug( u'in models.ShibViewHelper.check_shib_headers(); returning validity `%s`' % validity )
-        return validity
+        return ( validity, shib_dict )
 
-    def build_response( self, request, validity ):
+    def build_response( self, request, validity, shib_dict ):
         """ Sets session vars and redirects to the request page,
               which will show the citation form on login-success, and a helpful error message on login-failure.
             Called by views.shib_login() """
-        request.session[u'shib_login_error'] = validity  # boolean
-        request.session[u'authz_info'][u'authorized'] = validity
+        self.update_session( request, validity, shib_dict )
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
         return_response = HttpResponseRedirect( redirect_url )
         log.debug( u'in models.ShibViewHelper.build_response(); returning response' )
         return return_response
+
+    def update_session( self, request, validity, shib_dict ):
+        request.session[u'shib_login_error'] = validity  # boolean
+        request.session[u'authz_info'][u'authorized'] = validity
+        if validity:
+            request.session[u'user_info'] = {
+                u'name': u'%s %s' % ( shib_dict[u'firstname'], shib_dict[u'lastname'] ),
+                u'email': shib_dict[u'email'],
+                u'patron_barcode': shib_dict[u'patron_barcode'] }
+        return
 
 
 class ShibChecker( object ):
@@ -266,7 +275,7 @@ class ShibChecker( object ):
             u'eppn': request.META.get( u'Shibboleth-eppn', u'' ),
             u'firstname': request.META.get( u'Shibboleth-givenName', u'' ),
             u'lastname': request.META.get( u'Shibboleth-eppn', u'' ),
-            u'mail': request.META.get( u'Shibboleth-mail', u'' ),
+            u'email': request.META.get( u'Shibboleth-mail', u'' ).lower(),
             u'patron_barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
             u'member_of': request.META.get( u'Shibboleth-isMemberOf', u'' ) }
         return shib_dict
@@ -284,7 +293,7 @@ class ShibChecker( object ):
         """ Returns boolean.
             Called by evaluate_shib_info() """
         present_check = False
-        if sorted( shib_dict.keys() ) == [u'eppn', u'firstname', u'lastname', u'mail', u'member_of', u'patron_barcode']:
+        if sorted( shib_dict.keys() ) == [u'email', u'eppn', u'firstname', u'lastname', u'member_of', u'patron_barcode']:
             value_test = u'init'
             for (key, value) in shib_dict.items():
                 if len( value.strip() ) == 0:

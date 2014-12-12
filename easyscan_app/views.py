@@ -10,7 +10,7 @@ from easyscan_app import models
 log = logging.getLogger(__name__)
 request_view_get_helper = models.RequestViewGetHelper()
 request_view_post_helper = models.RequestViewPostHelper()
-barcode_view_helper = models.BarcodeViewHelper()
+# barcode_view_helper = models.BarcodeViewHelper()
 shib_view_helper = models.ShibViewHelper()
 
 
@@ -46,22 +46,22 @@ def request_def( request ):
 def shib_login( request ):
     """ Examines shib headers, sets session-auth, & returns user to request page. """
     request.session[u'shib_login_error'] = u''
-    validity = shib_view_helper.check_shib_headers( request )
-    return_response = shib_view_helper.build_response( request, validity )
+    ( validity, shib_dict ) = shib_view_helper.check_shib_headers( request )
+    return_response = shib_view_helper.build_response( request, validity, shib_dict )
     log.debug( u'in views.shib_login(); about to return response' )
     return return_response
 
 
-def barcode_login( request ):
-    """ On GET, displays barcode login form.
-        On POST, redirects to request form on success, or barcode login form again on fail. """
-    if request.method == u'GET':
-        data_dict = barcode_view_helper.build_data_dict( request )
-        log.debug( u'in views.barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
-        return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
-    else:  # POST of form
-        return_response = barcode_view_helper.handle_post( request )
-        return return_response
+# def barcode_login( request ):
+#     """ On GET, displays barcode login form.
+#         On POST, redirects to request form on success, or barcode login form again on fail. """
+#     if request.method == u'GET':
+#         data_dict = barcode_view_helper.build_data_dict( request )
+#         log.debug( u'in views.barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
+#         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
+#     else:  # POST of form
+#         return_response = barcode_view_helper.handle_post( request )
+#         return return_response
 
 
 def confirmation( request ):
