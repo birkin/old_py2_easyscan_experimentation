@@ -60,7 +60,7 @@ easyScan request
 
 <div id="requested_item">
 
-    <p>You're requesting a scan for part of …</p>
+    <p>{% if patron_name %}Welcome {{ patron_name }}. {% endif %}You're requesting a scan for part of …</p>
     <br/>
     <dl>
         <dt>title:</dt>
