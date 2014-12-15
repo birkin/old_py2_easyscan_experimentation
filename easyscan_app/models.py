@@ -105,8 +105,9 @@ class RequestViewGetHelper( object ):
         """ Handles request-page GET; returns response. """
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check[u'is_secure'] == False:
-            return_response = HttpResponseRedirect( https_check[u'redirect_url'] )
-            return return_response
+            # return_response = HttpResponseRedirect( https_check[u'redirect_url'] )
+            # return return_response
+            return HttpResponseRedirect( https_check[u'redirect_url'] )
         self.initialize_session( request )
         if request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
@@ -246,6 +247,7 @@ class ShibViewHelper( object ):
                 u'name': u'%s %s' % ( shib_dict[u'firstname'], shib_dict[u'lastname'] ),
                 u'email': shib_dict[u'email'],
                 u'patron_barcode': shib_dict[u'patron_barcode'] }
+            request.session[u'shib_login_error'] = False
         return
 
 

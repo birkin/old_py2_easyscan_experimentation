@@ -45,6 +45,7 @@ def request_def( request ):
 
 def shib_login( request ):
     """ Examines shib headers, sets session-auth, & returns user to request page. """
+    log.debug( u'in views.shib_login(); starting' )
     request.session[u'shib_login_error'] = u''
     ( validity, shib_dict ) = shib_view_helper.check_shib_headers( request )
     return_response = shib_view_helper.build_response( request, validity, shib_dict )
