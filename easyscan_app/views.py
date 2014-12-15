@@ -5,7 +5,7 @@ from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.http import urlencode
+from django.utils.http import urlquote
 from easyscan_app import models
 
 
@@ -85,7 +85,7 @@ def logout( request ):
     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
         pass
     else:
-        encoded_redirect_url =  urlencode( redirect_url )  # django's urlencode()
+        encoded_redirect_url =  urlquote( redirect_url )  # django's urlencode()
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
     log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
