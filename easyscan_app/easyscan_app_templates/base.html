@@ -29,6 +29,7 @@
             <p class="top_header_links">
                 <a href="http://library.brown.edu/libweb/proxy.php">Off-Campus Access</a> &nbsp;&nbsp;&#124;&nbsp;&nbsp;
                 <a href="http://library.brown.edu/libweb/atoz.php">Library A&ndash;Z</a> <!-- &nbsp;&nbsp;&#124;&nbsp;&nbsp; -->
+                {% if logout_url %}&nbsp;&nbsp;&#124;&nbsp;&nbsp;<a href="{{ logout_url }}">Log-out</a>{% endif %}
             </p>
 
             <div class="BUhomelink">
