@@ -79,7 +79,9 @@ def confirmation( request ):
 
 
 def logout( request ):
+    from django.contrib.auth import logout
     request.session[u'authz_info'][u'authorized'] = False
+    logout( request )
     scheme = u'https' if request.is_secure() else u'http'
     redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
