@@ -277,7 +277,7 @@ class ShibChecker( object ):
         shib_dict = {
             u'eppn': request.META.get( u'Shibboleth-eppn', u'' ),
             u'firstname': request.META.get( u'Shibboleth-givenName', u'' ),
-            u'lastname': request.META.get( u'Shibboleth-eppn', u'' ),
+            u'lastname': request.META.get( u'Shibboleth-sn', u'' ),
             u'email': request.META.get( u'Shibboleth-mail', u'' ).lower(),
             u'patron_barcode': request.META.get( u'Shibboleth-brownBarCode', u'' ),
             u'member_of': request.META.get( u'Shibboleth-isMemberOf', u'' ) }
