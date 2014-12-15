@@ -105,8 +105,6 @@ class RequestViewGetHelper( object ):
         """ Handles request-page GET; returns response. """
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check[u'is_secure'] == False:
-            # return_response = HttpResponseRedirect( https_check[u'redirect_url'] )
-            # return return_response
             return HttpResponseRedirect( https_check[u'redirect_url'] )
         self.initialize_session( request )
         if request.session[u'authz_info'][u'authorized'] == False:
@@ -169,8 +167,11 @@ class RequestViewGetHelper( object ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
-            u'login_error': request.session[u'shib_login_error']
+            u'login_error': request.session[u'shib_login_error'],
             }
+        if request.session[u'authz_info'][u'authorized']:
+            context[u'patron_name'] = request.session[u'user_info'][u'name']
+            context[u'logout_url'] = reverse( u'logout_url' )
         log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
 

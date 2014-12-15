@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import logging, os, pprint
+from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.http import urlencode
 from easyscan_app import models
 
 
@@ -40,7 +42,7 @@ def request_def( request ):
         scheme = u'https' if request.is_secure() else u'http'
         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
         log.debug( u'in views.request_def() (post); about to redirect' )
-        return  HttpResponseRedirect( redirect_url )
+        return HttpResponseRedirect( redirect_url )
 
 
 def shib_login( request ):
@@ -74,3 +76,17 @@ def confirmation( request ):
         u'email': request.session[u'user_info'][u'email']
         }
     return render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
+
+
+def logout( request ):
+    request.session[u'authz_info'][u'authorized'] = False
+    scheme = u'https' if request.is_secure() else u'http'
+    redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+    if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+        pass
+    else:
+        encoded_redirect_url =  urlencode( redirect_url )  # django's urlencode()
+        redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
+    log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
+    return HttpResponseRedirect( redirect_url )
+
