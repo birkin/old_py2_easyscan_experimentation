@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 
     url( r'^shib_login/$',  'easyscan_app.views.shib_login', name=u'shib_login_url' ),
     # url( r'^barcode_login/$',  'easyscan_app.views.barcode_login', name=u'barcode_login_url' ),  # 2012-Dec: no longer needed
-    url( r'^logout/$',  'easyscan_app.views.logout', name=u'logout_url' ),
+    url( r'^logout/$',  'easyscan_app.views.shib_logout', name=u'logout_url' ),
 
     url( r'^confirmation/$',  'easyscan_app.views.confirmation', name=u'confirmation_url' ),
 

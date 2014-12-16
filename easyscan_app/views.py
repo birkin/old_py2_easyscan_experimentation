@@ -2,6 +2,7 @@
 
 import logging, os, pprint
 from django.conf import settings as project_settings
+from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -75,11 +76,11 @@ def confirmation( request ):
         u'barcode': request.session[u'item_info'][u'barcode'],
         u'email': request.session[u'user_info'][u'email']
         }
+    logout( request )
     return render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
 
 
-def logout( request ):
-    from django.contrib.auth import logout
+def shib_logout( request ):
     request.session[u'authz_info'][u'authorized'] = False
     logout( request )
     scheme = u'https' if request.is_secure() else u'http'
