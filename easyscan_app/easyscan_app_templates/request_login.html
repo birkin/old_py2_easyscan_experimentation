@@ -77,7 +77,7 @@ easyScan login
 
 <div id="forms">
 
-    <form id="shib_login" action="/easyscan/shib_login/" method="GET">
+    <form id="shib_login" action="/easyscan/shib_login/" method="POST">{% csrf_token %}
         {% if login_error %}
         <p class="login_error">Problem: based on your login, it appears you're not authorized to request scans from the Annex.</p>
         <p class="login_error">If you believe you should be able to request scans, please contact Library staff for assistance, either at 401/LIB-HELP, or at {{ "bart_hollingsworth@brown.edu"|urlize }}.</p>

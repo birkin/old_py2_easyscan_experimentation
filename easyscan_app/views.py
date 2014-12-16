@@ -49,6 +49,9 @@ def request_def( request ):
 def shib_login( request ):
     """ Examines shib headers, sets session-auth, & returns user to request page. """
     log.debug( u'in views.shib_login(); starting' )
+    if request.method == u'POST':
+        redirect_url = os.environ[u'EZSCAN__SHIB_LOGIN_URL']
+        return HttpResponseRedirect( redirect_url )
     request.session[u'shib_login_error'] = u''
     ( validity, shib_dict ) = shib_view_helper.check_shib_headers( request )
     return_response = shib_view_helper.build_response( request, validity, shib_dict )
@@ -88,7 +91,7 @@ def shib_logout( request ):
     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
         pass
     else:
-        encoded_redirect_url =  urlquote( redirect_url )  # django's urlencode()
+        encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
     log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
