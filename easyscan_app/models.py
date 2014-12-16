@@ -107,7 +107,9 @@ class RequestViewGetHelper( object ):
         if https_check[u'is_secure'] == False:
             return HttpResponseRedirect( https_check[u'redirect_url'] )
         self.initialize_session( request )
-        if request.session[u'authz_info'][u'authorized'] == False:
+        if request.session[u'item_info'][u'barcode'] == u'':
+            return_response = render( request, u'easyscan_app_templates/request_info.html', self.build_data_dict(request) )
+        elif request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
             return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )

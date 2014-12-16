@@ -1,0 +1,63 @@
+{% extends "easyscan_app_templates/base.html" %}
+
+{% block page_title %}
+easyScan info
+{% endblock page_title %}
+
+
+{% block content %}
+
+<style>
+    h1 {
+        font-size: 2.5em;
+        margin-top: 2em;
+        text-transform: none }
+    div#rules {
+        margin-top: 3.5em; }
+    hr {
+        margin-top: 2em; }
+    dt, dd {
+        font-family:sans-serif;
+        margin-top: .5em; }
+    dt {
+       float:left;
+       clear:left;
+       text-align:right;
+       width:15%;
+       color:#bbb;
+       font-size: 125%; }
+    dd {
+       float:left;
+       margin-left:2em;
+       color:#999;
+       font-size: 125%; }
+    p {
+        font-size: 125%;
+        margin-top:1.5em; }
+    ul {
+        list-style-type: square;
+        margin-left: 2em;
+        font-size: 125%; }
+    li {
+        margin-top: .5em; }
+</style>
+
+ <h1>easyScan info</h1>
+
+<div id="rules">
+    <p>This service permits Brown community members to request scans of up to 20 pages from non-special-collections materials located at the Annex.</p>
+    <p>Other info....</p>
+    <p>Eventually this service will be hooked up to Brown's VuFind and Blacklight discovery web-apps, but for now, to use this service:</p>
+    <ul>
+        <li>Find an item you need a scan from in Josiah. <a href="http://josiah.brown.edu:2082/record=b4069600">Sample Josiah item</a>.</li>
+        <li>Click the 'Request Scan' link next to the item from which you need a scan.</li>
+        <li>Log in.</li>
+        <li>Edit the citation information as needed.</li>
+        <li>Click the Submit button; that's it! Your scan will be emailed to you with x business days.</li>
+    </ul>
+    <p>If you have questions, feel free to contact x at first_last@brown.edu</p>
+</div>
+
+<hr/>
+
+{% endblock content %}
