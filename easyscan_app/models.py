@@ -102,17 +102,13 @@ class RequestViewGetHelper( object ):
     """ Container for views.request_def() helpers for handling GET. """
 
     def handle_get( self, request ):
-        """ Handles request-page GET; returns response. """
+        """ Handles request-page GET; returns response.
+            Called by views.request_def() """
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check[u'is_secure'] == False:
             return HttpResponseRedirect( https_check[u'redirect_url'] )
         self.initialize_session( request )
-        if request.session[u'item_info'][u'barcode'] == u'':
-            return_response = render( request, u'easyscan_app_templates/request_info.html', self.build_data_dict(request) )
-        elif request.session[u'authz_info'][u'authorized'] == False:
-            return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
-        else:
-            return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+        return_response = self.build_response( request )
         log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
         return return_response
 
@@ -162,9 +158,21 @@ class RequestViewGetHelper( object ):
     #         request.session[u'barcode_login_info'][u'error'] = u''
     #     return
 
+    def build_response( self, request ):
+        """ Builds response.
+            Called by handle_get() """
+        if request.session[u'item_info'][u'barcode'] == u'':
+            return_response = render( request, u'easyscan_app_templates/request_info.html', self.build_data_dict(request) )
+        elif request.session[u'authz_info'][u'authorized'] == False:
+            return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
+        else:
+            return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+        log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
+        return return_response
+
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
-            Called by handle_get() """
+            Called by build_response() """
         context = {
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],

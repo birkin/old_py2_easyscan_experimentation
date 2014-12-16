@@ -36,7 +36,7 @@ def request_def( request ):
     if request.method == u'GET':
         return_response = request_view_get_helper.handle_get( request )
         return return_response
-    else:  # POST of form
+    else:  # form POST
         request_view_post_helper.update_session( request )
         scnrqst = request_view_post_helper.save_post_data( request )
         request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
@@ -49,10 +49,10 @@ def request_def( request ):
 def shib_login( request ):
     """ Examines shib headers, sets session-auth, & returns user to request page. """
     log.debug( u'in views.shib_login(); starting' )
-    if request.method == u'POST':
-        redirect_url = os.environ[u'EZSCAN__SHIB_LOGIN_URL']
-        return HttpResponseRedirect( redirect_url )
-    request.session[u'shib_login_error'] = u''
+    if request.method == u'POST':  # from request_login.html
+        log.debug( u'in views.shib_login(); post detected' )
+        return HttpResponseRedirect( os.environ[u'EZSCAN__SHIB_LOGIN_URL'] )  # forces reauth if user clicked logout link
+    request.session[u'shib_login_error'] = u''  # initialization; updated when response is built
     ( validity, shib_dict ) = shib_view_helper.check_shib_headers( request )
     return_response = shib_view_helper.build_response( request, validity, shib_dict )
     log.debug( u'in views.shib_login(); about to return response' )
@@ -83,16 +83,35 @@ def confirmation( request ):
     return render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
 
 
-def shib_logout( request ):
+def shib_logout( request, redirect_url=None ):
+    """ Clears session, hits shib logout, and redirects user to landing or confirmation page. """
     request.session[u'authz_info'][u'authorized'] = False
     logout( request )
     scheme = u'https' if request.is_secure() else u'http'
-    redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
-        pass
+        if not redirect_url:  # if not from confirmation page, redirect to request page
+            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
     else:
-        encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
+        if redirect_url:  # from confirmation page
+            encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
+        else:
+            encoded_redirect_url =  urlquote(
+                redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+                )
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
     log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
 
+# def shib_logout( request ):
+#     """ Clears session, hits shib logout, and redirects user to landing page. """
+#     request.session[u'authz_info'][u'authorized'] = False
+#     logout( request )
+#     scheme = u'https' if request.is_secure() else u'http'
+#     redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+#     if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+#         pass
+#     else:
+#         encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
+#         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
+#     log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
+#     return HttpResponseRedirect( redirect_url )
