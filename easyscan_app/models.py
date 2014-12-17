@@ -337,150 +337,8 @@ class ShibChecker( object ):
         return eresources_check
 
 
-class BarcodeViewHelper( object ):
-    """ Container for views.barcode_login() helpers.
-        Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
-
-    def build_data_dict( self, request ):
-        """ Builds template-context on GET.
-            Called by views.barcode_login() """
-        data_dict = {
-            u'title': request.session[u'item_info'][u'title'],
-            u'callnumber': request.session[u'item_info'][u'callnumber'],
-            u'barcode': request.session[u'item_info'][u'barcode'],
-            u'login_error': request.session[u'barcode_login_info'][u'error'],
-            u'login_name': request.session[u'barcode_login_info'][u'name']
-            }
-        return data_dict
-
-    def handle_post( self, request ):
-        """ Evaluates barcode-page POST; returns response.
-            Called by views.barcode_login() """
-        ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
-        request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
-        barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
-        scheme = u'https' if request.is_secure() else u'http'
-        if barcode_check[u'validity'] == u'valid':
-            redirect_url = self.handle_valid_barcode( request, barcode_check, scheme )
-        else:
-            redirect_url = self.handle_invalid_barcode( request, scheme )
-        log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
-        return_response = HttpResponseRedirect( redirect_url )
-        return return_response
-
-    def handle_valid_barcode( self, request, barcode_check, scheme ):
-        """ Updates session keys for valid barcode and returns redirect url to request form.
-            Called by: handle_post() """
-        request.session[u'authz_info'][u'authorized'] = True
-        request.session[u'user_info'] = {
-            u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
-        request.session[u'barcode_login_info'][u'name'] = u''
-        request.session[u'barcode_login_info'][u'error'] = u''
-        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
-        return redirect_url
-
-    def handle_invalid_barcode( self, request, scheme ):
-        """ Updates session keys for invalid barcode and returns redirect url to barcode login form.
-            Called by: handle_post() """
-        log.debug( u'in BarcodeViewHelper.handle_invalid_barcode(); about to update session object with error string' )
-        request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
-        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
-        return redirect_url
-
-
-class BarcodeValidator( object ):
-    """ Container for helpers to check submitted patron barcode & name.
-        Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
-
-    def __init__( self ):
-        self.api_root_url = os.environ.get(u'EZSCAN__PATRONAPI_ROOT_URL', u'')
-
-    def check_barcode( self, barcode, name ):
-        """ Controller function: calls request, parse, and evaluate functions.
-            Called by models.BarcodeViewHelper.handle_post() """
-        raw_data = self.grab_raw_data( barcode )
-        for condition in self.get_bad_conditions( raw_data ):
-            if condition == True:
-                return { u'validity': u'invalid', u'error': raw_data }
-        parsed_data = self.parse_raw_data( raw_data )
-        evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
-        log.debug( u'in BarcodeValidator.check_barcode(); returning evaluation_dict' )
-        return evaluation_dict
-
-    def grab_raw_data( self, barcode ):
-        """ Hits api; returns raw data.
-            Called by check_barcode() """
-        try:
-            url = u'%s/%s/dump' % ( self.api_root_url, barcode )
-            r = requests.get( url, timeout=10 )
-            raw_data = r.content.decode( u'utf-8' )
-        except Exception as e:
-            raw_data = u'Exception, `%s`' % unicode(repr(e))
-        log.debug( u'in BarcodeValidator.grab_raw_data(); raw_data, `%s`' % raw_data )
-        return raw_data
-
-    def get_bad_conditions( self, raw_data ):
-        """ Returns list of invalid conditions.
-            Called by check_barcode() """
-        bad_conditions = [
-            ( u'403 Forbidden' in raw_data ),
-            ( u'Invalid patron barcode' in raw_data ),
-            ( u'Requested record not found' in raw_data ),
-            ( raw_data.startswith(u'Exception') )
-            ]
-        log.debug( u'in BarcodeValidator.get_bad_conditions(); bad_conditions, `%s`' % bad_conditions )
-        return bad_conditions
-
-    def parse_raw_data( self, raw_data ):
-        """ Extracts name and email elements from raw_data; returns dict.
-            Called by check_barcode() """
-        lines = raw_data.split( u'\n' )
-        parsed_data = {}
-        for line in lines:
-            if u'PATRN NAME' in line:
-                parsed_data[u'name'] = line
-            if u'E-MAIL' in line:
-                parsed_data[u'email'] = line
-        parsed_data[u'name'] = self.parse_name( parsed_data[u'name'] )
-        parsed_data[u'email'] = self.parse_email( parsed_data[u'email'] )
-        log.debug( u'in BarcodeValidator.parse_raw_data(); parsed_data, `%s`' % parsed_data )
-        return parsed_data
-
-    def parse_name( self, name_line ):
-        """ Takes raw name line; returns name data.
-            Called by parse_raw_data() """
-        start_position = len( u'PATRN NAME[pn]=' )
-        end_position = name_line.find( u'<BR>' )
-        name = name_line[start_position:end_position]
-        log.debug( u'in BarcodeValidator.parse_name(); name, `%s`' % name )
-        return name
-
-    def parse_email( self, email_line ):
-        """ Takes raw email line; returns email data.
-            Called by parse_raw_data() """
-        start_position = len( u'E-MAIL[pe]=' )
-        end_position = email_line.find( u'<BR>' )
-        email = email_line[start_position:end_position].lower()
-        return email
-
-    def evaluate_parsed_data( self, parsed_data, name ):
-        """ Takes parsed_data dict and submitted name string; returns dict.
-            Called by check_barcode() """
-        all_parts = []
-        last_first_elements = parsed_data[u'name'].split( u',' )  # 'last, first middle' becomes ['last', 'first middle']
-        for element in last_first_elements:
-            split_parts = element.strip().split()
-            for part in split_parts: all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
-        if name.lower() in all_parts:  # the simple test
-            evaluation_dict = { u'validity': u'valid', u'name': parsed_data[u'name'], u'email': parsed_data[u'email'] }
-        else:
-            evaluation_dict = { u'validity': u'invalid' }
-        log.debug( u'in BarcodeValidator.evaluate_parsed_data(); evaluation_dict, `%s`' % evaluation_dict )
-        return evaluation_dict
-
-
 class ConfirmationViewHelper( object ):
-    """ Container for views.confirmation().
+    """ Container for views.confirmation() helpers.
         TODO- refactor commonalities with shib_logout. """
 
     def __init__( self ):
@@ -501,7 +359,8 @@ class ConfirmationViewHelper( object ):
         return return_response
 
     def handle_non_authorized( self, request ):
-        """ Builds response when user is not authorized (authorization is unset by initial confirmation-page access).
+        """ Clears session and displays confirmation page.
+            (Authorization is unset by initial confirmation-page access.)
             Called by views.confirmation() """
         data_dict = {
             u'title': request.session[u'item_info'][u'title'],
@@ -513,3 +372,150 @@ class ConfirmationViewHelper( object ):
         return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
         return return_response
 
+
+##
+## barcode login no longer a project requirement
+## leaving code here a while just in case
+##
+
+
+# class BarcodeViewHelper( object ):
+#     """ Container for views.barcode_login() helpers.
+#         Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
+
+#     def build_data_dict( self, request ):
+#         """ Builds template-context on GET.
+#             Called by views.barcode_login() """
+#         data_dict = {
+#             u'title': request.session[u'item_info'][u'title'],
+#             u'callnumber': request.session[u'item_info'][u'callnumber'],
+#             u'barcode': request.session[u'item_info'][u'barcode'],
+#             u'login_error': request.session[u'barcode_login_info'][u'error'],
+#             u'login_name': request.session[u'barcode_login_info'][u'name']
+#             }
+#         return data_dict
+
+#     def handle_post( self, request ):
+#         """ Evaluates barcode-page POST; returns response.
+#             Called by views.barcode_login() """
+#         ( barcode_check, barcode_validator ) = ( u'init', BarcodeValidator() )
+#         request.session[u'barcode_login_info'][u'name'] = request.POST.get( u'name'.strip(), u'' )
+#         barcode_check = barcode_validator.check_barcode( request.POST.get(u'patron_barcode', u''), request.session[u'barcode_login_info'][u'name'] )
+#         scheme = u'https' if request.is_secure() else u'http'
+#         if barcode_check[u'validity'] == u'valid':
+#             redirect_url = self.handle_valid_barcode( request, barcode_check, scheme )
+#         else:
+#             redirect_url = self.handle_invalid_barcode( request, scheme )
+#         log.debug( u'in BarcodeViewHelper.handle_post(); redirect_url, `%s`' % redirect_url )
+#         return_response = HttpResponseRedirect( redirect_url )
+#         return return_response
+
+#     def handle_valid_barcode( self, request, barcode_check, scheme ):
+#         """ Updates session keys for valid barcode and returns redirect url to request form.
+#             Called by: handle_post() """
+#         request.session[u'authz_info'][u'authorized'] = True
+#         request.session[u'user_info'] = {
+#             u'name': barcode_check[u'name'], u'patron_barcode': request.POST.get(u'patron_barcode', u''), u'email': barcode_check[u'email'] }
+#         request.session[u'barcode_login_info'][u'name'] = u''
+#         request.session[u'barcode_login_info'][u'error'] = u''
+#         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
+#         return redirect_url
+
+#     def handle_invalid_barcode( self, request, scheme ):
+#         """ Updates session keys for invalid barcode and returns redirect url to barcode login form.
+#             Called by: handle_post() """
+#         log.debug( u'in BarcodeViewHelper.handle_invalid_barcode(); about to update session object with error string' )
+#         request.session[u'barcode_login_info'][u'error'] = u'Login not valid; please try again, or contact the Library for assistance.'
+#         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'barcode_login_url') )
+#         return redirect_url
+
+
+# class BarcodeValidator( object ):
+#     """ Container for helpers to check submitted patron barcode & name.
+#         Note -- December 2012: Turns out barcode-login not needed for scans; leaving code here a little while. """
+
+#     def __init__( self ):
+#         self.api_root_url = os.environ.get(u'EZSCAN__PATRONAPI_ROOT_URL', u'')
+
+#     def check_barcode( self, barcode, name ):
+#         """ Controller function: calls request, parse, and evaluate functions.
+#             Called by models.BarcodeViewHelper.handle_post() """
+#         raw_data = self.grab_raw_data( barcode )
+#         for condition in self.get_bad_conditions( raw_data ):
+#             if condition == True:
+#                 return { u'validity': u'invalid', u'error': raw_data }
+#         parsed_data = self.parse_raw_data( raw_data )
+#         evaluation_dict = self.evaluate_parsed_data( parsed_data, name )
+#         log.debug( u'in BarcodeValidator.check_barcode(); returning evaluation_dict' )
+#         return evaluation_dict
+
+#     def grab_raw_data( self, barcode ):
+#         """ Hits api; returns raw data.
+#             Called by check_barcode() """
+#         try:
+#             url = u'%s/%s/dump' % ( self.api_root_url, barcode )
+#             r = requests.get( url, timeout=10 )
+#             raw_data = r.content.decode( u'utf-8' )
+#         except Exception as e:
+#             raw_data = u'Exception, `%s`' % unicode(repr(e))
+#         log.debug( u'in BarcodeValidator.grab_raw_data(); raw_data, `%s`' % raw_data )
+#         return raw_data
+
+#     def get_bad_conditions( self, raw_data ):
+#         """ Returns list of invalid conditions.
+#             Called by check_barcode() """
+#         bad_conditions = [
+#             ( u'403 Forbidden' in raw_data ),
+#             ( u'Invalid patron barcode' in raw_data ),
+#             ( u'Requested record not found' in raw_data ),
+#             ( raw_data.startswith(u'Exception') )
+#             ]
+#         log.debug( u'in BarcodeValidator.get_bad_conditions(); bad_conditions, `%s`' % bad_conditions )
+#         return bad_conditions
+
+#     def parse_raw_data( self, raw_data ):
+#         """ Extracts name and email elements from raw_data; returns dict.
+#             Called by check_barcode() """
+#         lines = raw_data.split( u'\n' )
+#         parsed_data = {}
+#         for line in lines:
+#             if u'PATRN NAME' in line:
+#                 parsed_data[u'name'] = line
+#             if u'E-MAIL' in line:
+#                 parsed_data[u'email'] = line
+#         parsed_data[u'name'] = self.parse_name( parsed_data[u'name'] )
+#         parsed_data[u'email'] = self.parse_email( parsed_data[u'email'] )
+#         log.debug( u'in BarcodeValidator.parse_raw_data(); parsed_data, `%s`' % parsed_data )
+#         return parsed_data
+
+#     def parse_name( self, name_line ):
+#         """ Takes raw name line; returns name data.
+#             Called by parse_raw_data() """
+#         start_position = len( u'PATRN NAME[pn]=' )
+#         end_position = name_line.find( u'<BR>' )
+#         name = name_line[start_position:end_position]
+#         log.debug( u'in BarcodeValidator.parse_name(); name, `%s`' % name )
+#         return name
+
+#     def parse_email( self, email_line ):
+#         """ Takes raw email line; returns email data.
+#             Called by parse_raw_data() """
+#         start_position = len( u'E-MAIL[pe]=' )
+#         end_position = email_line.find( u'<BR>' )
+#         email = email_line[start_position:end_position].lower()
+#         return email
+
+#     def evaluate_parsed_data( self, parsed_data, name ):
+#         """ Takes parsed_data dict and submitted name string; returns dict.
+#             Called by check_barcode() """
+#         all_parts = []
+#         last_first_elements = parsed_data[u'name'].split( u',' )  # 'last, first middle' becomes ['last', 'first middle']
+#         for element in last_first_elements:
+#             split_parts = element.strip().split()
+#             for part in split_parts: all_parts.append( part.lower() )  # all_parts becomes ['last', 'first', 'middle']
+#         if name.lower() in all_parts:  # the simple test
+#             evaluation_dict = { u'validity': u'valid', u'name': parsed_data[u'name'], u'email': parsed_data[u'email'] }
+#         else:
+#             evaluation_dict = { u'validity': u'invalid' }
+#         log.debug( u'in BarcodeValidator.evaluate_parsed_data(); evaluation_dict, `%s`' % evaluation_dict )
+#         return evaluation_dict

@@ -82,24 +82,6 @@ def confirmation( request ):
     return return_response
 
 
-# def confirmation( request ):
-#     """ Logs user out & displays confirmation screen after submission.
-#         TODO- refactor commonalities with shib_logout() """
-#     if request.session[u'authz_info'][u'authorized'] == False:
-#         return_response = confirmation_vew_helper.handle_get( request )
-#         return return_response
-#     else:
-#         request.session[u'authz_info'][u'authorized'] = False
-#         if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
-#             return HttpResponseRedirect( reverse(u'confirmation_url') )
-#         else:
-#             scheme = u'https' if request.is_secure() else u'http'
-#             target_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
-#             encoded_target_url =  urlquote( target_url )
-#             redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_target_url )
-#             return HttpResponseRedirect( redirect_url )
-
-
 def shib_logout( request ):
     """ Clears session, hits shib logout, and redirects user to landing page. """
     request.session[u'authz_info'][u'authorized'] = False
