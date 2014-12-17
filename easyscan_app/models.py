@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.http import urlquote
 from django.utils.encoding import smart_unicode
 from django.conf import settings as project_settings
 from easyscan_app.lib.magic_bus import Prepper, Sender
