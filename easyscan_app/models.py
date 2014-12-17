@@ -485,8 +485,22 @@ class ConfirmationViewHelper( object ):
     def __init__( self ):
         self.SHIB_LOGOUT_URL_ROOT = os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT']
 
-    def handle_get( self, request ):
-        """ Builds response on GET.
+    def handle_authorized( self, request ):
+        """ Unsets authorization, hits idp-logout, & redirects back to confirmation page.
+            Called by views.confirmation() """
+        request.session[u'authz_info'][u'authorized'] = False
+        if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+            return_response = HttpResponseRedirect( reverse(u'confirmation_url') )
+        else:
+            scheme = u'https' if request.is_secure() else u'http'
+            target_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+            encoded_target_url =  urlquote( target_url )
+            redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_target_url )
+            return_response = HttpResponseRedirect( redirect_url )
+        return return_response
+
+    def handle_non_authorized( self, request ):
+        """ Builds response when user is not authorized (authorization is unset by initial confirmation-page access).
             Called by views.confirmation() """
         data_dict = {
             u'title': request.session[u'item_info'][u'title'],
@@ -497,3 +511,4 @@ class ConfirmationViewHelper( object ):
         logout( request )
         return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
         return return_response
+
