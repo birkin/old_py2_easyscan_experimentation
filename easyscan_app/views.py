@@ -95,7 +95,7 @@ def confirmation( request ):
             scheme = u'https' if request.is_secure() else u'http'
             target_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
             encoded_target_url =  urlquote( target_url )
-            redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
+            redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_target_url )
             log.debug( u'in views.confirmation(); logout redirect_url, `%s`' % redirect_url )
             return HttpResponseRedirect( redirect_url )
 
