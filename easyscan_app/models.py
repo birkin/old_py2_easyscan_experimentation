@@ -2,6 +2,7 @@
 
 import csv, datetime, json, logging, os, pprint, StringIO
 import requests
+from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
@@ -475,3 +476,24 @@ class BarcodeValidator( object ):
             evaluation_dict = { u'validity': u'invalid' }
         log.debug( u'in BarcodeValidator.evaluate_parsed_data(); evaluation_dict, `%s`' % evaluation_dict )
         return evaluation_dict
+
+
+class ConfirmationViewHelper( object ):
+    """ Container for views.confirmation().
+        TODO- refactor commonalities with shib_logout. """
+
+    def __init__( self ):
+        self.SHIB_LOGOUT_URL_ROOT = os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT']
+
+    def handle_get( self, request ):
+        """ Builds response on GET.
+            Called by views.confirmation() """
+        data_dict = {
+            u'title': request.session[u'item_info'][u'title'],
+            u'callnumber': request.session[u'item_info'][u'callnumber'],
+            u'barcode': request.session[u'item_info'][u'barcode'],
+            u'email': request.session[u'user_info'][u'email']
+            }
+        logout( request )
+        return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
+        return return_response
