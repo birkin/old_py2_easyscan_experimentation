@@ -192,7 +192,7 @@ class RequestViewPostHelper( object ):
     def update_session( self, request ):
         """ Updates session vars.
             Called by views.request_def() """
-        request.session[u'authz_info'][u'authorized'] = False
+        # request.session[u'authz_info'][u'authorized'] = False  # confirmation page code update 'authorized'
         request.session[u'item_info'][u'callnumber'] = request.POST.get( u'custom_info'.strip(), u'' )
         return
 

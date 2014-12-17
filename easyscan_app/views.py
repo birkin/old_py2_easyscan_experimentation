@@ -75,6 +75,7 @@ def confirmation( request ):
     """ Logs user out & displays confirmation screen after submission.
         TODO- refactor commonalities with shib_logout() """
     if request.session[u'authz_info'][u'authorized'] == False:
+        log.debug( u'in views.confirmation(); authorized is False' )
         data_dict = {
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
@@ -84,15 +85,19 @@ def confirmation( request ):
         logout( request )
         return render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
     else:
+        log.debug( u'in views.confirmation(); authorized is True' )
         request.session[u'authz_info'][u'authorized'] = False
         if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+            log.debug( u'in views.confirmation(); localhost, returning current confirmation page' )
             return HttpResponseRedirect( reverse(u'confirmation_url') )
         else:
+            log.debug( u'in views.confirmation(); not localhost, will hit logout url' )
             scheme = u'https' if request.is_secure() else u'http'
             target_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
             encoded_target_url =  urlquote( target_url )
             redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
-        return HttpResponseRedirect( redirect_url )
+            log.debug( u'in views.confirmation(); logout redirect_url, `%s`' % redirect_url )
+            return HttpResponseRedirect( redirect_url )
 
 # def confirmation( request ):
 #     """ Displays confirmation screen after submission. """
@@ -117,5 +122,5 @@ def shib_logout( request ):
     else:
         encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
-    log.debug( u'in views.logout(); redirect_url, `%s`' % redirect_url )
+    log.debug( u'in vierws.shib_logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
