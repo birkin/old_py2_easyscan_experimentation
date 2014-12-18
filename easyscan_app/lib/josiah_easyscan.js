@@ -9,6 +9,7 @@ var esyscn = new function() {
    */
 
   var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
+  var bibnum = null;
 
   this.check_already_run = function() {
     /* Checks to see if javascript has already been run.
@@ -35,6 +36,41 @@ var esyscn = new function() {
       title = title_obj.textContent.trim();
     }
     console.log( "- title, " + title );
+    if ( title == null ){
+      grab_bib();
+    } else {
+      process_item_table( title );
+    }
+  }
+
+  // var grab_title = function() {
+  //   /* Grabs bib title; then continues processing.
+  //    * Called by check_already_run()
+  //    */
+  //   var title = null;
+  //   title_objs = $("tr").find("td").find("strong");
+  //   if ( title_objs.length > 0 ) {
+  //     title_obj = title_objs[0];
+  //     title = title_obj.textContent.trim();
+  //   }
+  //   console.log( "- title, " + title );
+  //   process_item_table( title );
+  // }
+
+  var grab_bib = function() {
+    /* Grabs bibnum from holdings html; then continues processing.
+     * Called by grab_title() if title is null
+     */
+    var dv = document.querySelectorAll(".additionalCopiesNav")[0];  // first of two identical div elements
+    var el = dv.children[0];  // the div contains a link with the bibnum
+    var text = el.toString();
+    if ( text.split("/")[3] == "search~S7?" ) {
+      var t = text.split("/")[4];  // eg ".b4069600"
+      bibnum = t.slice( 1, 9 );
+      console.log( "in grab_bib(); bibnum, " + bibnum );
+    }
+    console.log( "in grab_bib(); bibnum grabbed; calling process_item_table()" );
+    title = null;
     process_item_table( title );
   }
 
@@ -100,13 +136,26 @@ var esyscn = new function() {
     /* Takes row dict; returns html link.
      * Called by extract_row_data()
      */
-    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
+    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM">Request Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
+    link = link.replace( "THEBIBNUM", bibnum );
     console.log( "- link end, " + link );
     return link;
   }
+
+  // var build_link_html = function( title, row_dict ) {
+  //   /* Takes row dict; returns html link.
+  //    * Called by extract_row_data()
+  //    */
+  //   link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE">Request Scan</a>';
+  //   link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
+  //   link = link.replace( "THEBARCODE", row_dict["barcode"] );
+  //   link = link.replace( "THETITLE", title );
+  //   console.log( "- link end, " + link );
+  //   return link;
+  // }
 
   var delete_header_cell = function() {
     /* Deletes barcode header cell
