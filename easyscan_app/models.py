@@ -118,17 +118,6 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
         return return_response
 
-    # def handle_get( self, request ):
-    #     """ Handles request-page GET; returns response.
-    #         Called by views.request_def() """
-    #     https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
-    #     if https_check[u'is_secure'] == False:
-    #         return HttpResponseRedirect( https_check[u'redirect_url'] )
-    #     self.initialize_session( request )
-    #     return_response = self.build_response( request )
-    #     log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
-    #     return return_response
-
     def check_https( self, is_secure, get_host, full_path ):
         """ Checks for https; returns dict with result and redirect-url.
             Called by handle_get() """
@@ -140,23 +129,44 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
 
+    # def check_title( self, request ):
+    #     """ Grabs and returns title from the availability-api if needed.
+    #         Called by handle_get() """
+    #     title = request.GET.get( u'title', u'' )
+    #     if title == u'null' or title == u'':
+    #         bib = request.GET.get( u'bibnum', u'' )
+    #         if len(bib) == 8:
+    #             availability_api_url = u'%s/bib/%s' % ( self.AVAILABILITY_API_URL_ROOT, bib )
+    #             r = requests.get( availability_api_url )
+    #             d = r.json()
+    #             title = d[u'response'][u'backend_response'][0][u'title']
+    #         else:
+    #             pass
+    #     log.debug( u'in models.RequestViewGetHelper.check_title(); title, %s' % title )
+    #     return title
+
     def check_title( self, request ):
         """ Grabs and returns title from the availability-api if needed.
             Called by handle_get() """
         title = request.GET.get( u'title', u'' )
-        log.debug( u'in models.RequestViewGetHelper.check_title(); title initially, %s' % title )
         if title == u'null' or title == u'':
-            log.debug( u'in models.RequestViewGetHelper.check_title(); in if title==' )
-            bib = request.GET.get( u'bibnum', u'' )
-            if len(bib) == 8:
-                availability_api_url = u'%s/bib/%s' % ( self.AVAILABILITY_API_URL_ROOT, bib )
-                r = requests.get( availability_api_url )
-                d = r.json()
-                log.debug( u'in models.RequestViewGetHelper.check_title(); d, %s' % pprint.pformat(d) )
-                title = d[u'response'][u'backend_response'][0][u'title']
-            else:
-                pass
+            bibnum = request.GET.get( u'bibnum', u'' )
+            if len( bibnum ) == 8:
+                title = self.hit_availability_api( bibnum )
         log.debug( u'in models.RequestViewGetHelper.check_title(); title, %s' % title )
+        return title
+
+    def hit_availability_api( self, bibnum ):
+        """ Hits availability-api with bib for title.
+            Called by check_title() """
+        try:
+            availability_api_url = u'%s/bib/%s' % ( self.AVAILABILITY_API_URL_ROOT, bibnum )
+            r = requests.get( availability_api_url )
+            d = r.json()
+            title = d[u'response'][u'backend_response'][0][u'title']
+        except Exception as e:
+            log.debug( u'in models.RequestViewGetHelper.hit_availability_api(); exception, %s' % unicode(repr(e)) )
+            title = u''
         return title
 
     def initialize_session( self, request, title ):
@@ -172,20 +182,6 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.initialize_session(); session initialized' )
         return
 
-    # def initialize_session( self, request ):
-    #     """ Initializes session vars if needed.
-    #         Called by handle_get() """
-    #     if not u'authz_info' in request.session:
-    #         request.session[u'authz_info'] = { u'authorized': False }
-    #     if not u'user_info' in request.session:
-    #         request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
-    #     self.update_session_iteminfo( request )
-    #     # self.update_session_barcodelogininfo( request )
-    #     if not u'shib_login_error' in request.session:
-    #         request.session[u'shib_login_error'] = False
-    #     log.debug( u'in models.RequestViewGetHelper.initialize_session(); session initialized' )
-    #     return
-
     def update_session_iteminfo( self, request, title ):
         """ Updates 'item_info' session key data.
             Called by initialize_session() """
@@ -198,27 +194,6 @@ class RequestViewGetHelper( object ):
         request.session[u'item_info'][u'title'] = title
         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
-
-    # def update_session_iteminfo( self, request ):
-    #     """ Updates 'item_info' session key data.
-    #         Called by initialize_session() """
-    #     if not u'item_info' in request.session:
-    #         request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
-    #     for key in [ u'callnumber', u'barcode', u'title' ]:  # ensures new url always updates session
-    #         value = request.GET.get( key, u'' )
-    #         if value:
-    #             request.session[u'item_info'][key] = value
-    #     log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
-    #     return
-
-    # def update_session_barcodelogininfo( self, request ):
-    #     """ Initializes or resets the barcode_login_info data.
-    #         Called by initialize_session() """
-    #     if not u'barcode_login_info' in request.session:
-    #         request.session[u'barcode_login_info'] = { u'name': u'', u'error': u'' }
-    #     else:
-    #         request.session[u'barcode_login_info'][u'error'] = u''
-    #     return
 
     def build_response( self, request ):
         """ Builds response.
