@@ -60,49 +60,58 @@ var esyscn = new function() {
     process_item_table( title );
   }
 
-  // var grab_bib = function() {
-  //   /* Grabs bibnum from holdings html; then continues processing.
-  //    * Called by grab_title() if title is null
-  //    */
-  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
-  //   if ( dvs.length > 0 ) {
-  //     dv = dvs[0]
-  //     var el = dv.children[0];  // the div contains a link with the bibnum
-  //     var text = el.toString();
-  //     if ( text.split("/")[3] == "search~S7?" ) {
-  //       var t = text.split("/")[4];  // eg ".b4069600"
-  //       bibnum = t.slice( 1, 9 );
-  //       console.log( "in grab_bib(); bibnum, " + bibnum );
-  //     }
-  //   }
-  //   console.log( "in grab_bib(); bibnum grabbed; calling process_item_table()" );
-  //   title = null;
-  //   process_item_table( title );
-  // }
-
   var process_item_table = function( title ) {
-    /* Updates bib-item list to show request-scan button.
+    /* Updates bib-items to show request-scan links.
      * Called by grab_title()
      */
-    rows = $( ".bibItemsEntry" );
+    var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
-      row = rows[i];
-      row_dict = extract_row_data( row.getElementsByTagName("td") );
-      if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-        console.log( "- in process_item_table(); continuing row procesing" );
-        console.log( "- in process_item_table(); title, `" + title + "`" );
-        if ( title == null && bibnum == null ) {
-          title = grab_ancestor_title( row );
-          update_row( title, row_dict );
-          title = null;
-        } else {
-          update_row( title, row_dict );
-        }
-      }
-      row.deleteCell( cell_position_map["barcode"] );
+      var row = rows[i];
+      process_item( row, title );
     }
     delete_header_cell();
   }
+
+  var process_item = function( row, title ) {
+    /* Processes each row.
+     * Called by process_item_table()
+     */
+    var row_dict = extract_row_data( row.getElementsByTagName("td") );
+    if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+      if ( title == null && bibnum == null ) {
+        title = grab_ancestor_title( row );
+        update_row( title, row_dict, row );
+        title = null;
+      } else {
+        update_row( title, row_dict, row );
+      }
+    }
+    row.deleteCell( cell_position_map["barcode"] );
+  }
+
+  // var process_item_table = function( title ) {
+  //   /* Updates bib-item list to show request-scan button.
+  //    * Called by grab_title()
+  //    */
+  //   rows = $( ".bibItemsEntry" );
+  //   for (var i = 0; i < rows.length; i++) {
+  //     row = rows[i];
+  //     row_dict = extract_row_data( row.getElementsByTagName("td") );
+  //     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+  //       console.log( "- in process_item_table(); continuing row procesing" );
+  //       console.log( "- in process_item_table(); title, `" + title + "`" );
+  //       if ( title == null && bibnum == null ) {
+  //         title = grab_ancestor_title( row );
+  //         update_row( title, row_dict );
+  //         title = null;
+  //       } else {
+  //         update_row( title, row_dict );
+  //       }
+  //     }
+  //     row.deleteCell( cell_position_map["barcode"] );
+  //   }
+  //   delete_header_cell();
+  // }
 
   var grab_ancestor_title = function( row ) {
     var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
@@ -143,7 +152,7 @@ var esyscn = new function() {
     return row_evaluation;
   }
 
-  var update_row = function( title, row_dict ) {
+  var update_row = function( title, row_dict, row ) {
     /* Adds `Request Scan` link to row html.
      * Called by process_item_table()
      */
@@ -153,6 +162,17 @@ var esyscn = new function() {
     console.log( "- request-scan link added" );
     return;
   }
+
+  // var update_row = function( title, row_dict ) {
+  //   /* Adds `Request Scan` link to row html.
+  //    * Called by process_item_table()
+  //    */
+  //   link_html = build_link_html( title, row_dict )
+  //   last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
+  //   $( last_cell ).after( link_html );
+  //   console.log( "- request-scan link added" );
+  //   return;
+  // }
 
   var build_link_html = function( title, row_dict ) {
     /* Takes row dict; returns html link.
