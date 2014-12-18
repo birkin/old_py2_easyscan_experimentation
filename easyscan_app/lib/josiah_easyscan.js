@@ -76,8 +76,11 @@ var esyscn = new function() {
         console.log( "- in process_item_table(); title, `" + title + "`" );
         if ( title == null && bibnum == null ) {
           title = grab_ancestor_title( row );
+          update_row( title, row_dict );
+          title = null;
+        } else {
+          update_row( title, row_dict );
         }
-        update_row( title, row_dict )
       }
       row.deleteCell( cell_position_map["barcode"] );
     }
