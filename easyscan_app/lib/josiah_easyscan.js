@@ -72,13 +72,46 @@ var esyscn = new function() {
       row = rows[i];
       row_dict = extract_row_data( row.getElementsByTagName("td") );
       if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-        console.log( "- continuing row procesing" );
-        update_row( title, row_dict )
+        console.log( "- in process_item_table(); continuing row procesing" );
+        console.log( "- in process_item_table(); title, `" + title + "`" );
+        if ( title == null && bibnum == null ) {
+          title = grab_ancestor_title( row );
+          update_row( title, row_dict );
+          title = null;
+        } else {
+          update_row( title, row_dict );
+        }
       }
       row.deleteCell( cell_position_map["barcode"] );
     }
     delete_header_cell();
   }
+
+  var grab_ancestor_title = function( row ) {
+    var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
+    var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
+    var title_plus = title_td.textContent.trim();
+    var title = title_plus.split("\n")[0];
+    console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
+    return title;
+  }
+
+  // var process_item_table = function( title ) {
+  //   /* Updates bib-item list to show request-scan button.
+  //    * Called by grab_title()
+  //    */
+  //   rows = $( ".bibItemsEntry" );
+  //   for (var i = 0; i < rows.length; i++) {
+  //     row = rows[i];
+  //     row_dict = extract_row_data( row.getElementsByTagName("td") );
+  //     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+  //       console.log( "- continuing row procesing" );
+  //       update_row( title, row_dict )
+  //     }
+  //     row.deleteCell( cell_position_map["barcode"] );
+  //   }
+  //   delete_header_cell();
+  // }
 
   var extract_row_data = function( cells ) {
     /* Takes row dom-object; extracts and returns fielded data.
