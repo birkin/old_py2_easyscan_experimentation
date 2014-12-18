@@ -45,23 +45,40 @@ var esyscn = new function() {
 
   var grab_bib = function() {
     /* Grabs bibnum from holdings html; then continues processing.
-     * Called by grab_title() if title is null
+     * Called by grab_title() if title is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
     if ( dvs.length > 0 ) {
-      dv = dvs[0]
+      var dv = dvs[0];
       var el = dv.children[0];  // the div contains a link with the bibnum
       var text = el.toString();
-      if ( text.split("/")[3] == "search~S7?" ) {
-        var t = text.split("/")[4];  // eg ".b4069600"
-        bibnum = t.slice( 1, 9 );
-        console.log( "in grab_bib(); bibnum, " + bibnum );
-      }
+      var t = text.split("/")[4];  // eg ".b4069600"
+      bibnum = t.slice( 1, 9 );  // updates module var
     }
     console.log( "in grab_bib(); bibnum grabbed; calling process_item_table()" );
     title = null;
     process_item_table( title );
   }
+
+  // var grab_bib = function() {
+  //   /* Grabs bibnum from holdings html; then continues processing.
+  //    * Called by grab_title() if title is null
+  //    */
+  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+  //   if ( dvs.length > 0 ) {
+  //     dv = dvs[0]
+  //     var el = dv.children[0];  // the div contains a link with the bibnum
+  //     var text = el.toString();
+  //     if ( text.split("/")[3] == "search~S7?" ) {
+  //       var t = text.split("/")[4];  // eg ".b4069600"
+  //       bibnum = t.slice( 1, 9 );
+  //       console.log( "in grab_bib(); bibnum, " + bibnum );
+  //     }
+  //   }
+  //   console.log( "in grab_bib(); bibnum grabbed; calling process_item_table()" );
+  //   title = null;
+  //   process_item_table( title );
+  // }
 
   var process_item_table = function( title ) {
     /* Updates bib-item list to show request-scan button.
@@ -95,23 +112,6 @@ var esyscn = new function() {
     console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
     return title;
   }
-
-  // var process_item_table = function( title ) {
-  //   /* Updates bib-item list to show request-scan button.
-  //    * Called by grab_title()
-  //    */
-  //   rows = $( ".bibItemsEntry" );
-  //   for (var i = 0; i < rows.length; i++) {
-  //     row = rows[i];
-  //     row_dict = extract_row_data( row.getElementsByTagName("td") );
-  //     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-  //       console.log( "- continuing row procesing" );
-  //       update_row( title, row_dict )
-  //     }
-  //     row.deleteCell( cell_position_map["barcode"] );
-  //   }
-  //   delete_header_cell();
-  // }
 
   var extract_row_data = function( cells ) {
     /* Takes row dom-object; extracts and returns fielded data.
