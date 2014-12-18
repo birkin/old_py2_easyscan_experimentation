@@ -129,22 +129,6 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.check_https(); return_dict, `%s`' % return_dict )
         return return_dict
 
-    # def check_title( self, request ):
-    #     """ Grabs and returns title from the availability-api if needed.
-    #         Called by handle_get() """
-    #     title = request.GET.get( u'title', u'' )
-    #     if title == u'null' or title == u'':
-    #         bib = request.GET.get( u'bibnum', u'' )
-    #         if len(bib) == 8:
-    #             availability_api_url = u'%s/bib/%s' % ( self.AVAILABILITY_API_URL_ROOT, bib )
-    #             r = requests.get( availability_api_url )
-    #             d = r.json()
-    #             title = d[u'response'][u'backend_response'][0][u'title']
-    #         else:
-    #             pass
-    #     log.debug( u'in models.RequestViewGetHelper.check_title(); title, %s' % title )
-    #     return title
-
     def check_title( self, request ):
         """ Grabs and returns title from the availability-api if needed.
             Called by handle_get() """
