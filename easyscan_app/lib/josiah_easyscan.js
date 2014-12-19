@@ -1,19 +1,17 @@
 console.log( "- easyscan.js START" );
 
 
-var esyscn = new function() {
-  /* Namespaces this file's function calls.
+var esyscn_flow_manager = new function() {
+  /* Namespaces function calls.
    *
    * See <http://stackoverflow.com/a/881611> for module-pattern reference.
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    *
-   * Flow description:
+   * Controller class flow description:
    * - Attempts to grab title from where it would be on an items page
    * - If title blank, attempts to grab the bibnumber from where it would be on a holdings page
-   * - Finds all bib-rows
-   *   - Determines whether to show a scan button
-   *   - If so, and if title still blank, grabs title from where it would be on a results page
-   *   - Builds and displays 'Request Scan' link from title, and barcode and item-info in row's html
+   * - Finds all bib-rows and for each row:
+   *   - Calls namespace `esyscn_row_processor` to process the row.
    *   - Deletes item-barcode
    *
    * Reference:
@@ -69,7 +67,7 @@ var esyscn = new function() {
       var t = text.split("/")[4];  // eg ".b4069600"
       bibnum = t.slice( 1, 9 );  // updates module var
     }
-    console.log( "in grab_bib(); bibnum grabbed; calling process_item_table()" );
+    console.log( "in grab_bib(); bibnum, " + bibnum );
     title = null;
     process_item_table( title );
   }
@@ -81,89 +79,9 @@ var esyscn = new function() {
     var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
-      process_item( row, title );
+      esyscn_row_processor.process_item( row, title, cell_position_map, bibnum );
     }
     delete_header_cell();
-  }
-
-  var process_item = function( row, title ) {
-    /* Processes each row.
-     * Called by process_item_table()
-     */
-    var row_dict = extract_row_data( row.getElementsByTagName("td") );
-    if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-      if ( title == null && bibnum == null ) {
-        title = grab_ancestor_title( row );
-        update_row( title, row_dict, row );
-        title = null;
-      } else {
-        update_row( title, row_dict, row );
-      }
-    }
-    row.deleteCell( cell_position_map["barcode"] );
-  }
-
-  var grab_ancestor_title = function( row ) {
-    var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
-    var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
-    var title_plus = title_td.textContent.trim();
-    var title = title_plus.split("\n")[0];
-    console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
-    return title;
-  }
-
-  var extract_row_data = function( cells ) {
-    /* Takes row dom-object; extracts and returns fielded data.
-     * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
-     *   each key is the label; each value is the correct cell's text.
-     * Called by process_item_table()
-     */
-    var row_data = {}
-    var map_keys = Object.keys( cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
-    for (var i = 0; i < map_keys.length; i++) {
-      var key = map_keys[i];
-      var value = cells[ cell_position_map[key] ].textContent.trim();
-      if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
-      row_data[key] = value;
-    }
-    console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
-    return row_data;
-  }
-
-  var evaluate_row_data = function( row_dict ) {
-    /* Evaluates whether 'Request Scan' button should appear; returns boolean.
-     * Called by process_item_table()
-     */
-    var row_evaluation = { "show_scan_button": false };
-    if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
-        row_evaluation = { "show_scan_button": true };
-    }
-    console.log( "- row_evaluation, " + row_evaluation );
-    return row_evaluation;
-  }
-
-  var update_row = function( title, row_dict, row ) {
-    /* Adds `Request Scan` link to row html.
-     * Called by process_item_table()
-     */
-    link_html = build_link_html( title, row_dict )
-    last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
-    $( last_cell ).after( link_html );
-    console.log( "- request-scan link added" );
-    return;
-  }
-
-  var build_link_html = function( title, row_dict ) {
-    /* Takes row dict; returns html link.
-     * Called by extract_row_data()
-     */
-    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM">Request Scan</a>';
-    link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
-    link = link.replace( "THEBARCODE", row_dict["barcode"] );
-    link = link.replace( "THETITLE", title );
-    link = link.replace( "THEBIBNUM", bibnum );
-    console.log( "- link end, " + link );
-    return link;
   }
 
   var delete_header_cell = function() {
@@ -178,14 +96,121 @@ var esyscn = new function() {
     console.log( "- barcode header cell deleted" );
   }
 
-};  // end namespace esyscn, ```var esyscn = new function() {```
+};  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
+
+
+var esyscn_row_processor = new function() {
+  /*
+   * Class flow description:
+   *   - Determines whether to show a scan button
+   *   - If so, and if title still blank, grabs title from where it would be on a results page
+   *   - Builds and displays 'Request Scan' link from title, and barcode and item-info in row's html
+   */
+
+  var local_cell_position_map = null;
+  var local_bibnum = null;
+
+  this.process_item = function( row, title, cell_position_map, bibnum ) {
+    /* Processes each row.
+     * Called by esyscn_flow_manager.process_item_table()
+     */
+    init( cell_position_map, bibnum );
+    var row_dict = extract_row_data( row.getElementsByTagName("td") );
+    if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+      if ( title == null && local_bibnum == null ) {
+        var ancestor_title = grab_ancestor_title( row );
+        update_row( ancestor_title, row_dict, row );
+      } else {
+        update_row( title, row_dict, row );
+      }
+    }
+    row.deleteCell( cell_position_map["barcode"] );
+  }
+
+  var init = function( cell_position_map, bibnum ) {
+    /* Sets class variables.
+     * Called by process_item()
+     */
+     local_cell_position_map = cell_position_map;
+     local_bibnum = bibnum;
+     return;
+  }
+
+  var extract_row_data = function( cells ) {
+    /* Takes row dom-object; extracts and returns fielded data.
+     * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
+     *   each key is the label; each value is the correct cell's text.
+     * Called by process_item()
+     */
+    var row_data = {}
+    var map_keys = Object.keys( local_cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
+    for (var i = 0; i < map_keys.length; i++) {
+      var key = map_keys[i];
+      var value = cells[ local_cell_position_map[key] ].textContent.trim();
+      if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
+      row_data[key] = value;
+    }
+    console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
+    return row_data;
+  }
+
+  var evaluate_row_data = function( row_dict ) {
+    /* Evaluates whether 'Request Scan' button should appear; returns boolean.
+     * Called by process_item()
+     */
+    var row_evaluation = { "show_scan_button": false };
+    if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
+        row_evaluation = { "show_scan_button": true };
+    }
+    console.log( "- row_evaluation, " + row_evaluation );
+    return row_evaluation;
+  }
+
+  var grab_ancestor_title = function( row ) {
+    /* Grabs title on results page.
+     * Called by process_item()
+     */
+    var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
+    console.log( "- in grab_ancestor_title(); big_element, `" + big_element + "`" );
+    var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
+    console.log( "- in grab_ancestor_title(); title_td, `" + title_td + "`" );
+    var title_plus = title_td.textContent.trim();
+    var title = title_plus.split("\n")[0];
+    console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
+    return title;
+  }
+
+  var update_row = function( title, row_dict, row ) {
+    /* Adds `Request Scan` link to row html.
+     * Called by process_item()
+     */
+    link_html = build_link_html( title, row_dict )
+    last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
+    $( last_cell ).after( link_html );
+    console.log( "- request-scan link added" );
+    return;
+  }
+
+  var build_link_html = function( title, row_dict ) {
+    /* Takes row dict; returns html link.
+     * Called by update_row()
+     */
+    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM">Request Scan</a>';
+    link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
+    link = link.replace( "THEBARCODE", row_dict["barcode"] );
+    link = link.replace( "THETITLE", title );
+    link = link.replace( "THEBIBNUM", local_bibnum );
+    console.log( "- link end, " + link );
+    return link;
+  }
+
+};  // end namespace esyscn_row_processor
 
 
 $(document).ready(
   function() {
-    esyscn.check_already_run();
+    esyscn_flow_manager.check_already_run();
   }
-
 );
 
 
