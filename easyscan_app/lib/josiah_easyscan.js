@@ -6,6 +6,20 @@ var esyscn = new function() {
    *
    * See <http://stackoverflow.com/a/881611> for module-pattern reference.
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
+   *
+   * Flow description:
+   * - Attempts to grab title from where it would be on an items page
+   * - If title blank, attempts to grab the bibnumber from where it would be on a holdings page
+   * - Finds all bib-rows
+   *   - Determines whether to show a scan button
+   *   - If so, and if title still blank, grabs title from where it would be on a results page
+   *   - Builds and displays 'Request Scan' link from title, and barcode and item-info in row's html
+   *   - Deletes item-barcode
+   *
+   * Reference:
+   * - items page: <http://josiah.brown.edu/record=b4069600>
+   * - holdings page: <http://josiah.brown.edu/search~S7?/.b4069600/.b4069600/1,1,1,B/holdings~4069600&FF=&1,0,>
+   * - results page: <http://josiah.brown.edu/search~S11/?searchtype=X&searcharg=zen&searchscope=11&sortdropdown=-&SORT=D&extended=1&SUBMIT=Search&searchlimits=&searchorigarg=tzen>
    */
 
   var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
@@ -89,30 +103,6 @@ var esyscn = new function() {
     row.deleteCell( cell_position_map["barcode"] );
   }
 
-  // var process_item_table = function( title ) {
-  //   /* Updates bib-item list to show request-scan button.
-  //    * Called by grab_title()
-  //    */
-  //   rows = $( ".bibItemsEntry" );
-  //   for (var i = 0; i < rows.length; i++) {
-  //     row = rows[i];
-  //     row_dict = extract_row_data( row.getElementsByTagName("td") );
-  //     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-  //       console.log( "- in process_item_table(); continuing row procesing" );
-  //       console.log( "- in process_item_table(); title, `" + title + "`" );
-  //       if ( title == null && bibnum == null ) {
-  //         title = grab_ancestor_title( row );
-  //         update_row( title, row_dict );
-  //         title = null;
-  //       } else {
-  //         update_row( title, row_dict );
-  //       }
-  //     }
-  //     row.deleteCell( cell_position_map["barcode"] );
-  //   }
-  //   delete_header_cell();
-  // }
-
   var grab_ancestor_title = function( row ) {
     var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
     var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
@@ -162,17 +152,6 @@ var esyscn = new function() {
     console.log( "- request-scan link added" );
     return;
   }
-
-  // var update_row = function( title, row_dict ) {
-  //   /* Adds `Request Scan` link to row html.
-  //    * Called by process_item_table()
-  //    */
-  //   link_html = build_link_html( title, row_dict )
-  //   last_cell = row.getElementsByTagName("td")[cell_position_map["availability"]];
-  //   $( last_cell ).after( link_html );
-  //   console.log( "- request-scan link added" );
-  //   return;
-  // }
 
   var build_link_html = function( title, row_dict ) {
     /* Takes row dict; returns html link.
