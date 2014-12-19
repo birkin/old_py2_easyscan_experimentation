@@ -170,8 +170,8 @@ class RequestViewGetHelper( object ):
         """ Updates 'item_info' session key data.
             Called by initialize_session() """
         if not u'item_info' in request.session:
-            request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
-        for key in [ u'callnumber', u'barcode' ]:  # ensures new url always updates session
+            request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'' }
+        for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
             value = request.GET.get( key, u'' )
             if value:
                 request.session[u'item_info'][key] = value
@@ -198,6 +198,7 @@ class RequestViewGetHelper( object ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
+            u'volume_year': request.session[u'item_info'][u'volume_year'],
             u'login_error': request.session[u'shib_login_error'],
             }
         if request.session[u'authz_info'][u'authorized']:

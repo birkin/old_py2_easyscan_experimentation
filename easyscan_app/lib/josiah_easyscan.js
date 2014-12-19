@@ -222,7 +222,7 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&vol_yr=THEVOLYEAR">Request Scan</a>';
+    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
