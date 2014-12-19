@@ -115,7 +115,8 @@ var esyscn_row_processor = new function() {
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
-    var row_dict = extract_row_data( row.getElementsByTagName("td") );
+    // var row_dict = extract_row_data( row.getElementsByTagName("td") );
+    var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       if ( title == null && local_bibnum == null ) {
         var ancestor_title = grab_ancestor_title( row );
@@ -136,23 +137,49 @@ var esyscn_row_processor = new function() {
      return;
   }
 
-  var extract_row_data = function( cells ) {
+  var extract_row_data = function( row ) {
     /* Takes row dom-object; extracts and returns fielded data.
-     * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
-     *   each key is the label; each value is the correct cell's text.
+     * First row.children[i] is a td-element.
      * Called by process_item()
      */
-    var row_data = {}
-    var map_keys = Object.keys( local_cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
-    for (var i = 0; i < map_keys.length; i++) {
-      var key = map_keys[i];
-      var value = cells[ local_cell_position_map[key] ].textContent.trim();
-      if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
-      row_data[key] = value;
-    }
+    var row_data = {};
+    row_data["location"] = row.children[0].textContent.trim();
+    row_data["availability"] = row.children[2].textContent.trim();
+    var barcode = row.children[3].textContent.trim();
+    row_data["barcode"] = barcode.split(" ").join("");
+    var callnumber_node = row.children[1];
+    row_data["callnumber"] = callnumber_node.childNodes[2].textContent.trim();
+    var callnumber_child_nodes = callnumber_node.childNodes;
+    for (var i = 0; i < callnumber_child_nodes.length; i++) {
+      if ( callnumber_child_nodes[i].textContent.trim() == "field v" ) {
+        if ( callnumber_child_nodes[i+1].textContent.trim() == "field #" ) {  // volume_year empty
+          row_data["volume_year"] = "";
+        } else {
+          row_data["volume_year"] = callnumber_child_nodes[i+1].textContent.trim();
+        }
+      }
+    };
     console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
     return row_data;
   }
+
+  // var extract_row_data = function( cells ) {
+  //   /* Takes row dom-object; extracts and returns fielded data.
+  //    * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
+  //    *   each key is the label; each value is the correct cell's text.
+  //    * Called by process_item()
+  //    */
+  //   var row_data = {}
+  //   var map_keys = Object.keys( local_cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
+  //   for (var i = 0; i < map_keys.length; i++) {
+  //     var key = map_keys[i];
+  //     var value = cells[ local_cell_position_map[key] ].textContent.trim();
+  //     if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
+  //     row_data[key] = value;
+  //   }
+  //   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
+  //   return row_data;
+  // }
 
   var evaluate_row_data = function( row_dict ) {
     /* Evaluates whether 'Request Scan' button should appear; returns boolean.
@@ -195,11 +222,12 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM">Request Scan</a>';
+    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&vol_yr=THEVOLYEAR">Request Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
     link = link.replace( "THEBIBNUM", local_bibnum );
+    link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
     console.log( "- link end, " + link );
     return link;
   }
