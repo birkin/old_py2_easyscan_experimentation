@@ -84,21 +84,10 @@ class Sender( object ):
             Called by models.RequestViewPostHelper.transfer_data()
             Future: will likely be triggered by a queued-job. """
         ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ) = self.build_filepaths( data_filename, count_filename )
-        ssh = paramiko.SSHClient()
-        log.debug( u'in lib.magic_bus.Sender.transfer_files(); ssh client instantiated' )
-        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
-        log.debug( u'in lib.magic_bus.Sender.transfer_files(); ssh missing key policy set' )
-        ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
-        log.debug( u'in lib.magic_bus.Sender.transfer_files(); ssh client set' )
-        sftp = ssh.open_sftp()
-        sftp.put( data_source_fp, data_remote_fp )
-        sftp.put( count_source_fp, count_remote_fp )
-        log.debug( u'in lib.magic_bus.Sender.transfer_files(); sftp executed' )
-        sftp.close()
+        ssh = self.setup_ssh()
+        self.run_sftp( ssh, data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
         ssh.close()
         log.debug( u'in lib.magic_bus.Sender.transfer_files(); files transferred' )
-        # except Exception as e:
-        #     log.debug( u'in lib.magic_bus.Sender.transfer_files(); exception, `%s`' % unicode(repr(e)) )
         return
 
     def build_filepaths( self, data_filename, count_filename ):
@@ -110,3 +99,24 @@ class Sender( object ):
         count_remote_fp = u'%s/%s' % ( self.REMOTE_COUNT_DIR, count_filename )
         log.debug( u'in lib.magic_bus.Sender.build_filepaths(); paths built' )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
+
+    def setup_ssh( self ):
+        """ Sets up and returns ssh object.
+            Called by transfer_files() """
+        ssh = paramiko.SSHClient()
+        log.debug( u'in lib.magic_bus.Sender.setup_ssh(); ssh client instantiated' )
+        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+        log.debug( u'in lib.magic_bus.Sender.setup_ssh(); ssh missing key policy set' )
+        ssh.connect( self.SERVER, username=self.USERNAME, password=self.PASSWORD )
+        log.debug( u'in lib.magic_bus.Sender.setup_ssh(); ssh connection made' )
+        return ssh
+
+    def run_sftp( self, ssh, data_source_fp, data_remote_fp, count_source_fp, count_remote_fp ):
+        """ Instantiates and runs sftp transfer.
+            Called by transfer_files() """
+        sftp = ssh.open_sftp()
+        sftp.put( data_source_fp, data_remote_fp )
+        sftp.put( count_source_fp, count_remote_fp )
+        sftp.close()
+        log.debug( u'in lib.magic_bus.Sender.run_sftp(); sftp executed' )
+        return
