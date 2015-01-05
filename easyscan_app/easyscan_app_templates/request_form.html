@@ -15,7 +15,7 @@ easyScan request
     h3#please {
         font-size: 1.5em;
         color: maroon;
-        margin-top: 3.5em; }
+        margin-top: 6em; }
     hr {
         margin-top: 2em; }
     form {
@@ -46,8 +46,8 @@ easyScan request
         margin-top: 1.5em; }
     p {
         font-size: 125%; }
-    p#additional {
-         margin-top: 1.5em; }
+    p#page_range {
+         margin-top: 1em; }
     ul {
         list-style-type: square;
         margin-left: 2em;
@@ -65,27 +65,25 @@ easyScan request
     <dl>
         <dt>title:</dt>
         <dd>{{ title }}</dd>
+
+        <dt>volume &amp; year:</dt>
+        <dd>{{ volume_year }}</dd>
+
+        <dt>call number:</dt>
+        <dd>{{ callnumber }}</dd>
     </dl>
 
 </div>
 
-<h3 id="please">Please edit/add additional information...</h3>
-
-<div id="info">
-    <p>The title "{{ title }}" will be sent. Additional information should include...</p>
-    <ul>
-        <li>Chapter title if applicable.</li>
-        <li>Volume number if applicable.</li>
-        <li>Year of publication if applicable.</li>
-        <li>The page-range you would like scanned.</li>
-    </ul>
-    <p id="additional">Some additional info has been started; please edit it.</p>
-</div>
+<h3 id="please">Please add additional information...</h3>
 
 <div id="form">
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
-        <textarea name="custom_info" rows="4" cols="50">{{ callnumber }}</textarea>
+        <p>Chapter/Volume title...</p>
+        <textarea name="chap_vol_title" rows="2" cols="50">{{ chap_vol_title }}</textarea>
+        <p id="page_range">Page range...</p>
+        <textarea name="page_range" rows="2" cols="50">{{ page_range }}</textarea>
         <div id="input">
             <input type="submit" value="Submit Scan Request">
         </div>

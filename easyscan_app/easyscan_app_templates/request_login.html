@@ -12,8 +12,6 @@ easyScan login
         font-size: 2.5em;
         margin-top: 2em;
         text-transform: none }
-    div#rules {
-        margin-top: 6.5em; }
     h3#please {
         font-size: 1.5em;
         color: maroon;
@@ -40,6 +38,8 @@ easyScan login
        margin-left:2em;
        color:#999;
        font-size: 125%; }
+   div#rules p {
+       margin-top: 6.5em; }
     p {
         font-size: 125%; }
     p#or {
@@ -61,7 +61,10 @@ easyScan login
         <dt>title:</dt>
         <dd>{{ title }}</dd>
 
-        <dt>additional info:</dt>
+        <dt>volume &amp; year:</dt>
+        <dd>{{ volume_year }}</dd>
+
+        <dt>call number:</dt>
         <dd>{{ callnumber }}</dd>
     </dl>
 

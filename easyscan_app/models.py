@@ -20,13 +20,15 @@ sender = Sender()
 
 ## db models ##
 
-
 class ScanRequest( models.Model ):
     """ Contains user & item data. """
     item_title = models.CharField( blank=True, max_length=200 )
     item_barcode = models.CharField( blank=True, max_length=50 )
     item_callnumber = models.CharField( blank=True, max_length=200 )
-    item_custom_info = models.TextField( blank=True )
+    item_volume_year = models.CharField( blank=True, max_length=200 )
+    item_source_url = models.TextField( blank=True )
+    item_chap_vol_title = models.TextField( blank=True )
+    item_page_range_other = models.TextField( blank=True )
     patron_name = models.CharField( blank=True, max_length=100 )
     patron_barcode = models.CharField( blank=True, max_length=50 )
     patron_email = models.CharField( blank=True, max_length=100 )
@@ -40,7 +42,7 @@ class ScanRequest( models.Model ):
         super( ScanRequest, self ).save() # Call the "real" save() method
         maker = LasDataMaker()
         las_string = maker.make_csv_string(
-            self.item_barcode, self.patron_name, self.patron_barcode, self.item_title, self.create_datetime, self.item_custom_info )
+            self.item_barcode, self.patron_name, self.patron_barcode, self.item_title, self.create_datetime, self.item_chap_vol_title, self.item_page_range_other )
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
 
@@ -52,12 +54,12 @@ class LasDataMaker( object ):
     """ Container for code to make comma-delimited las string. """
 
     def make_csv_string(
-        self, item_barcode, patron_name, patron_barcode, item_title, date_string, item_custom_info ):
+        self, item_barcode, patron_name, patron_barcode, item_title, date_string, patron_email, item_chap_vol_title, item_page_range_other ):
         """ Makes and returns csv string from database data.
             Called by models.ScanRequest.save() """
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
-            modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info )
+            modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_string = utf8_csv_string.decode( u'utf-8' )
         return csv_string
@@ -70,7 +72,7 @@ class LasDataMaker( object ):
         date_string = utf8_date_string.decode( u'utf-8' )
         return date_string
 
-    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, item_custom_info ):
+    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other ):
         """ Assembles data elements in order required by LAS.
             Called by make_csv_string() """
         utf8_data_list = [
@@ -82,7 +84,12 @@ class LasDataMaker( object ):
             patron_barcode.encode( u'utf-8', u'replace' ),
             item_title.encode( u'utf-8', u'replace' ),
             modified_date_string.encode( u'utf-8', u'replace' ),
-            item_custom_info.encode( u'utf-8', u'replace' ), ]
+            u'eml, %s -- itm-chp-ttl, %s -- pg-rng, %s' % (
+                patron_email.encode(u'utf-8', u'replace'),
+                item_chap_vol_title.encode(u'utf-8', u'replace'),
+                item_page_range_other.encode(u'utf-8', u'replace'),
+                )
+            ]
         return utf8_data_list
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
@@ -134,6 +141,8 @@ class RequestViewGetHelper( object ):
             Called by handle_get() """
         title = request.GET.get( u'title', u'' )
         if title == u'null' or title == u'':
+            title = request.session[u'item_info'][u'title']
+        if title == u'null' or title == u'':
             bibnum = request.GET.get( u'bibnum', u'' )
             if len( bibnum ) == 8:
                 title = self.hit_availability_api( bibnum )
@@ -170,8 +179,9 @@ class RequestViewGetHelper( object ):
         """ Updates 'item_info' session key data.
             Called by initialize_session() """
         if not u'item_info' in request.session:
-            request.session[u'item_info'] = { u'callnumber': u'', u'barcode': u'', u'title': u'' }
-        for key in [ u'callnumber', u'barcode' ]:  # ensures new url always updates session
+            request.session[u'item_info'] = {
+            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'chap_vol_title': u'', u'page_range': u'' }
+        for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
             value = request.GET.get( key, u'' )
             if value:
                 request.session[u'item_info'][key] = value
@@ -198,6 +208,7 @@ class RequestViewGetHelper( object ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
+            u'volume_year': request.session[u'item_info'][u'volume_year'],
             u'login_error': request.session[u'shib_login_error'],
             }
         if request.session[u'authz_info'][u'authorized']:
@@ -214,7 +225,8 @@ class RequestViewPostHelper( object ):
         """ Updates session vars.
             Called by views.request_def() """
         # request.session[u'authz_info'][u'authorized'] = False  # confirmation page code update 'authorized'
-        request.session[u'item_info'][u'callnumber'] = request.POST.get( u'custom_info'.strip(), u'' )
+        request.session[u'item_info'][u'volume_year'] = request.POST.get( u'chap_vol_title'.strip(), u'' )
+        request.session[u'item_info'][u'item_page_range_other'] = request.POST.get( u'page_range'.strip(), u'' )
         return
 
     def save_post_data( self, request ):
@@ -226,9 +238,10 @@ class RequestViewPostHelper( object ):
             scnrqst.item_title = request.session[u'item_info'][u'title']
             scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
             scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
-            scnrqst.item_custom_info = u'%s -- %s' % (
-                request.session[u'user_info'][u'email'], request.POST.get(u'custom_info'.strip(), u'') )
-            log.debug( u'in models.RequestViewPostHelper.save_post_data(); scnrqst.item_custom_info, `%s`' % scnrqst.item_custom_info )
+            scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
+            scnrqst.item_chap_vol_title = request.session[u'item_info'][u'item_chap_vol_title']
+            scnrqst.item_page_range_other = request.session[u'item_info'][u'item_page_range_other']
+            scnrqst.item_source_url = request.META.HTTP_REFERER
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
             scnrqst.patron_email = request.session[u'user_info'][u'email']
