@@ -189,7 +189,7 @@ class RequestViewGetHelper( object ):
             Called by initialize_session() """
         if not u'item_info' in request.session:
             request.session[u'item_info'] = {
-            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'chap_vol_title': u'', u'page_range': u'' }
+            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'item_chap_vol_title': u'', u'page_range': u'' }
         for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
             value = request.GET.get( key, u'' )
             if value:
@@ -230,14 +230,6 @@ class RequestViewGetHelper( object ):
 class RequestViewPostHelper( object ):
     """ Container for views.request_def() helpers for handling POST. """
 
-    # def update_session( self, request ):
-    #     """ Updates session vars.
-    #         Called by views.request_def() """
-    #     # request.session[u'authz_info'][u'authorized'] = False  # confirmation page code update 'authorized'
-    #     request.session[u'item_info'][u'volume_year'] = request.POST.get( u'chap_vol_title'.strip(), u'' )
-    #     request.session[u'item_info'][u'item_page_range_other'] = request.POST.get( u'page_range'.strip(), u'' )
-    #     return
-
     def update_session( self, request ):
         """ Updates session vars.
             Called by views.request_def() """
@@ -257,7 +249,6 @@ class RequestViewPostHelper( object ):
             scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
             scnrqst.item_chap_vol_title = request.session[u'item_info'][u'item_chap_vol_title']
             scnrqst.item_page_range_other = request.session[u'item_info'][u'item_page_range_other']
-            # scnrqst.item_source_url = request.META.HTTP_REFERER
             scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' ),
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
@@ -415,11 +406,28 @@ class ConfirmationViewHelper( object ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
+            u'chap_vol_title': request.session[u'item_info'][u'item_chap_vol_title'],
+            u'page_range': request.session[u'item_info'][u'item_page_range_other'],
+            u'volume_year': request.session[u'item_info'][u'volume_year'],
             u'email': request.session[u'user_info'][u'email']
             }
         logout( request )
         return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
         return return_response
+
+    # def handle_non_authorized( self, request ):
+    #     """ Clears session and displays confirmation page.
+    #         (Authorization is unset by initial confirmation-page access.)
+    #         Called by views.confirmation() """
+    #     data_dict = {
+    #         u'title': request.session[u'item_info'][u'title'],
+    #         u'callnumber': request.session[u'item_info'][u'callnumber'],
+    #         u'barcode': request.session[u'item_info'][u'barcode'],
+    #         u'email': request.session[u'user_info'][u'email']
+    #         }
+    #     logout( request )
+    #     return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
+    #     return return_response
 
 
 ##
