@@ -163,24 +163,6 @@ var esyscn_row_processor = new function() {
     return row_data;
   }
 
-  // var extract_row_data = function( cells ) {
-  //   /* Takes row dom-object; extracts and returns fielded data.
-  //    * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
-  //    *   each key is the label; each value is the correct cell's text.
-  //    * Called by process_item()
-  //    */
-  //   var row_data = {}
-  //   var map_keys = Object.keys( local_cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
-  //   for (var i = 0; i < map_keys.length; i++) {
-  //     var key = map_keys[i];
-  //     var value = cells[ local_cell_position_map[key] ].textContent.trim();
-  //     if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
-  //     row_data[key] = value;
-  //   }
-  //   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
-  //   return row_data;
-  // }
-
   var evaluate_row_data = function( row_dict ) {
     /* Evaluates whether 'Request Scan' button should appear; returns boolean.
      * Called by process_item()
