@@ -18,12 +18,25 @@ shib_view_helper = models.ShibViewHelper()
 confirmation_vew_helper = models.ConfirmationViewHelper()
 
 
-def js( request ):
+def easyscan_js( request ):
     """ Returns javascript file.
         Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
     js_unicode = u''
     current_directory = os.path.dirname(os.path.abspath(__file__))
     js_path = u'%s/lib/josiah_easyscan.js' % current_directory
+    with open( js_path ) as f:
+        js_utf8 = f.read()
+        js_unicode = js_utf8.decode( u'utf-8' )
+    js_unicode = js_unicode.replace( u'HOST', request.get_host() )
+    return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
+
+
+def request_item_js( request ):
+    """ Returns javascript file.
+        Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
+    js_unicode = u''
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    js_path = u'%s/lib/josiah_request_item.js' % current_directory
     with open( js_path ) as f:
         js_utf8 = f.read()
         js_unicode = js_utf8.decode( u'utf-8' )
