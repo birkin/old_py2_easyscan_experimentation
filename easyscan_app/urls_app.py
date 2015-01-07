@@ -8,6 +8,8 @@ urlpatterns = patterns('',
 
     url( r'^request/$',  'easyscan_app.views.request_def', name=u'request_url' ),
 
+    url( r'^info/$',  'easyscan_app.views.info', name=u'info_url' ),
+
     url( r'^josiah_easyscan.js/$',  'easyscan_app.views.easyscan_js', name=u'easyscan_js_url' ),  # this allows easy development, but in future, serve via apache directly
     url( r'^josiah_request_item.js/$',  'easyscan_app.views.request_item_js', name=u'request_item_js_url' ),  # this allows easy development, but in future, serve via apache directly
 
@@ -17,6 +19,6 @@ urlpatterns = patterns('',
 
     url( r'^confirmation/$',  'easyscan_app.views.confirmation', name=u'confirmation_url' ),
 
-    url( r'^$',  RedirectView.as_view(pattern_name=u'request_url') ),
+    url( r'^$',  RedirectView.as_view(pattern_name=u'info_url') ),
 
     )

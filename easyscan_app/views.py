@@ -18,6 +18,11 @@ shib_view_helper = models.ShibViewHelper()
 confirmation_vew_helper = models.ConfirmationViewHelper()
 
 
+def info( request ):
+    """ Returns info page. """
+    return render( request, u'easyscan_app_templates/info.html' )
+
+
 def easyscan_js( request ):
     """ Returns javascript file.
         Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
@@ -73,26 +78,30 @@ def shib_login( request ):
     return return_response
 
 
-# def barcode_login( request ):
-#     """ On GET, displays barcode login form.
-#         On POST, redirects to request form on success, or barcode login form again on fail. """
-#     if request.method == u'GET':
-#         data_dict = barcode_view_helper.build_data_dict( request )
-#         log.debug( u'in views.barcode_login(); data_dict, `%s`' % pprint.pformat(data_dict) )
-#         return render( request, u'easyscan_app_templates/barcode_login.html', data_dict )
-#     else:  # POST of form
-#         return_response = barcode_view_helper.handle_post( request )
-#         return return_response
-
-
 def confirmation( request ):
     """ Logs user out & displays confirmation screen after submission.
         TODO- refactor commonalities with shib_logout() """
+    try:
+        barcode = request.session[u'item_info'][u'barcode']
+    except:
+        scheme = u'https' if request.is_secure() else u'http'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
+        return HttpResponseRedirect( redirect_url )
     if request.session[u'authz_info'][u'authorized'] == True:  # always true initially
         return_response = confirmation_vew_helper.handle_authorized( request )
     else:  # False is set by handle_authorized()
         return_response = confirmation_vew_helper.handle_non_authorized( request )
     return return_response
+
+
+# def confirmation( request ):
+#     """ Logs user out & displays confirmation screen after submission.
+#         TODO- refactor commonalities with shib_logout() """
+#     if request.session[u'authz_info'][u'authorized'] == True:  # always true initially
+#         return_response = confirmation_vew_helper.handle_authorized( request )
+#     else:  # False is set by handle_authorized()
+#         return_response = confirmation_vew_helper.handle_non_authorized( request )
+#     return return_response
 
 
 def shib_logout( request ):
