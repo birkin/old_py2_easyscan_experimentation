@@ -1,4 +1,4 @@
-console.log( "- easyscan.js START" );
+console.log( "- josiah_easyscan.js START" );
 
 
 var esyscn_flow_manager = new function() {
@@ -115,18 +115,33 @@ var esyscn_row_processor = new function() {
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
-    // var row_dict = extract_row_data( row.getElementsByTagName("td") );
     var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       if ( title == null && local_bibnum == null ) {
-        var ancestor_title = grab_ancestor_title( row );
-        update_row( ancestor_title, row_dict, row );
-      } else {
-        update_row( title, row_dict, row );
+        title = grab_ancestor_title( row );
       }
+      update_row( title, row_dict, row );
     }
     row.deleteCell( cell_position_map["barcode"] );
   }
+
+  // this.process_item = function( row, title, cell_position_map, bibnum ) {
+  //   /* Processes each row.
+  //    * Called by esyscn_flow_manager.process_item_table()
+  //    */
+  //   init( cell_position_map, bibnum );
+  //   // var row_dict = extract_row_data( row.getElementsByTagName("td") );
+  //   var row_dict = extract_row_data( row );
+  //   if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+  //     if ( title == null && local_bibnum == null ) {
+  //       var ancestor_title = grab_ancestor_title( row );
+  //       update_row( ancestor_title, row_dict, row );
+  //     } else {
+  //       update_row( title, row_dict, row );
+  //     }
+  //   }
+  //   row.deleteCell( cell_position_map["barcode"] );
+  // }
 
   var init = function( cell_position_map, bibnum ) {
     /* Sets class variables.
@@ -163,24 +178,6 @@ var esyscn_row_processor = new function() {
     return row_data;
   }
 
-  // var extract_row_data = function( cells ) {
-  //   /* Takes row dom-object; extracts and returns fielded data.
-  //    * It runs through the labels of the `var cell_position_map` dict, and builds a row_data dict:
-  //    *   each key is the label; each value is the correct cell's text.
-  //    * Called by process_item()
-  //    */
-  //   var row_data = {}
-  //   var map_keys = Object.keys( local_cell_position_map );  // yeilds [ "location", "callnumber", etc. ] - compatible with older browsers?
-  //   for (var i = 0; i < map_keys.length; i++) {
-  //     var key = map_keys[i];
-  //     var value = cells[ local_cell_position_map[key] ].textContent.trim();
-  //     if ( key == "barcode" ) { value = value.split(" ").join(""); } // removes whitespaces between digits.
-  //     row_data[key] = value;
-  //   }
-  //   console.log( "- row_data, " + JSON.stringify(row_data, null, 4) );
-  //   return row_data;
-  // }
-
   var evaluate_row_data = function( row_dict ) {
     /* Evaluates whether 'Request Scan' button should appear; returns boolean.
      * Called by process_item()
@@ -215,8 +212,23 @@ var esyscn_row_processor = new function() {
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
     $( last_cell ).after( link_html );
     console.log( "- request-scan link added" );
+    request_item_flow_manager.add_request_item_link();
     return;
   }
+
+  // var build_link_html = function( title, row_dict ) {
+  //   /* Takes row dict; returns html link.
+  //    * Called by update_row()
+  //    */
+  //   link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a> | <a href="http://google.com">Request Item</a>';
+  //   link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
+  //   link = link.replace( "THEBARCODE", row_dict["barcode"] );
+  //   link = link.replace( "THETITLE", title );
+  //   link = link.replace( "THEBIBNUM", local_bibnum );
+  //   link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
+  //   console.log( "- link end, " + link );
+  //   return link;
+  // }
 
   var build_link_html = function( title, row_dict ) {
     /* Takes row dict; returns html link.
@@ -237,11 +249,24 @@ var esyscn_row_processor = new function() {
 
 $(document).ready(
   function() {
-    esyscn_flow_manager.check_already_run();
+    console.log( "- josiah_easyscan.js says document loaded" );
+    $.getScript( "http://HOST/easyscan/josiah_request_item.js",
+      function() {  // what to do on success
+        console.log( "- josiah_request_item.js loaded" );
+        esyscn_flow_manager.check_already_run();
+      }
+    );
   }
 );
 
+// $(document).ready(
+//   function() {
+//     console.log( "- josiah_easyscan.js says document loaded" );
+//     esyscn_flow_manager.check_already_run();
+//   }
+// );
 
-console.log( "- easyscan.js END" );
+
+console.log( "- josiah_easyscan.js END" );
 
 // JSON.stringify(obj, null, 4)
