@@ -33,7 +33,7 @@ var esyscn_flow_manager = new function() {
       console.log( "- aready run" );
     } else {
       console.log( "- not already run" );
-    grab_title();
+      grab_title();
     }
   }
 
