@@ -216,20 +216,6 @@ var esyscn_row_processor = new function() {
     return;
   }
 
-  // var build_link_html = function( title, row_dict ) {
-  //   /* Takes row dict; returns html link.
-  //    * Called by update_row()
-  //    */
-  //   link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a> | <a href="http://google.com">Request Item</a>';
-  //   link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
-  //   link = link.replace( "THEBARCODE", row_dict["barcode"] );
-  //   link = link.replace( "THETITLE", title );
-  //   link = link.replace( "THEBIBNUM", local_bibnum );
-  //   link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
-  //   console.log( "- link end, " + link );
-  //   return link;
-  // }
-
   var build_link_html = function( title, row_dict ) {
     /* Takes row dict; returns html link.
      * Called by update_row()
