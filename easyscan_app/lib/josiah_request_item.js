@@ -14,26 +14,41 @@ var request_item_flow_manager = new function() {
    *       - Takes user directly to the login part of the process
    */
 
-  this.check_permalink = function() {
+  var local_easyscan_link_element = null;
+
+  this.check_permalink = function( easyscan_link_element ) {
       /* Controller.
        * Called by document.ready()
        */
       console.log( "- in request_item_flow_manager.check_permalink()" );
-      // temp-testing start
+      local_easyscan_link_element = easyscan_link_element;  // used if adding item-link
       var all_html = $("body").html().toString();  // jquery already loaded (whew)
-      var local_index = all_html.indexOf( "127.0.0.1" );
-      if ( local_index == -1 ){
-        return
-      }
-      // temp-testing end
       var index = all_html.indexOf( "PermaLink to this record" );
       if (index != -1) {
         console.log( "- permalink found" );
         grab_bib();
       } else {
         console.log( "- permalink not found" );
+        check_url();
       }
   }
+
+  /* if no permalink found */
+
+  var check_url = function() {
+    /* Checks url to see if we're requesting an annex item.
+     * If so, speeds user to necessary login section.
+     * Called by check_permalink()
+     */
+     if ( location.toString().search("goal=request_annex_item") != -1 ){
+       show( "annex" );  // in-page js function
+       toggleLayer( "requestForm" );  // in-page js function
+     }
+     console.log( "- in request_item_flow_manager.check_url()" );
+     return
+  }
+
+  /* if permalink found */
 
   var grab_bib = function() {
     /* Parses bib from permalink.
@@ -48,30 +63,27 @@ var request_item_flow_manager = new function() {
   }
 
   var build_link_html = function( bib ) {
-    /* Builds link html.
+    /* Builds link html and appends it.
      * Called by grab_bib()
      */
     console.log( "- in request_item_flow_manager.build_link_html(); bib, " + bib );
-    var initial_link = ' | <a href="https://josiah.brown.edu:444/search~S7?/.THE_BIB/.THE_BIB/1%2C1%2C1%2CB/request~THE_BIB">Item</a>';
-    var link = initial_link.replace(/THE_BIB/g, bib);  // http://www.w3schools.com/jsref/jsref_replace.asp
-    console.log( "- in request_item_flow_manager.build_link_html(); link, " + link );
-    // next();
-    var el = document.getElementsByTagName( "a" )[34];
-    console.log( "- in request_item_flow_manager.build_link_html(); el, " + el );
-    // $( last_cell ).after( link_html );
-    $( el ).after( link );
+    var initial_link = ' | <a href="https://josiah.brown.edu:444/search~S7?/.THE_BIB/.THE_BIB/1%2C1%2C1%2CB/request~THE_BIB&goal=request_item">Item</a>';
+    var item_link = initial_link.replace( /THE_BIB/g, bib );  // http://www.w3schools.com/jsref/jsref_replace.asp
+    console.log( "- in request_item_flow_manager.build_link_html(); item_link, " + item_link );
+    // $( local_last_cell ).next().after( link );
+    $( local_easyscan_link_element ).after( item_link );
   }
 
 }  // end request_item_flow_manager()
 
 
 // document-ready only for testing
-$(document).ready(
-  function() {
-    console.log( "- josiah_request_item.js says document loaded" );
-    request_item_flow_manager.check_permalink();
-  }
-);
+// $(document).ready(
+//   function() {
+//     console.log( "- josiah_request_item.js says document loaded" );
+//     request_item_flow_manager.check_permalink();
+//   }
+// );
 
 
 console.log( "- josiah_request_item.js END" );

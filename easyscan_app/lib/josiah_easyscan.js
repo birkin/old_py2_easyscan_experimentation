@@ -125,24 +125,6 @@ var esyscn_row_processor = new function() {
     row.deleteCell( cell_position_map["barcode"] );
   }
 
-  // this.process_item = function( row, title, cell_position_map, bibnum ) {
-  //   /* Processes each row.
-  //    * Called by esyscn_flow_manager.process_item_table()
-  //    */
-  //   init( cell_position_map, bibnum );
-  //   // var row_dict = extract_row_data( row.getElementsByTagName("td") );
-  //   var row_dict = extract_row_data( row );
-  //   if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-  //     if ( title == null && local_bibnum == null ) {
-  //       var ancestor_title = grab_ancestor_title( row );
-  //       update_row( ancestor_title, row_dict, row );
-  //     } else {
-  //       update_row( title, row_dict, row );
-  //     }
-  //   }
-  //   row.deleteCell( cell_position_map["barcode"] );
-  // }
-
   var init = function( cell_position_map, bibnum ) {
     /* Sets class variables.
      * Called by process_item()
@@ -206,13 +188,15 @@ var esyscn_row_processor = new function() {
 
   var update_row = function( title, row_dict, row ) {
     /* Adds `Request Scan` link to row html.
+     * Triggers start of request-item link process.
      * Called by process_item()
      */
     link_html = build_link_html( title, row_dict )
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
     $( last_cell ).after( link_html );
     console.log( "- request-scan link added" );
-    request_item_flow_manager.add_request_item_link();
+    easyscan_link_element = $(last_cell).next();
+    request_item_flow_manager.check_permalink( easyscan_link_element );
     return;
   }
 
@@ -220,7 +204,7 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = '<a href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a>';
+    link = '<a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
