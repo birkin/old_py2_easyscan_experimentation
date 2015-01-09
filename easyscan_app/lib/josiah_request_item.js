@@ -67,7 +67,7 @@ var request_item_flow_manager = new function() {
      * Called by grab_bib()
      */
     console.log( "- in request_item_flow_manager.build_link_html(); bib, " + bib );
-    var initial_link = ' | <a href="https://josiah.brown.edu:444/search~S7?/.THE_BIB/.THE_BIB/1%2C1%2C1%2CB/request~THE_BIB&goal=request_item">Item</a>';
+    var initial_link = ' | <a href="https://josiah.brown.edu:444/search~S7?/.THE_BIB/.THE_BIB/1%2C1%2C1%2CB/request~THE_BIB&goal=request_annex_item">Item</a>';
     var item_link = initial_link.replace( /THE_BIB/g, bib );  // http://www.w3schools.com/jsref/jsref_replace.asp
     console.log( "- in request_item_flow_manager.build_link_html(); item_link, " + item_link );
     // $( local_last_cell ).next().after( link );
@@ -77,7 +77,7 @@ var request_item_flow_manager = new function() {
 }  // end request_item_flow_manager()
 
 
-// document-ready only for testing
+/* document-ready only for testing */
 // $(document).ready(
 //   function() {
 //     console.log( "- josiah_request_item.js says document loaded" );
