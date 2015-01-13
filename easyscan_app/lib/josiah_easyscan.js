@@ -91,9 +91,12 @@ var esyscn_flow_manager = new function() {
     var header_row = $( "tr.bibItemsHeader" )[0];
     console.log( "- header_row, " + header_row );
     if ( typeof header_row == "undefined" ) {
-      return; }
-    header_row.deleteCell( cell_position_map["barcode"] );
-    console.log( "- barcode header cell deleted" );
+      return;
+      // request_item_flow_manager.check_url();  // // holding off on adding `request-item` functionality
+    } else {
+      header_row.deleteCell( cell_position_map["barcode"] );
+      console.log( "- barcode header cell deleted" );
+    }
   }
 
 };  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
@@ -196,7 +199,7 @@ var esyscn_row_processor = new function() {
     $( last_cell ).after( link_html );
     console.log( "- request-scan link added" );
     easyscan_link_element = $(last_cell).next();
-    request_item_flow_manager.check_permalink( easyscan_link_element );
+    // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
     return;
   }
 

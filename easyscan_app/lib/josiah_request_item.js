@@ -8,17 +8,17 @@ var request_item_flow_manager = new function() {
    *   - If so,
    *     - Grabs the bib
    *     - Builds and displays 'Request Item' link
-   *   - If not,
+   *   - Other code (will be put in a separate class):
    *     - Determines if its a Request Item page triggered by this js
-   *     - If so,
-   *       - Takes user directly to the login part of the process
+   *     - If so, takes user directly to the login part of the process
    */
 
   var local_easyscan_link_element = null;
 
   this.check_permalink = function( easyscan_link_element ) {
-      /* Controller.
-       * Called by document.ready()
+      /* Controller to add `request-item` link to each available annex item.
+       * Checks for permalink.
+       * Called by josiah_easyscan.esyscn_flow_manager.update_row()
        */
       console.log( "- in request_item_flow_manager.check_permalink()" );
       local_easyscan_link_element = easyscan_link_element;  // used if adding item-link
@@ -29,26 +29,8 @@ var request_item_flow_manager = new function() {
         grab_bib();
       } else {
         console.log( "- permalink not found" );
-        check_url();
       }
   }
-
-  /* if no permalink found */
-
-  var check_url = function() {
-    /* Checks url to see if we're requesting an annex item.
-     * If so, speeds user to necessary login section.
-     * Called by check_permalink()
-     */
-     if ( location.toString().search("goal=request_annex_item") != -1 ){
-       show( "annex" );  // in-page js function
-       toggleLayer( "requestForm" );  // in-page js function
-     }
-     console.log( "- in request_item_flow_manager.check_url()" );
-     return
-  }
-
-  /* if permalink found */
 
   var grab_bib = function() {
     /* Parses bib from permalink.
@@ -72,6 +54,24 @@ var request_item_flow_manager = new function() {
     console.log( "- in request_item_flow_manager.build_link_html(); item_link, " + item_link );
     // $( local_last_cell ).next().after( link );
     $( local_easyscan_link_element ).after( item_link );
+  }
+
+  /* other code called by josiah_easyscan.esyscn_flow_manager
+   * TODO: put in separate class.
+   */
+
+  var check_url = function() {
+    /* Checks url to see if we're requesting an annex item.
+     * If so, speeds user to necessary login section.
+     * Called by esyscn_flow_manager.delete_header_cell()
+     */
+     if ( location.toString().search("goal=request_annex_item") != -1 ) {
+      console.log( "- in request_item_flow_manager.check_url(); `goal=request_annex_item` found" );
+      // show( "annex" );  // in-page js function
+      // toggleLayer( "requestForm" );  // in-page js function
+     }
+     console.log( "- in request_item_flow_manager.check_url(); done" );
+     return
   }
 
 }  // end request_item_flow_manager()
