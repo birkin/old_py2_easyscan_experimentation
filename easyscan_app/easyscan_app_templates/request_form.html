@@ -18,8 +18,6 @@ easyScan request
         margin-top: 6em; }
     hr {
         margin-top: 2em; }
-    form {
-        margin-top: 1.5em; }
     div#requested_item {
         margin-top: 4em;
         /*color: gray;*/ }
@@ -38,10 +36,14 @@ easyScan request
        margin-left:2em;
        /*color:#999;*/
        font-size: 125%; }
-    div#info {
-       margin-top: 2em; }
-    div#info p {
-       margin-bottom: 1em; }
+    form {
+        margin-top: 1.5em; }
+    textarea {
+        margin-top: .5em; }
+    /*div#info {
+       margin-top: 2em; }*/
+    /*div#info p {
+       margin-bottom: 1em; }*/
     div#input {
         margin-top: 1.5em; }
     p {
@@ -80,7 +82,7 @@ easyScan request
 <div id="form">
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
-        <p>Chapter/Volume title...</p>
+        <p>Article/Chapter title...</p>
         <textarea name="chap_vol_title" rows="2" cols="50">{{ chap_vol_title }}</textarea>
         <p id="page_range">Page range...</p>
         <textarea name="page_range" rows="2" cols="50">{{ page_range }}</textarea>
