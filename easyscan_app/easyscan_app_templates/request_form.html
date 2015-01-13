@@ -82,6 +82,8 @@ easyScan request
 <div id="form">
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
+
+        {% comment "Optional note" %}
         <p>Article/Chapter title...</p>
         <textarea name="chap_vol_title" rows="2" cols="50">{{ chap_vol_title }}</textarea>
         <p id="page_range">Page range...</p>
@@ -89,11 +91,27 @@ easyScan request
         <div id="input">
             <input type="submit" value="Submit Scan Request">
         </div>
+        {% endcomment %}
+
+        <div class="fieldWrapper">
+            {{ form.article_chapter_title.errors }}
+            <p>{{ form.article_chapter_title.label }}</p>
+            <textarea name="chap_vol_title" rows="2" cols="50">{{ form.article_chapter_title.value }}</textarea>
+        </div>
+        <div class="fieldWrapper">
+            {{ form.page_range.errors }}
+            <p id="page_range">{{ form.page_range.label }}</p>
+            {{ form.page_range }}
+        </div>
+
+        <div id="input">
+            <input type="submit" value="Submit Scan Request">
+        </div>
+
     </form>
 
 </div>
 
 <hr/>
-
 
 {% endblock content %}

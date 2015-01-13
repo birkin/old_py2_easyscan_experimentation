@@ -11,6 +11,7 @@ from django.utils.http import urlquote
 from django.utils.encoding import smart_unicode
 from django.conf import settings as project_settings
 from easyscan_app.lib.magic_bus import Prepper, Sender
+from easyscan_app.easyscan_forms import CitationForm
 
 
 log = logging.getLogger(__name__)
@@ -45,14 +46,6 @@ class ScanRequest( models.Model ):
             self.create_datetime, self.patron_name, self.patron_barcode, self.patron_email, self.item_title, self.item_barcode, self.item_chap_vol_title, self.item_page_range_other )
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
-
-    # def save(self):
-    #     super( ScanRequest, self ).save() # Call the "real" save() method
-    #     maker = LasDataMaker()
-    #     las_string = maker.make_csv_string(
-    #         self.item_barcode, self.patron_name, self.patron_barcode, self.item_title, self.create_datetime, self.item_chap_vol_title, self.item_page_range_other )
-    #     self.las_conversion = las_string
-    #     super( ScanRequest, self ).save() # Call the "real" save() method
 
 
 ## non db models below  ##
@@ -198,6 +191,10 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
+
+
+
+
     def build_response( self, request ):
         """ Builds response.
             Called by handle_get() """
@@ -208,21 +205,15 @@ class RequestViewGetHelper( object ):
         elif request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
-            return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+            data_dict = self.build_data_dict( request )
+            data_dict[u'form'] = CitationForm()
+            return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
         return return_response
 
-    # def build_response( self, request ):
-    #     """ Builds response.
-    #         Called by handle_get() """
-    #     if request.session[u'item_info'][u'barcode'] == u'':
-    #         return_response = render( request, u'easyscan_app_templates/request_info.html', self.build_data_dict(request) )
-    #     elif request.session[u'authz_info'][u'authorized'] == False:
-    #         return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
-    #     else:
-    #         return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
-    #     log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
-    #     return return_response
+
+
+
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
@@ -239,6 +230,120 @@ class RequestViewGetHelper( object ):
             context[u'logout_url'] = reverse( u'logout_url' )
         log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
+
+
+# class RequestViewGetHelper( object ):
+#     """ Container for views.request_def() helpers for handling GET. """
+
+#     def __init__( self ):
+#         self.AVAILABILITY_API_URL_ROOT = os.environ[u'EZSCAN__AVAILABILITY_API_URL_ROOT']
+
+#     def handle_get( self, request ):
+#         """ Handles request-page GET; returns response.
+#             Called by views.request_def() """
+#         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
+#         if https_check[u'is_secure'] == False:
+#             return HttpResponseRedirect( https_check[u'redirect_url'] )
+#         title = self.check_title( request )
+#         self.initialize_session( request, title )
+#         return_response = self.build_response( request )
+#         log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
+#         return return_response
+
+#     def check_https( self, is_secure, get_host, full_path ):
+#         """ Checks for https; returns dict with result and redirect-url.
+#             Called by handle_get() """
+#         if (is_secure == False) and (get_host != u'127.0.0.1'):
+#             redirect_url = u'https://%s%s' % ( get_host, full_path )
+#             return_dict = { u'is_secure': False, u'redirect_url': redirect_url }
+#         else:
+#             return_dict = { u'is_secure': True, u'redirect_url': u'N/A' }
+#         log.debug( u'in models.RequestViewGetHelper.check_https(); return_dict, `%s`' % return_dict )
+#         return return_dict
+
+#     def check_title( self, request ):
+#         """ Grabs and returns title from the availability-api if needed.
+#             Called by handle_get() """
+#         title = request.GET.get( u'title', u'' )
+#         if title == u'null' or title == u'':
+#             try: title = request.session[u'item_info'][u'title']
+#             except: pass
+#         if title == u'null' or title == u'':
+#             bibnum = request.GET.get( u'bibnum', u'' )
+#             if len( bibnum ) == 8:
+#                 title = self.hit_availability_api( bibnum )
+#         log.debug( u'in models.RequestViewGetHelper.check_title(); title, %s' % title )
+#         return title
+
+#     def hit_availability_api( self, bibnum ):
+#         """ Hits availability-api with bib for title.
+#             Called by check_title() """
+#         try:
+#             availability_api_url = u'%s/bib/%s' % ( self.AVAILABILITY_API_URL_ROOT, bibnum )
+#             r = requests.get( availability_api_url )
+#             d = r.json()
+#             title = d[u'response'][u'backend_response'][0][u'title']
+#         except Exception as e:
+#             log.debug( u'in models.RequestViewGetHelper.hit_availability_api(); exception, %s' % unicode(repr(e)) )
+#             title = u''
+#         return title
+
+#     def initialize_session( self, request, title ):
+#         """ Initializes session vars if needed.
+#             Called by handle_get() """
+#         if not u'authz_info' in request.session:
+#             request.session[u'authz_info'] = { u'authorized': False }
+#         if not u'user_info' in request.session:
+#             request.session[u'user_info'] = { u'name': u'', u'patron_barcode': u'', u'email': u'' }
+#         self.update_session_iteminfo( request, title )
+#         if not u'shib_login_error' in request.session:
+#             request.session[u'shib_login_error'] = False
+#         log.debug( u'in models.RequestViewGetHelper.initialize_session(); session initialized' )
+#         return
+
+#     def update_session_iteminfo( self, request, title ):
+#         """ Updates 'item_info' session key data.
+#             Called by initialize_session() """
+#         if not u'item_info' in request.session:
+#             request.session[u'item_info'] = {
+#             u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'item_chap_vol_title': u'', u'page_range': u'' }
+#         for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
+#             value = request.GET.get( key, u'' )
+#             if value:
+#                 request.session[u'item_info'][key] = value
+#         request.session[u'item_info'][u'title'] = title
+#         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
+#         return
+
+#     def build_response( self, request ):
+#         """ Builds response.
+#             Called by handle_get() """
+#         if request.session[u'item_info'][u'barcode'] == u'':
+#             scheme = u'https' if request.is_secure() else u'http'
+#             redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
+#             return_response = HttpResponseRedirect( redirect_url )
+#         elif request.session[u'authz_info'][u'authorized'] == False:
+#             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
+#         else:
+#             return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+#         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
+#         return return_response
+
+#     def build_data_dict( self, request ):
+#         """ Builds and returns data-dict for request page.
+#             Called by build_response() """
+#         context = {
+#             u'title': request.session[u'item_info'][u'title'],
+#             u'callnumber': request.session[u'item_info'][u'callnumber'],
+#             u'barcode': request.session[u'item_info'][u'barcode'],
+#             u'volume_year': request.session[u'item_info'][u'volume_year'],
+#             u'login_error': request.session[u'shib_login_error'],
+#             }
+#         if request.session[u'authz_info'][u'authorized']:
+#             context[u'patron_name'] = request.session[u'user_info'][u'name']
+#             context[u'logout_url'] = reverse( u'logout_url' )
+#         log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
+#         return context
 
 
 class RequestViewPostHelper( object ):
