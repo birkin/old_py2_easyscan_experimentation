@@ -91,9 +91,33 @@ var esyscn_flow_manager = new function() {
     var header_row = $( "tr.bibItemsHeader" )[0];
     console.log( "- header_row, " + header_row );
     if ( typeof header_row == "undefined" ) {
-      return; }
-    header_row.deleteCell( cell_position_map["barcode"] );
-    console.log( "- barcode header cell deleted" );
+      // return;
+      check_annex_request_start();
+    } else {
+      header_row.deleteCell( cell_position_map["barcode"] );
+      console.log( "- barcode header cell deleted" );
+    }
+  }
+
+  var check_annex_request_start = function() {
+    console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); starting" );
+    if ( location.toString().search("goal=request_annex_item") != -1 ){
+      console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); detected `goal=request_annex_item`" );
+      var annex_doc = document.getElementById( "annex" );
+      annex_doc.style.display = "block";
+      var divs = document.getElementsByTagName( "div" );
+      for( var i=0; i < divs.length; i++ ) {
+        var div = divs[i];
+        var id = div.id;
+        if ( (id != "requestForm") && (id != "footer") && (id != "banner") && (id != "banner_text") && (id != "requesting") && (id != "wrapper") && (id != "container_padded") && (id != "annex") ) {
+          div.style.display = "none";
+        }
+        if ( (id != "requestForm") || (id != "annex") ) {
+          div.style.display = "block";
+        }
+      }
+    }
+    console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); done" );
   }
 
 };  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
