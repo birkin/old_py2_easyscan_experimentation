@@ -195,19 +195,17 @@ class RequestViewGetHelper( object ):
         """ Builds response.
             Called by handle_get() """
         if request.session[u'item_info'][u'barcode'] == u'':
-            scheme = u'https' if request.is_secure() else u'http'
-            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
-            return_response = HttpResponseRedirect( redirect_url )
+            # scheme = u'https' if request.is_secure() else u'http'
+            # redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
+            # return_response = HttpResponseRedirect( redirect_url )
+            return_response = HttpResponseRedirect( reverse(u'info_url') )
         elif request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
             data_dict = self.build_data_dict( request )
             form_data = request.session.get(u'form_data', None)
-            log.debug( u'in models.RequestViewGetHelper.build_response(); form_data, %s' % form_data )
             form = CitationForm( form_data )
             form.is_valid() # to get errors in form
-            log.debug( u'in models.RequestViewGetHelper.build_response(); form.errors, %s' % form.errors )
-            log.debug( u'in models.RequestViewGetHelper.build_response(); form.is_valid(), %s' % form.is_valid() )
             data_dict[u'form'] = form
             return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
