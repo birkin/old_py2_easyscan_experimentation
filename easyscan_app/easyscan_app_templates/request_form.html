@@ -95,8 +95,8 @@ easyScan request
 
         <div class="fieldWrapper">
             {{ form.article_chapter_title.errors }}
-            <p>{{ form.article_chapter_title.label }}</p>
-            <textarea name="chap_vol_title" rows="2" cols="50">{{ form.article_chapter_title.value }}</textarea>
+            <p id="article_chapter_title">{{ form.article_chapter_title.label }}</p>
+            {{ form.article_chapter_title }}
         </div>
         <div class="fieldWrapper">
             {{ form.page_range.errors }}
