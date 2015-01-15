@@ -191,6 +191,22 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
 
+    # def build_response( self, request ):
+    #     """ Builds response.
+    #         Called by handle_get() """
+    #     if request.session[u'item_info'][u'barcode'] == u'':
+    #         scheme = u'https' if request.is_secure() else u'http'
+    #         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
+    #         return_response = HttpResponseRedirect( redirect_url )
+    #     elif request.session[u'authz_info'][u'authorized'] == False:
+    #         return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
+    #     else:
+    #         data_dict = self.build_data_dict( request )
+    #         data_dict[u'form'] = CitationForm()
+    #         return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
+    #     log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
+    #     return return_response
+
     def build_response( self, request ):
         """ Builds response.
             Called by handle_get() """
@@ -202,7 +218,12 @@ class RequestViewGetHelper( object ):
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
             data_dict = self.build_data_dict( request )
-            data_dict[u'form'] = CitationForm()
+            form_data = request.session.get(u'form_data', None)
+            form = CitationForm( initial=form_data )
+            form.is_valid() # to get errors in form
+            log.debug( u'in models.RequestViewGetHelper.build_response(); form.is_valid(), %s' % form.is_valid() )
+            log.debug( u'in models.RequestViewGetHelper.build_response(); form.errors, %s' % form.errors )
+            data_dict[u'form'] = form
             return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
         return return_response
