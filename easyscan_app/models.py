@@ -85,7 +85,7 @@ class LasDataMaker( object ):
             patron_barcode.encode( u'utf-8', u'replace' ),
             item_title.encode( u'utf-8', u'replace' ),
             modified_date_string.encode( u'utf-8', u'replace' ),
-            'eml, %s -- itm-chp-ttl, %s -- pg-rng, %s' % (
+            'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s' % (
                 patron_email.encode(u'utf-8', u'replace'),
                 item_chap_vol_title.encode(u'utf-8', u'replace'),
                 item_page_range_other.encode(u'utf-8', u'replace'),
