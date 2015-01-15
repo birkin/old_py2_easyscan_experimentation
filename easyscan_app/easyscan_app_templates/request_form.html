@@ -56,6 +56,8 @@ easyScan request
         font-size: 125%; }
     li {
         margin-top: .5em; }
+    .errorlist {
+        color: red; }
 </style>
 
  <h1>easyScan request</h1>
@@ -75,7 +77,7 @@ easyScan request
         <dd>{{ callnumber }}</dd>
     </dl>
 
-</div>
+</div> <!-- #requested_item -->
 
 <h3 id="please">Please add additional information...</h3>
 
@@ -83,24 +85,15 @@ easyScan request
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
 
-        {% comment "Optional note" %}
-        <p>Article/Chapter title...</p>
-        <textarea name="chap_vol_title" rows="2" cols="50">{{ chap_vol_title }}</textarea>
-        <p id="page_range">Page range...</p>
-        <textarea name="page_range" rows="2" cols="50">{{ page_range }}</textarea>
-        <div id="input">
-            <input type="submit" value="Submit Scan Request">
-        </div>
-        {% endcomment %}
-
         <div class="fieldWrapper">
-            {{ form.article_chapter_title.errors }}
             <p id="article_chapter_title">{{ form.article_chapter_title.label }}</p>
+            {{ form.article_chapter_title.errors }}
             {{ form.article_chapter_title }}
         </div>
+
         <div class="fieldWrapper">
-            {{ form.page_range.errors }}
             <p id="page_range">{{ form.page_range.label }}</p>
+            {{ form.page_range.errors }}
             {{ form.page_range }}
         </div>
 
@@ -110,7 +103,7 @@ easyScan request
 
     </form>
 
-</div>
+</div> <!-- #form -->
 
 <hr/>
 

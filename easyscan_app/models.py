@@ -219,10 +219,11 @@ class RequestViewGetHelper( object ):
         else:
             data_dict = self.build_data_dict( request )
             form_data = request.session.get(u'form_data', None)
-            form = CitationForm( initial=form_data )
+            log.debug( u'in models.RequestViewGetHelper.build_response(); form_data, %s' % form_data )
+            form = CitationForm( form_data )
             form.is_valid() # to get errors in form
-            log.debug( u'in models.RequestViewGetHelper.build_response(); form.is_valid(), %s' % form.is_valid() )
             log.debug( u'in models.RequestViewGetHelper.build_response(); form.errors, %s' % form.errors )
+            log.debug( u'in models.RequestViewGetHelper.build_response(); form.is_valid(), %s' % form.is_valid() )
             data_dict[u'form'] = form
             return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
