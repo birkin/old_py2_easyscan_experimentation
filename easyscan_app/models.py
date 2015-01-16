@@ -11,6 +11,7 @@ from django.utils.http import urlquote
 from django.utils.encoding import smart_unicode
 from django.conf import settings as project_settings
 from easyscan_app.lib.magic_bus import Prepper, Sender
+from easyscan_app.easyscan_forms import CitationForm
 
 
 log = logging.getLogger(__name__)
@@ -45,14 +46,6 @@ class ScanRequest( models.Model ):
             self.create_datetime, self.patron_name, self.patron_barcode, self.patron_email, self.item_title, self.item_barcode, self.item_chap_vol_title, self.item_page_range_other )
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
-
-    # def save(self):
-    #     super( ScanRequest, self ).save() # Call the "real" save() method
-    #     maker = LasDataMaker()
-    #     las_string = maker.make_csv_string(
-    #         self.item_barcode, self.patron_name, self.patron_barcode, self.item_title, self.create_datetime, self.item_chap_vol_title, self.item_page_range_other )
-    #     self.las_conversion = las_string
-    #     super( ScanRequest, self ).save() # Call the "real" save() method
 
 
 ## non db models below  ##
@@ -92,7 +85,7 @@ class LasDataMaker( object ):
             patron_barcode.encode( u'utf-8', u'replace' ),
             item_title.encode( u'utf-8', u'replace' ),
             modified_date_string.encode( u'utf-8', u'replace' ),
-            'eml, %s -- itm-chp-ttl, %s -- pg-rng, %s' % (
+            'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s' % (
                 patron_email.encode(u'utf-8', u'replace'),
                 item_chap_vol_title.encode(u'utf-8', u'replace'),
                 item_page_range_other.encode(u'utf-8', u'replace'),
@@ -189,7 +182,7 @@ class RequestViewGetHelper( object ):
             Called by initialize_session() """
         if not u'item_info' in request.session:
             request.session[u'item_info'] = {
-            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'item_chap_vol_title': u'', u'page_range': u'' }
+            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'article_chapter_title': u'', u'page_range': u'' }
         for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
             value = request.GET.get( key, u'' )
             if value:
@@ -202,27 +195,21 @@ class RequestViewGetHelper( object ):
         """ Builds response.
             Called by handle_get() """
         if request.session[u'item_info'][u'barcode'] == u'':
-            scheme = u'https' if request.is_secure() else u'http'
-            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
-            return_response = HttpResponseRedirect( redirect_url )
+            # scheme = u'https' if request.is_secure() else u'http'
+            # redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
+            # return_response = HttpResponseRedirect( redirect_url )
+            return_response = HttpResponseRedirect( reverse(u'info_url') )
         elif request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
-            return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
+            data_dict = self.build_data_dict( request )
+            form_data = request.session.get(u'form_data', None)
+            form = CitationForm( form_data )
+            form.is_valid() # to get errors in form
+            data_dict[u'form'] = form
+            return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
         return return_response
-
-    # def build_response( self, request ):
-    #     """ Builds response.
-    #         Called by handle_get() """
-    #     if request.session[u'item_info'][u'barcode'] == u'':
-    #         return_response = render( request, u'easyscan_app_templates/request_info.html', self.build_data_dict(request) )
-    #     elif request.session[u'authz_info'][u'authorized'] == False:
-    #         return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
-    #     else:
-    #         return_response = render( request, u'easyscan_app_templates/request_form.html', self.build_data_dict(request) )
-    #     log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
-    #     return return_response
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
@@ -247,8 +234,8 @@ class RequestViewPostHelper( object ):
     def update_session( self, request ):
         """ Updates session vars.
             Called by views.request_def() """
-        request.session[u'item_info'][u'item_chap_vol_title'] = request.POST.get( u'chap_vol_title'.strip(), u'' )
-        request.session[u'item_info'][u'item_page_range_other'] = request.POST.get( u'page_range'.strip(), u'' )
+        request.session[u'item_info'][u'article_chapter_title'] = request.POST.get( u'article_chapter_title'.strip(), u'' )
+        request.session[u'item_info'][u'page_range'] = request.POST.get( u'page_range'.strip(), u'' )
         return
 
     def save_post_data( self, request ):
@@ -261,8 +248,8 @@ class RequestViewPostHelper( object ):
             scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
             scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
             scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
-            scnrqst.item_chap_vol_title = request.session[u'item_info'][u'item_chap_vol_title']
-            scnrqst.item_page_range_other = request.session[u'item_info'][u'item_page_range_other']
+            scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
+            scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
             scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' ),
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
@@ -420,8 +407,8 @@ class ConfirmationViewHelper( object ):
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
             u'barcode': request.session[u'item_info'][u'barcode'],
-            u'chap_vol_title': request.session[u'item_info'][u'item_chap_vol_title'],
-            u'page_range': request.session[u'item_info'][u'item_page_range_other'],
+            u'chap_vol_title': request.session[u'item_info'][u'article_chapter_title'],
+            u'page_range': request.session[u'item_info'][u'page_range'],
             u'volume_year': request.session[u'item_info'][u'volume_year'],
             u'email': request.session[u'user_info'][u'email']
             }

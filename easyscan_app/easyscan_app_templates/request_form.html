@@ -18,11 +18,9 @@ easyScan request
         margin-top: 6em; }
     hr {
         margin-top: 2em; }
-    form {
-        margin-top: 1.5em; }
     div#requested_item {
         margin-top: 4em;
-        color: gray; }
+        /*color: gray;*/ }
     dt, dd {
         font-family:sans-serif;
         margin-top: .5em; }
@@ -31,17 +29,21 @@ easyScan request
        clear:left;
        text-align:right;
        width:15%;
-       color:#bbb;
+       /*color:#bbb;*/
        font-size: 125%; }
     dd {
        float:left;
        margin-left:2em;
-       color:#999;
+       /*color:#999;*/
        font-size: 125%; }
-    div#info {
-       margin-top: 2em; }
-    div#info p {
-       margin-bottom: 1em; }
+    form {
+        margin-top: 1.5em; }
+    textarea {
+        margin-top: .5em; }
+    /*div#info {
+       margin-top: 2em; }*/
+    /*div#info p {
+       margin-bottom: 1em; }*/
     div#input {
         margin-top: 1.5em; }
     p {
@@ -54,6 +56,8 @@ easyScan request
         font-size: 125%; }
     li {
         margin-top: .5em; }
+    .errorlist {
+        color: red; }
 </style>
 
  <h1>easyScan request</h1>
@@ -73,25 +77,34 @@ easyScan request
         <dd>{{ callnumber }}</dd>
     </dl>
 
-</div>
+</div> <!-- #requested_item -->
 
 <h3 id="please">Please add additional information...</h3>
 
 <div id="form">
 
     <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
-        <p>Chapter/Volume title...</p>
-        <textarea name="chap_vol_title" rows="2" cols="50">{{ chap_vol_title }}</textarea>
-        <p id="page_range">Page range...</p>
-        <textarea name="page_range" rows="2" cols="50">{{ page_range }}</textarea>
+
+        <div class="fieldWrapper">
+            <p id="article_chapter_title">{{ form.article_chapter_title.label }}</p>
+            {{ form.article_chapter_title.errors }}
+            {{ form.article_chapter_title }}
+        </div>
+
+        <div class="fieldWrapper">
+            <p id="page_range">{{ form.page_range.label }}</p>
+            {{ form.page_range.errors }}
+            {{ form.page_range }}
+        </div>
+
         <div id="input">
             <input type="submit" value="Submit Scan Request">
         </div>
+
     </form>
 
-</div>
+</div> <!-- #form -->
 
 <hr/>
-
 
 {% endblock content %}

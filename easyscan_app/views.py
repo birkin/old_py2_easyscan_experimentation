@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.http import urlquote
 from easyscan_app import models
+from easyscan_app.easyscan_forms import CitationForm
 
 
 log = logging.getLogger(__name__)
@@ -21,19 +22,6 @@ confirmation_vew_helper = models.ConfirmationViewHelper()
 def info( request ):
     """ Returns info page. """
     return render( request, u'easyscan_app_templates/info.html' )
-
-
-# def easyscan_js( request ):
-#     """ Returns javascript file.
-#         Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
-#     js_unicode = u''
-#     current_directory = os.path.dirname(os.path.abspath(__file__))
-#     js_path = u'%s/lib/josiah_easyscan.js' % current_directory
-#     with open( js_path ) as f:
-#         js_utf8 = f.read()
-#         js_unicode = js_utf8.decode( u'utf-8' )
-#     js_unicode = js_unicode.replace( u'HOST', request.get_host() )
-#     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
 
 
 def easyscan_js( request ):
@@ -64,6 +52,22 @@ def request_item_js( request ):
     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
 
 
+# def request_def( request ):
+#     """ On GET, redirects to login options, or displays form to specify requested scan-content.
+#         On POST, saves data and redirects to confirmation page. """
+#     if request.method == u'GET':
+#         return_response = request_view_get_helper.handle_get( request )
+#         return return_response
+#     else:  # form POST
+#         request_view_post_helper.update_session( request )
+#         scnrqst = request_view_post_helper.save_post_data( request )
+#         request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+#         scheme = u'https' if request.is_secure() else u'http'
+#         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+#         log.debug( u'in views.request_def() (post); about to redirect' )
+#         return HttpResponseRedirect( redirect_url )
+
+
 def request_def( request ):
     """ On GET, redirects to login options, or displays form to specify requested scan-content.
         On POST, saves data and redirects to confirmation page. """
@@ -71,13 +75,21 @@ def request_def( request ):
         return_response = request_view_get_helper.handle_get( request )
         return return_response
     else:  # form POST
-        request_view_post_helper.update_session( request )
-        scnrqst = request_view_post_helper.save_post_data( request )
-        request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
-        scheme = u'https' if request.is_secure() else u'http'
-        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
-        log.debug( u'in views.request_def() (post); about to redirect' )
-        return HttpResponseRedirect( redirect_url )
+        form = CitationForm( request.POST )
+        log.debug( u'in views.request_def() (post); form.errors, %s' % form.errors )
+        if form.is_valid():
+            log.debug( u'in views.request_def() (post); form.errors 2, %s' % form.errors )
+            request_view_post_helper.update_session( request )
+            scnrqst = request_view_post_helper.save_post_data( request )
+            request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+            scheme = u'https' if request.is_secure() else u'http'
+            redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+            log.debug( u'in views.request_def() (post); about to redirect' )
+            return HttpResponseRedirect( redirect_url )
+        else:
+            log.debug( u'in views.request_def() (post); form.errors 3, %s' % form.errors )
+            request.session[u'form_data'] = request.POST
+            return HttpResponseRedirect( reverse(u'request_url'), {u'form': form} )
 
 
 def shib_login( request ):
@@ -107,16 +119,6 @@ def confirmation( request ):
     else:  # False is set by handle_authorized()
         return_response = confirmation_vew_helper.handle_non_authorized( request )
     return return_response
-
-
-# def confirmation( request ):
-#     """ Logs user out & displays confirmation screen after submission.
-#         TODO- refactor commonalities with shib_logout() """
-#     if request.session[u'authz_info'][u'authorized'] == True:  # always true initially
-#         return_response = confirmation_vew_helper.handle_authorized( request )
-#     else:  # False is set by handle_authorized()
-#         return_response = confirmation_vew_helper.handle_non_authorized( request )
-#     return return_response
 
 
 def shib_logout( request ):
