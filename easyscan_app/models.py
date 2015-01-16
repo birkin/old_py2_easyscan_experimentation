@@ -251,7 +251,7 @@ class RequestViewPostHelper( object ):
             scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
             scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
             scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
-            scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' ),
+            scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
             scnrqst.patron_email = request.session[u'user_info'][u'email']
