@@ -117,6 +117,7 @@ class RequestViewGetHelper( object ):
     def handle_get( self, request ):
         """ Handles request-page GET; returns response.
             Called by views.request_def() """
+        log.debug( u'in models.RequestViewGetHelper.handle_get(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check[u'is_secure'] == False:
             return HttpResponseRedirect( https_check[u'redirect_url'] )
