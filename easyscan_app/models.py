@@ -3,6 +3,7 @@
 import csv, datetime, json, logging, os, pprint, StringIO
 import requests
 from django.contrib.auth import logout
+from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
@@ -233,6 +234,10 @@ class RequestViewGetHelper( object ):
 class RequestViewPostHelper( object ):
     """ Container for views.request_def() helpers for handling POST. """
 
+    def __init__( self ):
+        self.EMAIL_FROM = os.environ[u'EZSCAN__EMAIL_FROM']
+        self.EMAIL_REPLY_TO = os.environ[u'EZSCAN__EMAIL_REPLY_TO']
+
     def update_session( self, request ):
         """ Updates session vars.
             Called by views.request_def() """
@@ -270,6 +275,49 @@ class RequestViewPostHelper( object ):
         sender.transfer_files( data_filename, count_filename )
         log.debug( u'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         return
+
+    def email_patron( self, scnrqst ):
+        """ Emails patron confirmation.
+            Called by views.request_def() """
+        try:
+            subject = u'B.U.L. Scan Request Confirmation'
+            body = self.build_email_body( scnrqst )
+            ffrom = self.EMAIL_FROM  # `from` reserved
+            to = [ scnrqst.patron_email ]
+            extra_headers = { u'Reply-To': self.EMAIL_REPLY_TO }
+            email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
+            email.send()
+            log.debug( u'in models.RequestViewPostHelper.email_patron(); mail sent' )
+        except Exception as e:
+            log.debug( u'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % e )
+
+    def build_email_body( self, scnrqst ):
+        """ Prepares and returns email body.
+            Called by email_patron().
+            TODO: use render_to_string & template. """
+        body = u'''Greetings %s,
+
+This is a confirmation that your easyscan request for the item...
+
+Item title: %s
+Volume/Year: %s
+
+specifically...
+
+Article/Chapter title: %s
+Page range: %s
+
+...has been received.
+
+Scans generally take two business days, and will be sent to this email address.
+
+If you have questions, feel free to contact `%s` and reference easyscan request #%s.''' % (
+            scnrqst.patron_name,
+            scnrqst.item_title, scnrqst.item_volume_year,
+            scnrqst.item_chap_vol_title, scnrqst.item_page_range_other,
+            u'someone@brown.edu', scnrqst.id
+            )
+        return body
 
 
 class ShibViewHelper( object ):

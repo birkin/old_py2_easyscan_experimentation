@@ -100,6 +100,11 @@ STATIC_ROOT = os.environ['EZSCAN__STATIC_ROOT']  # needed for collectstatic comm
 TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
 
 
+# Email
+EMAIL_HOST = os.environ['EZSCAN__EMAIL_HOST']
+EMAIL_PORT = int( os.environ['EZSCAN__EMAIL_PORT'] )
+
+
 # sessions
 
 # <https://docs.djangoproject.com/en/1.6/ref/settings/#std:setting-SESSION_SAVE_EVERY_REQUEST>
