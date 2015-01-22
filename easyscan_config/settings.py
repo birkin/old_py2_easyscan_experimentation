@@ -92,6 +92,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = os.environ['EZSCAN__STATIC_URL']
+STATIC_ROOT = os.environ['EZSCAN__STATIC_ROOT']  # needed for collectstatic command
 
 
 # Templates
