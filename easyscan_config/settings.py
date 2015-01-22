@@ -92,11 +92,17 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = os.environ['EZSCAN__STATIC_URL']
+STATIC_ROOT = os.environ['EZSCAN__STATIC_ROOT']  # needed for collectstatic command
 
 
 # Templates
 
 TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
+
+
+# Email
+EMAIL_HOST = os.environ['EZSCAN__EMAIL_HOST']
+EMAIL_PORT = int( os.environ['EZSCAN__EMAIL_PORT'] )
 
 
 # sessions

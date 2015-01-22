@@ -59,13 +59,21 @@ def request_item_js( request ):
 #         return_response = request_view_get_helper.handle_get( request )
 #         return return_response
 #     else:  # form POST
-#         request_view_post_helper.update_session( request )
-#         scnrqst = request_view_post_helper.save_post_data( request )
-#         request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
-#         scheme = u'https' if request.is_secure() else u'http'
-#         redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
-#         log.debug( u'in views.request_def() (post); about to redirect' )
-#         return HttpResponseRedirect( redirect_url )
+#         form = CitationForm( request.POST )
+#         log.debug( u'in views.request_def() (post); form.errors, %s' % form.errors )
+#         if form.is_valid():
+#             log.debug( u'in views.request_def() (post); form.errors 2, %s' % form.errors )
+#             request_view_post_helper.update_session( request )
+#             scnrqst = request_view_post_helper.save_post_data( request )
+#             request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+#             scheme = u'https' if request.is_secure() else u'http'
+#             redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+#             log.debug( u'in views.request_def() (post); about to redirect' )
+#             return HttpResponseRedirect( redirect_url )
+#         else:
+#             log.debug( u'in views.request_def() (post); form.errors 3, %s' % form.errors )
+#             request.session[u'form_data'] = request.POST
+#             return HttpResponseRedirect( reverse(u'request_url'), {u'form': form} )
 
 
 def request_def( request ):
@@ -82,6 +90,7 @@ def request_def( request ):
             request_view_post_helper.update_session( request )
             scnrqst = request_view_post_helper.save_post_data( request )
             request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+            request_view_post_helper.email_patron( scnrqst )
             scheme = u'https' if request.is_secure() else u'http'
             redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
             log.debug( u'in views.request_def() (post); about to redirect' )
