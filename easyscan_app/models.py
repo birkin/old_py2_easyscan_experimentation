@@ -37,7 +37,8 @@ class ScanRequest( models.Model ):
     las_conversion = models.TextField( blank=True )
 
     def __unicode__(self):
-        return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
+        return smart_unicode( u'id: %s || title: %s' % (self.id, self.item_title) , u'utf-8', u'replace' )
+        # return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
 
     def save(self):
         super( ScanRequest, self ).save() # Call the "real" save() method
