@@ -62,7 +62,8 @@ class LasDataMaker( object ):
             Called by models.ScanRequest.save() """
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
-            modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other )
+            modified_date_string, item_barcode, self.strip_quotes(patron_name), patron_barcode, self.strip_quotes(item_title), patron_email, self.strip_quotes(item_chap_vol_title), self.strip_quotes(item_page_range_other)
+            )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_string = utf8_csv_string.decode( u'utf-8' )
         return csv_string
@@ -74,6 +75,12 @@ class LasDataMaker( object ):
         utf8_date_string = datetime_object.strftime( u'%a %b %d %Y' )
         date_string = utf8_date_string.decode( u'utf-8' )
         return date_string
+
+    def strip_quotes( self, var ):
+        """ Strips any double-quotes from field.
+            Called by make_csv_string() """
+        updated_var = var.replace( u'"', u"'" )
+        return updated_var
 
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other ):
         """ Assembles data elements in order required by LAS.
