@@ -21,7 +21,11 @@ confirmation_vew_helper = models.ConfirmationViewHelper()
 
 def info( request ):
     """ Returns info page. """
-    return render( request, u'easyscan_app_templates/info.html' )
+    context = {
+        u'email_general_help': os.environ[u'EZSCAN__EMAIL_GENERAL_HELP'],
+        u'phone_general_help': os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
+        }
+    return render( request, u'easyscan_app_templates/info.html', context )
 
 
 def easyscan_js( request ):
@@ -50,30 +54,6 @@ def request_item_js( request ):
         js_unicode = js_utf8.decode( u'utf-8' )
     js_unicode = js_unicode.replace( u'HOST', request.get_host() )
     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
-
-
-# def request_def( request ):
-#     """ On GET, redirects to login options, or displays form to specify requested scan-content.
-#         On POST, saves data and redirects to confirmation page. """
-#     if request.method == u'GET':
-#         return_response = request_view_get_helper.handle_get( request )
-#         return return_response
-#     else:  # form POST
-#         form = CitationForm( request.POST )
-#         log.debug( u'in views.request_def() (post); form.errors, %s' % form.errors )
-#         if form.is_valid():
-#             log.debug( u'in views.request_def() (post); form.errors 2, %s' % form.errors )
-#             request_view_post_helper.update_session( request )
-#             scnrqst = request_view_post_helper.save_post_data( request )
-#             request_view_post_helper.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
-#             scheme = u'https' if request.is_secure() else u'http'
-#             redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
-#             log.debug( u'in views.request_def() (post); about to redirect' )
-#             return HttpResponseRedirect( redirect_url )
-#         else:
-#             log.debug( u'in views.request_def() (post); form.errors 3, %s' % form.errors )
-#             request.session[u'form_data'] = request.POST
-#             return HttpResponseRedirect( reverse(u'request_url'), {u'form': form} )
 
 
 def request_def( request ):
