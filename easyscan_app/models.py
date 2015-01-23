@@ -237,6 +237,8 @@ class RequestViewPostHelper( object ):
     def __init__( self ):
         self.EMAIL_FROM = os.environ[u'EZSCAN__EMAIL_FROM']
         self.EMAIL_REPLY_TO = os.environ[u'EZSCAN__EMAIL_REPLY_TO']
+        self.EMAIL_GENERAL_HELP = os.environ[u'EZSCAN__EMAIL_GENERAL_HELP']
+        self.PHONE_GENERAL_HELP = os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
 
     def update_session( self, request ):
         """ Updates session vars.
@@ -311,11 +313,11 @@ Page range: %s
 
 Scans generally take two business days, and will be sent to this email address.
 
-If you have questions, feel free to contact `%s` and reference easyscan request #%s.''' % (
+If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
             scnrqst.patron_name,
             scnrqst.item_title, scnrqst.item_volume_year,
             scnrqst.item_chap_vol_title, scnrqst.item_page_range_other,
-            u'someone@brown.edu', scnrqst.id
+            self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
             )
         return body
 
