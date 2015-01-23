@@ -434,6 +434,8 @@ class ConfirmationViewHelper( object ):
 
     def __init__( self ):
         self.SHIB_LOGOUT_URL_ROOT = os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT']
+        self.EMAIL_GENERAL_HELP = os.environ[u'EZSCAN__EMAIL_GENERAL_HELP']
+        self.PHONE_GENERAL_HELP = os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
 
     def handle_authorized( self, request ):
         """ Unsets authorization, hits idp-logout, & redirects back to confirmation page.
@@ -460,7 +462,9 @@ class ConfirmationViewHelper( object ):
             u'chap_vol_title': request.session[u'item_info'][u'article_chapter_title'],
             u'page_range': request.session[u'item_info'][u'page_range'],
             u'volume_year': request.session[u'item_info'][u'volume_year'],
-            u'email': request.session[u'user_info'][u'email']
+            u'email': request.session[u'user_info'][u'email'],
+            u'email_general_help': self.EMAIL_GENERAL_HELP,
+            u'phone_general_help': self.PHONE_GENERAL_HELP
             }
         logout( request )
         return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
