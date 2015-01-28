@@ -247,6 +247,19 @@ class RequestViewPostHelper( object ):
         self.EMAIL_GENERAL_HELP = os.environ[u'EZSCAN__EMAIL_GENERAL_HELP']
         self.PHONE_GENERAL_HELP = os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
 
+    def handle_valid_form( self, request ):
+        """ Handles request page POST if form is valid.
+            Called by views.request_def() """
+        log.debug( u'in models.RequestViewPostHelper.handle_valid_form(); starting' )
+        self.update_session( request )
+        scnrqst = self.save_post_data( request )
+        self.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
+        self.email_patron( scnrqst )
+        scheme = u'https' if request.is_secure() else u'http'
+        redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'confirmation_url') )
+        log.debug( u'in models.RequestViewPostHelper.handle_valid_form(); redirecting' )
+        return redirect_url
+
     def update_session( self, request ):
         """ Updates session vars.
             Called by views.request_def() """
