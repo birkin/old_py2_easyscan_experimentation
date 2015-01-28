@@ -262,14 +262,14 @@ class RequestViewPostHelper( object ):
 
     def update_session( self, request ):
         """ Updates session vars.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         request.session[u'item_info'][u'article_chapter_title'] = request.POST.get( u'article_chapter_title'.strip(), u'' )
         request.session[u'item_info'][u'page_range'] = request.POST.get( u'page_range'.strip(), u'' )
         return
 
     def save_post_data( self, request ):
         """ Saves posted data to db.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         scnrqst = None
         try:
             scnrqst = ScanRequest()
@@ -290,7 +290,7 @@ class RequestViewPostHelper( object ):
 
     def transfer_data( self, scnrqst ):
         """ Transfers data.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         ( data_filename, count_filename ) = prepper.make_data_files(
             datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion
             )
@@ -300,7 +300,7 @@ class RequestViewPostHelper( object ):
 
     def email_patron( self, scnrqst ):
         """ Emails patron confirmation.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         try:
             subject = u'B.U.L. Scan Request Confirmation'
             body = self.build_email_body( scnrqst )
