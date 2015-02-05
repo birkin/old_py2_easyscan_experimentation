@@ -50,6 +50,8 @@ easyScan request
         font-size: 125%; }
     p#page_range {
          margin-top: 1em; }
+    p#other {
+         margin-top: 1em; }
     ul {
         list-style-type: square;
         margin-left: 2em;
@@ -95,6 +97,12 @@ easyScan request
             <p id="page_range">{{ form.page_range.label }}</p>
             {{ form.page_range.errors }}
             {{ form.page_range }}
+        </div>
+
+        <div class="fieldWrapper">
+            <p id="other">{{ form.other.label }}</p>
+            {{ form.other.errors }}
+            {{ form.other }}
         </div>
 
         <div id="input">

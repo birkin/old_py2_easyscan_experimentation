@@ -31,6 +31,7 @@ class ScanRequest( models.Model ):
     item_source_url = models.TextField( blank=True )
     item_chap_vol_title = models.TextField( blank=True )
     item_page_range_other = models.TextField( blank=True )
+    item_other = models.TextField( blank=True )
     patron_name = models.CharField( blank=True, max_length=100 )
     patron_barcode = models.CharField( blank=True, max_length=50 )
     patron_email = models.CharField( blank=True, max_length=100 )
@@ -45,7 +46,7 @@ class ScanRequest( models.Model ):
         super( ScanRequest, self ).save() # Call the "real" save() method
         maker = LasDataMaker()
         las_string = maker.make_csv_string(
-            self.create_datetime, self.patron_name, self.patron_barcode, self.patron_email, self.item_title, self.item_barcode, self.item_chap_vol_title, self.item_page_range_other )
+            self.create_datetime, self.patron_name, self.patron_barcode, self.patron_email, self.item_title, self.item_barcode, self.item_chap_vol_title, self.item_page_range_other, self.item_other )
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
 
@@ -57,12 +58,12 @@ class LasDataMaker( object ):
     """ Container for code to make comma-delimited las string. """
 
     def make_csv_string(
-        self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other ):
+        self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
         """ Makes and returns csv string from database data.
             Called by models.ScanRequest.save() """
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
-            modified_date_string, item_barcode, self.strip_quotes(patron_name), patron_barcode, self.strip_quotes(item_title), patron_email, self.strip_quotes(item_chap_vol_title), self.strip_quotes(item_page_range_other)
+            modified_date_string, item_barcode, self.strip_quotes(patron_name), patron_barcode, self.strip_quotes(item_title), patron_email, self.strip_quotes(item_chap_vol_title), self.strip_quotes(item_page_range_other), self.strip_quotes(item_other)
             )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_string = utf8_csv_string.decode( u'utf-8' )
@@ -82,7 +83,7 @@ class LasDataMaker( object ):
         updated_var = var.replace( u'"', u"'" )
         return updated_var
 
-    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other ):
+    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
         """ Assembles data elements in order required by LAS.
             Called by make_csv_string() """
         utf8_data_list = [
@@ -94,10 +95,11 @@ class LasDataMaker( object ):
             patron_barcode.encode( u'utf-8', u'replace' ),
             item_title.encode( u'utf-8', u'replace' ),
             modified_date_string.encode( u'utf-8', u'replace' ),
-            'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s' % (
+            'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s -- othr, %s' % (
                 patron_email.encode(u'utf-8', u'replace'),
                 item_chap_vol_title.encode(u'utf-8', u'replace'),
                 item_page_range_other.encode(u'utf-8', u'replace'),
+                item_other.encode(u'utf-8', u'replace'),
                 )
             ]
         return utf8_data_list
@@ -192,7 +194,7 @@ class RequestViewGetHelper( object ):
             Called by initialize_session() """
         if not u'item_info' in request.session:
             request.session[u'item_info'] = {
-            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'article_chapter_title': u'', u'page_range': u'' }
+            u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'article_chapter_title': u'', u'page_range': u'', u'other': u'' }
         for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
             value = request.GET.get( key, u'' )
             if value:
@@ -205,25 +207,28 @@ class RequestViewGetHelper( object ):
         """ Builds response.
             Called by handle_get() """
         if request.session[u'item_info'][u'barcode'] == u'':
-            # scheme = u'https' if request.is_secure() else u'http'
-            # redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'info_url') )
-            # return_response = HttpResponseRedirect( redirect_url )
             return_response = HttpResponseRedirect( reverse(u'info_url') )
         elif request.session[u'authz_info'][u'authorized'] == False:
             return_response = render( request, u'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
-            data_dict = self.build_data_dict( request )
-            form_data = request.session.get(u'form_data', None)
-            form = CitationForm( form_data )
-            form.is_valid() # to get errors in form
-            data_dict[u'form'] = form
-            return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
+            return_response = self.handle_good_get( request )
         log.debug( u'in models.RequestViewGetHelper.build_response(); returning' )
+        return return_response
+
+    def handle_good_get( self, request ):
+        """ Builds response on good get.
+            Called by build_response() """
+        data_dict = self.build_data_dict( request )
+        form_data = request.session.get( u'form_data', None )
+        form = CitationForm( form_data )
+        form.is_valid() # to get errors in form
+        data_dict[u'form'] = form
+        return_response = render( request, u'easyscan_app_templates/request_form.html', data_dict )
         return return_response
 
     def build_data_dict( self, request ):
         """ Builds and returns data-dict for request page.
-            Called by build_response() """
+            Called by handle_good_get() """
         context = {
             u'title': request.session[u'item_info'][u'title'],
             u'callnumber': request.session[u'item_info'][u'callnumber'],
@@ -262,14 +267,15 @@ class RequestViewPostHelper( object ):
 
     def update_session( self, request ):
         """ Updates session vars.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         request.session[u'item_info'][u'article_chapter_title'] = request.POST.get( u'article_chapter_title'.strip(), u'' )
         request.session[u'item_info'][u'page_range'] = request.POST.get( u'page_range'.strip(), u'' )
+        request.session[u'item_info'][u'other'] = request.POST.get( u'other'.strip(), u'' )
         return
 
     def save_post_data( self, request ):
         """ Saves posted data to db.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         scnrqst = None
         try:
             scnrqst = ScanRequest()
@@ -279,6 +285,7 @@ class RequestViewPostHelper( object ):
             scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
             scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
             scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
+            scnrqst.item_other = request.session[u'item_info'][u'other']
             scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
@@ -290,7 +297,7 @@ class RequestViewPostHelper( object ):
 
     def transfer_data( self, scnrqst ):
         """ Transfers data.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         ( data_filename, count_filename ) = prepper.make_data_files(
             datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion
             )
@@ -300,7 +307,7 @@ class RequestViewPostHelper( object ):
 
     def email_patron( self, scnrqst ):
         """ Emails patron confirmation.
-            Called by views.request_def() """
+            Called by handle_valid_form() """
         try:
             subject = u'B.U.L. Scan Request Confirmation'
             body = self.build_email_body( scnrqst )
@@ -328,6 +335,7 @@ specifically...
 
 Article/Chapter title: %s
 Page range: %s
+Other: %s
 
 ...has been received.
 
@@ -336,7 +344,7 @@ Scans generally take two business days, and will be sent to this email address.
 If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
             scnrqst.patron_name,
             scnrqst.item_title, scnrqst.item_volume_year,
-            scnrqst.item_chap_vol_title, scnrqst.item_page_range_other,
+            scnrqst.item_chap_vol_title, scnrqst.item_page_range_other, scnrqst.item_other,
             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
             )
         return body
@@ -483,6 +491,7 @@ class ConfirmationViewHelper( object ):
             u'barcode': request.session[u'item_info'][u'barcode'],
             u'chap_vol_title': request.session[u'item_info'][u'article_chapter_title'],
             u'page_range': request.session[u'item_info'][u'page_range'],
+            u'other': request.session[u'item_info'][u'other'],
             u'volume_year': request.session[u'item_info'][u'volume_year'],
             u'email': request.session[u'user_info'][u'email'],
             u'email_general_help': self.EMAIL_GENERAL_HELP,
