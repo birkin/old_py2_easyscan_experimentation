@@ -156,8 +156,9 @@ class RequestViewGetHelper( object ):
             Called by handle_get() """
         log.debug( u'in models.RequestViewGetHelper.store_remote_source_url(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
         remote_referrer = request.META.get( u'HTTP_REFERER', u'' )
-        if not request.get_host() in remote_referrer:
-            request.session[u'last_remote_referrer'] = remote_referrer
+        if not request.get_host() in remote_referrer:  # ignore same-domain and shib redirects
+            if not u'sso.brown.edu' in remote_referrer:
+                request.session[u'last_remote_referrer'] = remote_referrer
         log.debug( u'in models.RequestViewGetHelper.store_remote_source_url(); session items, `%s`' % pprint.pformat(request.session.items()) )
         return
 
