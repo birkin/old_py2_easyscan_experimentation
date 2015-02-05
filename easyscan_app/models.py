@@ -40,7 +40,6 @@ class ScanRequest( models.Model ):
 
     def __unicode__(self):
         return smart_unicode( u'id: %s || title: %s' % (self.id, self.item_title) , u'utf-8', u'replace' )
-        # return smart_unicode( u'patbar%s_itmbar%s' % (self.patron_barcode, self.item_barcode) , u'utf-8', u'replace' )
 
     def save(self):
         super( ScanRequest, self ).save() # Call the "real" save() method
@@ -129,6 +128,7 @@ class RequestViewGetHelper( object ):
         """ Handles request-page GET; returns response.
             Called by views.request_def() """
         log.debug( u'in models.RequestViewGetHelper.handle_get(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
+        self.store_remote_source_url( request )
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check[u'is_secure'] == False:
             return HttpResponseRedirect( https_check[u'redirect_url'] )
@@ -137,6 +137,30 @@ class RequestViewGetHelper( object ):
         return_response = self.build_response( request )
         log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
         return return_response
+
+    # def handle_get( self, request ):
+    #     """ Handles request-page GET; returns response.
+    #         Called by views.request_def() """
+    #     log.debug( u'in models.RequestViewGetHelper.handle_get(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
+    #     https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
+    #     if https_check[u'is_secure'] == False:
+    #         return HttpResponseRedirect( https_check[u'redirect_url'] )
+    #     title = self.check_title( request )
+    #     self.initialize_session( request, title )
+    #     return_response = self.build_response( request )
+    #     log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
+    #     return return_response
+
+    def store_remote_source_url( self, request ):
+        """ Stores http-refferer if from external domain.
+            Called by handle_get() """
+        log.debug( u'in models.RequestViewGetHelper.store_remote_source_url(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
+        remote_referrer = request.META.get( u'HTTP_REFERER', u'' )
+        if not request.get_host() in remote_referrer:  # ignore same-domain and shib redirects
+            if not u'sso.brown.edu' in remote_referrer:
+                request.session[u'last_remote_referrer'] = remote_referrer
+        log.debug( u'in models.RequestViewGetHelper.store_remote_source_url(); session items, `%s`' % pprint.pformat(request.session.items()) )
+        return
 
     def check_https( self, is_secure, get_host, full_path ):
         """ Checks for https; returns dict with result and redirect-url.
@@ -179,6 +203,7 @@ class RequestViewGetHelper( object ):
     def initialize_session( self, request, title ):
         """ Initializes session vars if needed.
             Called by handle_get() """
+        log.debug( u'in models.RequestViewGetHelper.initialize_session(); session items, `%s`' % pprint.pformat(request.session.items()) )
         if not u'authz_info' in request.session:
             request.session[u'authz_info'] = { u'authorized': False }
         if not u'user_info' in request.session:
@@ -199,9 +224,24 @@ class RequestViewGetHelper( object ):
             value = request.GET.get( key, u'' )
             if value:
                 request.session[u'item_info'][key] = value
+        request.session[u'item_info'][u'item_source_url'] = request.session.get( u'last_remote_referrer', u'not_in_request_meta' )
         request.session[u'item_info'][u'title'] = title
         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
+
+    # def update_session_iteminfo( self, request, title ):
+    #     """ Updates 'item_info' session key data.
+    #         Called by initialize_session() """
+    #     if not u'item_info' in request.session:
+    #         request.session[u'item_info'] = {
+    #         u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'article_chapter_title': u'', u'page_range': u'', u'other': u'' }
+    #     for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
+    #         value = request.GET.get( key, u'' )
+    #         if value:
+    #             request.session[u'item_info'][key] = value
+    #     request.session[u'item_info'][u'title'] = title
+    #     log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
+    #     return
 
     def build_response( self, request ):
         """ Builds response.
@@ -286,7 +326,8 @@ class RequestViewPostHelper( object ):
             scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
             scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
             scnrqst.item_other = request.session[u'item_info'][u'other']
-            scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
+            scnrqst.item_source_url = request.session[u'item_info'][u'item_source_url']
+            # scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
             scnrqst.patron_name = request.session[u'user_info'][u'name']
             scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
             scnrqst.patron_email = request.session[u'user_info'][u'email']
@@ -294,6 +335,28 @@ class RequestViewPostHelper( object ):
         except Exception as e:
             log.debug( u'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
         return scnrqst
+
+    # def save_post_data( self, request ):
+    #     """ Saves posted data to db.
+    #         Called by handle_valid_form() """
+    #     scnrqst = None
+    #     try:
+    #         scnrqst = ScanRequest()
+    #         scnrqst.item_title = request.session[u'item_info'][u'title']
+    #         scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
+    #         scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
+    #         scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
+    #         scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
+    #         scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
+    #         scnrqst.item_other = request.session[u'item_info'][u'other']
+    #         scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
+    #         scnrqst.patron_name = request.session[u'user_info'][u'name']
+    #         scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
+    #         scnrqst.patron_email = request.session[u'user_info'][u'email']
+    #         scnrqst.save()
+    #     except Exception as e:
+    #         log.debug( u'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
+    #     return scnrqst
 
     def transfer_data( self, scnrqst ):
         """ Transfers data.
