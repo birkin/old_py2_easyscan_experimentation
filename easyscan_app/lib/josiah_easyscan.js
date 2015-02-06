@@ -216,11 +216,15 @@ var esyscn_row_processor = new function() {
      * Triggers start of request-item link process.
      * Called by process_item()
      */
-    link_html = build_link_html( title, row_dict )
+    link_html = build_link_html( title, row_dict );
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
     $( last_cell ).after( link_html );
     console.log( "- request-scan link added" );
     easyscan_link_element = $(last_cell).next();
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
     request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
     return;
   }
@@ -229,7 +233,7 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = '<a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a>';
+    link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );

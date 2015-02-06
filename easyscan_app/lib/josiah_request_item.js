@@ -22,6 +22,7 @@ var request_item_flow_manager = new function() {
        */
       console.log( "- in request_item_flow_manager.check_permalink()" );
       local_easyscan_link_element = easyscan_link_element;  // used if adding item-link
+      console.log( "- in request_item_flow_manager.check_permalink(); local_easyscan_link_element.context.nodeName, " + local_easyscan_link_element.context.nodeName );
       var all_html = $("body").html().toString();  // jquery already loaded (whew)
       var index = all_html.indexOf( "PermaLink to this record" );
       if (index != -1) {
@@ -29,8 +30,49 @@ var request_item_flow_manager = new function() {
         grab_bib_from_permalink();
       } else {
         console.log( "- permalink not found" );
-        check_additionalCopiesNav_div();
+        check_additionalCopiesNav_div( local_easyscan_link_element );
       }
+  }
+
+  var check_additionalCopiesNav_div = function( local_easyscan_link_element ) {
+    /* Checks for a div where the bib might be.
+     * Called by check_permalink() when it can't find a permalink.
+     */
+    var all_html = $("body").html().toString();  // jquery already loaded (whew)
+    var index = all_html.indexOf( "class=\"additionalCopiesNav\"" );
+    if (index != -1) {
+      console.log( "- additionalCopiesNav_div found" );
+      grab_bib_from_additionalCopiesNav_div();
+    } else {
+      console.log( "- additionalCopiesNav_div not found" );
+      check_table_div( local_easyscan_link_element );
+    }
+  }
+
+  var check_table_div = function( local_easyscan_link_element ) {
+    /* Checks for a results-page enclosing table div.
+     * Called by check_additionalCopiesNav_div() when it can't find an additionalCopiesNav div.
+     */
+    console.log( "- in request_item_flow_manager.check_table_div(); local_easyscan_link_element.context.nodeName, " + local_easyscan_link_element.context.nodeName );
+    var tbody = local_easyscan_link_element.context.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
+    if ( tbody.nodeName == "TBODY" ) {
+      console.log( "- in request_item_flow_manager.check_table_div(); tbody found" );
+      grab_bib_from_results_page( tbody );
+    } else {
+      console.log( "- in request_item_flow_manager.check_table_div(); tbody not found" );
+    }
+  }
+
+  var grab_bib_from_results_page = function( tbody ) {
+    /* Parses bib from results page table div.
+     * Called by check_table_div()
+     */
+    console.log( "foo" );
+     var row = tbody.children[0];
+     var b_el = row.querySelector( "input" );
+     var bib = b_el.value;
+     console.log( "- in request_item_flow_manager.grab_bib_from_results_page(); bib is, " + bib );
+     build_link_html( bib );
   }
 
   var grab_bib_from_permalink = function() {
@@ -43,20 +85,6 @@ var request_item_flow_manager = new function() {
     bib = b_string.slice( 0,8 );
     console.log( "- in request_item_flow_manager.grab_bib(); bib is, " + bib );
     build_link_html( bib );
-  }
-
-  var check_additionalCopiesNav_div = function() {
-    /* Checks for a div where the bib might be.
-     * Called by check_permalink() when it can't find a permalink.
-     */
-    var all_html = $("body").html().toString();  // jquery already loaded (whew)
-    var index = all_html.indexOf( "class=\"additionalCopiesNav\"" );
-    if (index != -1) {
-      console.log( "- additionalCopiesNav_div found" );
-      grab_bib_from_additionalCopiesNav_div();
-    } else {
-      console.log( "- additionalCopiesNav_div not found" );
-    }
   }
 
   var grab_bib_from_additionalCopiesNav_div = function() {
