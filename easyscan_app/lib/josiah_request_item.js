@@ -26,13 +26,14 @@ var request_item_flow_manager = new function() {
       var index = all_html.indexOf( "PermaLink to this record" );
       if (index != -1) {
         console.log( "- permalink found" );
-        grab_bib();
+        grab_bib_from_permalink();
       } else {
         console.log( "- permalink not found" );
+        check_additionalCopiesNav_div();
       }
   }
 
-  var grab_bib = function() {
+  var grab_bib_from_permalink = function() {
     /* Parses bib from permalink.
      * Called by check_permalink()
      */
@@ -41,6 +42,34 @@ var request_item_flow_manager = new function() {
     b_string = href_string.split( "=" )[1];
     bib = b_string.slice( 0,8 );
     console.log( "- in request_item_flow_manager.grab_bib(); bib is, " + bib );
+    build_link_html( bib );
+  }
+
+  var check_additionalCopiesNav_div = function() {
+    /* Checks for a div where the bib might be.
+     * Called by check_permalink() when it can't find a permalink.
+     */
+    var all_html = $("body").html().toString();  // jquery already loaded (whew)
+    var index = all_html.indexOf( "class=\"additionalCopiesNav\"" );
+    if (index != -1) {
+      console.log( "- additionalCopiesNav_div found" );
+      grab_bib_from_additionalCopiesNav_div();
+    } else {
+      console.log( "- additionalCopiesNav_div not found" );
+    }
+  }
+
+  var grab_bib_from_additionalCopiesNav_div = function() {
+    /* Parses bib from additionalCopiesNav div.
+     * Called by check_additionalCopiesNav_div()
+     */
+    var els = document.querySelectorAll( ".additionalCopiesNav" );
+    var el = els[0];
+    var link = el.children[0];
+    var link_text = link.href;
+    var segment = link_text.split( "/" )[4];  // .b1234567
+    var bib = segment.slice( 1, 9 );
+    console.log( "- in request_item_flow_manager.grab_bib_from_additionalCopiesNav_div(); bib is, " + bib );
     build_link_html( bib );
   }
 
