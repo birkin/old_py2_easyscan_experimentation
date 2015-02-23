@@ -21,7 +21,7 @@ var request_item_flow_manager = new function() {
        * Called by josiah_easyscan.esyscn_flow_manager.update_row()
        */
       console.log( "- in request_item_flow_manager.check_permalink()" );
-      local_easyscan_link_element = easyscan_link_element;  // used if adding item-link
+      local_easyscan_link_element = easyscan_link_element;  // used if adding item-link -- TODO: this 'renaming' seems unnecessary, but I have a recollection that the original var name didn't work. Test and simplify if possible.
       console.log( "- in request_item_flow_manager.check_permalink(); local_easyscan_link_element.context.nodeName, " + local_easyscan_link_element.context.nodeName );
       var all_html = $("body").html().toString();  // jquery already loaded (whew)
       var index = all_html.indexOf( "PermaLink to this record" );
