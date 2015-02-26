@@ -20,6 +20,25 @@ basic flow
 - behind the scenes the request is formatted for the Annex inventory-control-system's software, and transmitted -- done!
 
 
+urls & params
+-------------
+
+- The root `scheme://host/easyscan` will redirect to the info page at `scheme://host/easyscan/info/`
+- The root request url: `scheme://host/easyscan/request`
+- A typical url may look like: `scheme://host/easyscan/request?callnumber=BF173.A2%20A5&barcode=31236090031116&title=American%20imago&bibnum=null&volume_year=53%20(1996)`
+- required params
+    - `barcode` -- this is the item barcode -- will be sent to the Annex
+- optional params
+    - `bibnum` -- used to look up title for landing-page display if title-param is null; not sent to Annex
+    - `callnumber` -- simply presented to user at landing-page; not sent to Annex
+    - `title` -- the bib title; presented to user at landing page; is sent to Annex
+    - `volume_year` -- simply presented to user at landing-page; not sent to Annex
+
+Important future note...
+
+- `bibnum` will become a required parameter; it will be used to validate the format of the item
+
+
 contacts
 --------
 
