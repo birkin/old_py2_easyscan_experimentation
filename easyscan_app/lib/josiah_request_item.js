@@ -21,18 +21,61 @@ var request_item_flow_manager = new function() {
        * Called by josiah_easyscan.esyscn_flow_manager.update_row()
        */
       console.log( "- in request_item_flow_manager.check_permalink()" );
-      local_easyscan_link_element = easyscan_link_element;  // used if adding item-link
+      local_easyscan_link_element = easyscan_link_element;  // used if adding item-link -- TODO: this 'renaming' seems unnecessary, but I have a recollection that the original var name didn't work. Test and simplify if possible.
+      console.log( "- in request_item_flow_manager.check_permalink(); local_easyscan_link_element.context.nodeName, " + local_easyscan_link_element.context.nodeName );
       var all_html = $("body").html().toString();  // jquery already loaded (whew)
       var index = all_html.indexOf( "PermaLink to this record" );
       if (index != -1) {
         console.log( "- permalink found" );
-        grab_bib();
+        grab_bib_from_permalink();
       } else {
         console.log( "- permalink not found" );
+        check_additionalCopiesNav_div( local_easyscan_link_element );
       }
   }
 
-  var grab_bib = function() {
+  var check_additionalCopiesNav_div = function( local_easyscan_link_element ) {
+    /* Checks for a div where the bib might be.
+     * Called by check_permalink() when it can't find a permalink.
+     */
+    var all_html = $("body").html().toString();  // jquery already loaded (whew)
+    var index = all_html.indexOf( "class=\"additionalCopiesNav\"" );
+    if (index != -1) {
+      console.log( "- additionalCopiesNav_div found" );
+      grab_bib_from_additionalCopiesNav_div();
+    } else {
+      console.log( "- additionalCopiesNav_div not found" );
+      check_table_div( local_easyscan_link_element );
+    }
+  }
+
+  var check_table_div = function( local_easyscan_link_element ) {
+    /* Checks for a results-page enclosing table div.
+     * Called by check_additionalCopiesNav_div() when it can't find an additionalCopiesNav div.
+     */
+    console.log( "- in request_item_flow_manager.check_table_div(); local_easyscan_link_element.context.nodeName, " + local_easyscan_link_element.context.nodeName );
+    var tbody = local_easyscan_link_element.context.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
+    if ( tbody.nodeName == "TBODY" ) {
+      console.log( "- in request_item_flow_manager.check_table_div(); tbody found" );
+      grab_bib_from_results_page( tbody );
+    } else {
+      console.log( "- in request_item_flow_manager.check_table_div(); tbody not found" );
+    }
+  }
+
+  var grab_bib_from_results_page = function( tbody ) {
+    /* Parses bib from results page table div.
+     * Called by check_table_div()
+     */
+    console.log( "foo" );
+     var row = tbody.children[0];
+     var b_el = row.querySelector( "input" );
+     var bib = b_el.value;
+     console.log( "- in request_item_flow_manager.grab_bib_from_results_page(); bib is, " + bib );
+     build_link_html( bib );
+  }
+
+  var grab_bib_from_permalink = function() {
     /* Parses bib from permalink.
      * Called by check_permalink()
      */
@@ -41,6 +84,20 @@ var request_item_flow_manager = new function() {
     b_string = href_string.split( "=" )[1];
     bib = b_string.slice( 0,8 );
     console.log( "- in request_item_flow_manager.grab_bib(); bib is, " + bib );
+    build_link_html( bib );
+  }
+
+  var grab_bib_from_additionalCopiesNav_div = function() {
+    /* Parses bib from additionalCopiesNav div.
+     * Called by check_additionalCopiesNav_div()
+     */
+    var els = document.querySelectorAll( ".additionalCopiesNav" );
+    var el = els[0];
+    var link = el.children[0];
+    var link_text = link.href;
+    var segment = link_text.split( "/" )[4];  // .b1234567
+    var bib = segment.slice( 1, 9 );
+    console.log( "- in request_item_flow_manager.grab_bib_from_additionalCopiesNav_div(); bib is, " + bib );
     build_link_html( bib );
   }
 

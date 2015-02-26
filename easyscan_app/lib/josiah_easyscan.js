@@ -91,12 +91,33 @@ var esyscn_flow_manager = new function() {
     var header_row = $( "tr.bibItemsHeader" )[0];
     console.log( "- header_row, " + header_row );
     if ( typeof header_row == "undefined" ) {
-      return;
-      // request_item_flow_manager.check_url();  // // holding off on adding `request-item` functionality
+      // return;
+      request_item_flow_manager.check_url();  // // holding off on adding `request-item` functionality
     } else {
       header_row.deleteCell( cell_position_map["barcode"] );
       console.log( "- barcode header cell deleted" );
     }
+  }
+
+  var check_annex_request_start = function() {
+    console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); starting" );
+    if ( location.toString().search("goal=request_annex_item") != -1 ){
+      console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); detected `goal=request_annex_item`" );
+      var annex_doc = document.getElementById( "annex" );
+      annex_doc.style.display = "block";
+      var divs = document.getElementsByTagName( "div" );
+      for( var i=0; i < divs.length; i++ ) {
+        var div = divs[i];
+        var id = div.id;
+        if ( (id != "requestForm") && (id != "footer") && (id != "banner") && (id != "banner_text") && (id != "requesting") && (id != "wrapper") && (id != "container_padded") && (id != "annex") ) {
+          div.style.display = "none";
+        }
+        if ( (id != "requestForm") || (id != "annex") ) {
+          div.style.display = "block";
+        }
+      }
+    }
+    console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); done" );
   }
 
 };  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
@@ -171,7 +192,8 @@ var esyscn_row_processor = new function() {
     if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
         row_evaluation = { "show_scan_button": true };
     }
-    console.log( "- row_evaluation, " + row_evaluation );
+    // console.log( "- row_evaluation, " + row_evaluation );
+    console.log( "- row_evaluation, " + JSON.stringify(row_evaluation, null, 4) );
     return row_evaluation;
   }
 
@@ -194,12 +216,16 @@ var esyscn_row_processor = new function() {
      * Triggers start of request-item link process.
      * Called by process_item()
      */
-    link_html = build_link_html( title, row_dict )
+    link_html = build_link_html( title, row_dict );
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
     $( last_cell ).after( link_html );
     console.log( "- request-scan link added" );
     easyscan_link_element = $(last_cell).next();
-    // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
+    console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
+    request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
     return;
   }
 
@@ -207,7 +233,7 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = '<a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Request Scan</a>';
+    link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
