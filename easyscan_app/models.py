@@ -336,28 +336,6 @@ class RequestViewPostHelper( object ):
             log.debug( u'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
         return scnrqst
 
-    # def save_post_data( self, request ):
-    #     """ Saves posted data to db.
-    #         Called by handle_valid_form() """
-    #     scnrqst = None
-    #     try:
-    #         scnrqst = ScanRequest()
-    #         scnrqst.item_title = request.session[u'item_info'][u'title']
-    #         scnrqst.item_barcode = request.session[u'item_info'][u'barcode']
-    #         scnrqst.item_callnumber = request.session[u'item_info'][u'callnumber']
-    #         scnrqst.item_volume_year = request.session[u'item_info'][u'volume_year']
-    #         scnrqst.item_chap_vol_title = request.session[u'item_info'][u'article_chapter_title']
-    #         scnrqst.item_page_range_other = request.session[u'item_info'][u'page_range']
-    #         scnrqst.item_other = request.session[u'item_info'][u'other']
-    #         scnrqst.item_source_url = request.META.get( u'HTTP_REFERER', u'not_in_request_meta' )
-    #         scnrqst.patron_name = request.session[u'user_info'][u'name']
-    #         scnrqst.patron_barcode = request.session[u'user_info'][u'patron_barcode']
-    #         scnrqst.patron_email = request.session[u'user_info'][u'email']
-    #         scnrqst.save()
-    #     except Exception as e:
-    #         log.debug( u'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
-    #     return scnrqst
-
     def transfer_data( self, scnrqst ):
         """ Transfers data.
             Called by handle_valid_form() """
@@ -389,28 +367,70 @@ class RequestViewPostHelper( object ):
             TODO: use render_to_string & template. """
         body = u'''Greetings %s,
 
-This is a confirmation that your easyscan request for the item...
-
-Item title: %s
-Volume/Year: %s
-
-specifically...
+This is a confirmation of your easyscan request for the item...
 
 Article/Chapter title: %s
 Page range: %s
 Other: %s
 
-...has been received.
+from
+
+Item title: %s
+Volume/Year: %s
 
 Scans generally take two business days, and will be sent to this email address.
 
 If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
             scnrqst.patron_name,
-            scnrqst.item_title, scnrqst.item_volume_year,
             scnrqst.item_chap_vol_title, scnrqst.item_page_range_other, scnrqst.item_other,
+            scnrqst.item_title, scnrqst.item_volume_year,
             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
             )
         return body
+
+#     def email_patron( self, scnrqst ):
+#         """ Emails patron confirmation.
+#             Called by handle_valid_form() """
+#         try:
+#             subject = u'B.U.L. Scan Request Confirmation'
+#             body = self.build_email_body( scnrqst )
+#             ffrom = self.EMAIL_FROM  # `from` reserved
+#             to = [ scnrqst.patron_email ]
+#             extra_headers = { u'Reply-To': self.EMAIL_REPLY_TO }
+#             email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
+#             email.send()
+#             log.debug( u'in models.RequestViewPostHelper.email_patron(); mail sent' )
+#         except Exception as e:
+#             log.debug( u'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % e )
+
+#     def build_email_body( self, scnrqst ):
+#         """ Prepares and returns email body.
+#             Called by email_patron().
+#             TODO: use render_to_string & template. """
+#         body = u'''Greetings %s,
+
+# This is a confirmation that your easyscan request for the item...
+
+# Item title: %s
+# Volume/Year: %s
+
+# specifically...
+
+# Article/Chapter title: %s
+# Page range: %s
+# Other: %s
+
+# ...has been received.
+
+# Scans generally take two business days, and will be sent to this email address.
+
+# If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
+#             scnrqst.patron_name,
+#             scnrqst.item_title, scnrqst.item_volume_year,
+#             scnrqst.item_chap_vol_title, scnrqst.item_page_range_other, scnrqst.item_other,
+#             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
+#             )
+#         return body
 
 
 class ShibViewHelper( object ):
