@@ -138,19 +138,6 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
         return return_response
 
-    # def handle_get( self, request ):
-    #     """ Handles request-page GET; returns response.
-    #         Called by views.request_def() """
-    #     log.debug( u'in models.RequestViewGetHelper.handle_get(); referrer, `%s`' % request.META.get(u'HTTP_REFERER', u'not_in_request_meta'), )
-    #     https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
-    #     if https_check[u'is_secure'] == False:
-    #         return HttpResponseRedirect( https_check[u'redirect_url'] )
-    #     title = self.check_title( request )
-    #     self.initialize_session( request, title )
-    #     return_response = self.build_response( request )
-    #     log.debug( u'in models.RequestViewGetHelper.handle_get(); returning' )
-    #     return return_response
-
     def store_remote_source_url( self, request ):
         """ Stores http-refferer if from external domain.
             Called by handle_get() """
@@ -228,20 +215,6 @@ class RequestViewGetHelper( object ):
         request.session[u'item_info'][u'title'] = title
         log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
         return
-
-    # def update_session_iteminfo( self, request, title ):
-    #     """ Updates 'item_info' session key data.
-    #         Called by initialize_session() """
-    #     if not u'item_info' in request.session:
-    #         request.session[u'item_info'] = {
-    #         u'callnumber': u'', u'barcode': u'', u'title': u'', u'volume_year': u'', u'article_chapter_title': u'', u'page_range': u'', u'other': u'' }
-    #     for key in [ u'callnumber', u'barcode', u'volume_year' ]:  # ensures new url always updates session
-    #         value = request.GET.get( key, u'' )
-    #         if value:
-    #             request.session[u'item_info'][key] = value
-    #     request.session[u'item_info'][u'title'] = title
-    #     log.debug( u'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session[u'item_info']) )
-    #     return
 
     def build_response( self, request ):
         """ Builds response.
@@ -387,50 +360,6 @@ If you have questions, feel free to email %s or call %s, and reference easyscan 
             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
             )
         return body
-
-#     def email_patron( self, scnrqst ):
-#         """ Emails patron confirmation.
-#             Called by handle_valid_form() """
-#         try:
-#             subject = u'B.U.L. Scan Request Confirmation'
-#             body = self.build_email_body( scnrqst )
-#             ffrom = self.EMAIL_FROM  # `from` reserved
-#             to = [ scnrqst.patron_email ]
-#             extra_headers = { u'Reply-To': self.EMAIL_REPLY_TO }
-#             email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
-#             email.send()
-#             log.debug( u'in models.RequestViewPostHelper.email_patron(); mail sent' )
-#         except Exception as e:
-#             log.debug( u'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % e )
-
-#     def build_email_body( self, scnrqst ):
-#         """ Prepares and returns email body.
-#             Called by email_patron().
-#             TODO: use render_to_string & template. """
-#         body = u'''Greetings %s,
-
-# This is a confirmation that your easyscan request for the item...
-
-# Item title: %s
-# Volume/Year: %s
-
-# specifically...
-
-# Article/Chapter title: %s
-# Page range: %s
-# Other: %s
-
-# ...has been received.
-
-# Scans generally take two business days, and will be sent to this email address.
-
-# If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
-#             scnrqst.patron_name,
-#             scnrqst.item_title, scnrqst.item_volume_year,
-#             scnrqst.item_chap_vol_title, scnrqst.item_page_range_other, scnrqst.item_other,
-#             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
-#             )
-#         return body
 
 
 class ShibViewHelper( object ):
