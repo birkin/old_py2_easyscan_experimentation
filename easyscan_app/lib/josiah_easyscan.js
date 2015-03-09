@@ -233,7 +233,8 @@ var esyscn_row_processor = new function() {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
-    link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+    // link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+    link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
     link = link.replace( "THETITLE", title );
@@ -249,7 +250,8 @@ var esyscn_row_processor = new function() {
 $(document).ready(
   function() {
     console.log( "- josiah_easyscan.js says document loaded" );
-    $.getScript( "SCHEME://HOST/easyscan/josiah_request_item.js",
+    // $.getScript( "SCHEME://HOST/easyscan/josiah_request_item.js",
+    $.getScript( "https://library.brown.edu/easyscan/josiah_request_item.js",
       function() {  // what to do on success
         console.log( "- josiah_request_item.js loaded" );
         esyscn_flow_manager.check_already_run();

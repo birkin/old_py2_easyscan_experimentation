@@ -28,34 +28,6 @@ def info( request ):
     return render( request, u'easyscan_app_templates/info.html', context )
 
 
-def easyscan_js( request ):
-    """ Returns javascript file.
-        Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
-    js_unicode = u''
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    js_path = u'%s/lib/josiah_easyscan.js' % current_directory
-    with open( js_path ) as f:
-        js_utf8 = f.read()
-        js_unicode = js_utf8.decode( u'utf-8' )
-    js_unicode = js_unicode.replace( u'HOST', request.get_host() )
-    scheme = u'https' if request.is_secure() else u'http'
-    js_unicode = js_unicode.replace( u'SCHEME', scheme )
-    return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
-
-
-def request_item_js( request ):
-    """ Returns javascript file.
-        Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
-    js_unicode = u''
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    js_path = u'%s/lib/josiah_request_item.js' % current_directory
-    with open( js_path ) as f:
-        js_utf8 = f.read()
-        js_unicode = js_utf8.decode( u'utf-8' )
-    js_unicode = js_unicode.replace( u'HOST', request.get_host() )
-    return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
-
-
 def request_def( request ):
     """ On GET, redirects to login options, or displays form to specify requested scan-content.
         On POST, saves data and redirects to confirmation page. """
@@ -114,3 +86,62 @@ def shib_logout( request ):
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
     log.debug( u'in vierws.shib_logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
+
+
+def easyscan_js( request ):
+    """ Returns modified javascript file for development.
+        Hit by a `dev_josiah_easyscan.js` url; production hits the apache-served js file. """
+    js_unicode = u''
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    js_path = u'%s/lib/josiah_easyscan.js' % current_directory
+    with open( js_path ) as f:
+        js_utf8 = f.read()
+        js_unicode = js_utf8.decode( u'utf-8' )
+
+    js_unicode = js_unicode.replace( u'library.brown.edu/easyscan/josiah_request_item.js', u'%s/easyscan/dev_josiah_request_item.js' % request.get_host() )
+    js_unicode = js_unicode.replace( u'library.brown.edu', request.get_host() )
+    scheme = u'https' if request.is_secure() else u'http'
+    js_unicode = js_unicode.replace( u'https', scheme )
+    return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
+
+
+def request_item_js( request ):
+    """ Returns modified javascript file for development.
+        Hit by a `dev_josiah_request_item.js` url; production hits the apache-served js file. """
+    js_unicode = u''
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    js_path = u'%s/lib/josiah_request_item.js' % current_directory
+    with open( js_path ) as f:
+        js_utf8 = f.read()
+        js_unicode = js_utf8.decode( u'utf-8' )
+    js_unicode = js_unicode.replace( u'library.brown.edu', request.get_host() )
+    return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
+
+
+# def easyscan_js( request ):
+#     """ Returns javascript file.
+#         Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
+#     js_unicode = u''
+#     current_directory = os.path.dirname(os.path.abspath(__file__))
+#     js_path = u'%s/lib/josiah_easyscan.js' % current_directory
+#     with open( js_path ) as f:
+#         js_utf8 = f.read()
+#         js_unicode = js_utf8.decode( u'utf-8' )
+#     js_unicode = js_unicode.replace( u'HOST', request.get_host() )
+#     scheme = u'https' if request.is_secure() else u'http'
+#     js_unicode = js_unicode.replace( u'SCHEME', scheme )
+#     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
+
+
+# def request_item_js( request ):
+#     """ Returns javascript file.
+#         Will switch to direct apache serving, but this allows the 'Request Scan' link to be set dynamically, useful for testing. """
+#     js_unicode = u''
+#     current_directory = os.path.dirname(os.path.abspath(__file__))
+#     js_path = u'%s/lib/josiah_request_item.js' % current_directory
+#     with open( js_path ) as f:
+#         js_utf8 = f.read()
+#         js_unicode = js_utf8.decode( u'utf-8' )
+#     js_unicode = js_unicode.replace( u'HOST', request.get_host() )
+#     return HttpResponse( js_unicode, content_type = u'application/javascript; charset=utf-8' )
+
