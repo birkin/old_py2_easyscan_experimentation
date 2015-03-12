@@ -383,7 +383,8 @@ If you have questions, feel free to email %s or call %s, and reference easyscan 
             ffrom = self.ON_ERROR_EMAIL_FROM  # `from` reserved
             to = self.ON_ERROR_EMAIL_TO  # list
             # extra_headers = { u'Reply-To': self.EMAIL_REPLY_TO }
-            email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
+            # email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
+            email = EmailMessage( subject, body, ffrom, to )
             email.send()
             log.debug( u'in models.RequestViewPostHelper.email_admins_on_error(); mail sent' )
         except Exception as e:
