@@ -37,6 +37,7 @@ class ScanRequest( models.Model ):
     patron_email = models.CharField( blank=True, max_length=100 )
     create_datetime = models.DateTimeField( auto_now_add=True, blank=True )  # blank=True for backward compatibility
     las_conversion = models.TextField( blank=True )
+    status = models.CharField( blank=True, max_length=200 )
 
     def __unicode__(self):
         return smart_unicode( u'id: %s || title: %s' % (self.id, self.item_title) , u'utf-8', u'replace' )
@@ -48,6 +49,8 @@ class ScanRequest( models.Model ):
             self.create_datetime, self.patron_name, self.patron_barcode, self.patron_email, self.item_title, self.item_barcode, self.item_chap_vol_title, self.item_page_range_other, self.item_other )
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
+
+    # end class ScanRequest
 
 
 ## non db models below  ##
@@ -116,6 +119,8 @@ class LasDataMaker( object ):
         csv_string = io.getvalue()
         io.close()
         return csv_string
+
+    # end class LasDataMaker
 
 
 class RequestViewGetHelper( object ):
@@ -255,6 +260,8 @@ class RequestViewGetHelper( object ):
         log.debug( u'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
         return context
 
+    # end class RequestViewGetHelper
+
 
 class RequestViewPostHelper( object ):
     """ Container for views.request_def() helpers for handling POST. """
@@ -264,6 +271,8 @@ class RequestViewPostHelper( object ):
         self.EMAIL_REPLY_TO = os.environ[u'EZSCAN__EMAIL_REPLY_TO']
         self.EMAIL_GENERAL_HELP = os.environ[u'EZSCAN__EMAIL_GENERAL_HELP']
         self.PHONE_GENERAL_HELP = os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
+        self.ON_ERROR_EMAIL_FROM = os.environ[u'EZSCAN__ON_ERROR_EMAIL_FROM']
+        self.ON_ERROR_EMAIL_TO = json.loads( os.environ[u'EZSCAN__ON_ERROR_EMAIL_TO'] )  # list
 
     def handle_valid_form( self, request ):
         """ Handles request page POST if form is valid.
@@ -313,10 +322,14 @@ class RequestViewPostHelper( object ):
         """ Transfers data.
             Called by handle_valid_form() """
         ( data_filename, count_filename ) = prepper.make_data_files(
-            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion
-            )
-        sender.transfer_files( data_filename, count_filename )
-        log.debug( u'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
+            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        try:
+            sender.transfer_files( data_filename, count_filename )
+            log.debug( u'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
+        except Exception as e:
+            error_message = unicode( repr(e) )
+            log.error( u'in models.RequestViewPostHelper.transfer_data(); error, `%s`' % error_message )
+            self.email_admins_on_error( error_message )
         return
 
     def email_patron( self, scnrqst ):
@@ -332,7 +345,8 @@ class RequestViewPostHelper( object ):
             email.send()
             log.debug( u'in models.RequestViewPostHelper.email_patron(); mail sent' )
         except Exception as e:
-            log.debug( u'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % e )
+            log.debug( u'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % unicode(repr(e)) )
+        return
 
     def build_email_body( self, scnrqst ):
         """ Prepares and returns email body.
@@ -360,6 +374,25 @@ If you have questions, feel free to email %s or call %s, and reference easyscan 
             self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
             )
         return body
+
+    def email_admins_on_error( self, error_message ):
+        """ Emails admins error.
+            Called by transfer_data() """
+        try:
+            subject = u'easyscan error'
+            body = u'Error transferring data to Annex server: `%s`' % error_message
+            ffrom = self.ON_ERROR_EMAIL_FROM  # `from` reserved
+            to = self.ON_ERROR_EMAIL_TO  # list
+            # extra_headers = { u'Reply-To': self.EMAIL_REPLY_TO }
+            # email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
+            email = EmailMessage( subject, body, ffrom, to )
+            email.send()
+            log.debug( u'in models.RequestViewPostHelper.email_admins_on_error(); mail sent' )
+        except Exception as e:
+            log.debug( u'in models.RequestViewPostHelper.email_admins_on_error(); exception, `%s`' % unicode(repr(e)) )
+        return
+
+    # end class RequestViewPostHelper
 
 
 class ShibViewHelper( object ):
@@ -395,6 +428,8 @@ class ShibViewHelper( object ):
                 u'patron_barcode': shib_dict[u'patron_barcode'] }
             request.session[u'shib_login_error'] = False
         return
+
+    # end class ShibViewHelper
 
 
 class ShibChecker( object ):
@@ -469,6 +504,8 @@ class ShibChecker( object ):
         log.debug( u'in models.ShibChecker.eresources_allowed(); eresources_check, `%s`' % eresources_check )
         return eresources_check
 
+    # end class ShibChecker
+
 
 class ConfirmationViewHelper( object ):
     """ Container for views.confirmation() helpers.
@@ -512,3 +549,5 @@ class ConfirmationViewHelper( object ):
         logout( request )
         return_response = render( request, u'easyscan_app_templates/confirmation_form.html', data_dict )
         return return_response
+
+    # end class ConfirmationViewHelper
