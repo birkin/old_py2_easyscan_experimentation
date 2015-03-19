@@ -85,27 +85,6 @@ class LasDataMaker( object ):
         updated_var = var.replace( u'"', u"'" )
         return updated_var
 
-    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
-        """ Assembles data elements in order required by LAS.
-            Called by make_csv_string() """
-        utf8_data_list = [
-            'item_id_not_applicable',
-            item_barcode.encode( u'utf-8', u'replace' ),
-            'ED',
-            'QS',
-            patron_name.encode( u'utf-8', u'replace' ),
-            patron_barcode.encode( u'utf-8', u'replace' ),
-            item_title.encode( u'utf-8', u'replace' ),
-            modified_date_string.encode( u'utf-8', u'replace' ),
-            'EMAIL, %s -- \nARTICLE/CHAPTER_TITLE, %s -- \nPAGE_RANGE, %s -- \nOTHER, %s' % (
-                patron_email.encode(u'utf-8', u'replace'),
-                item_chap_vol_title.encode(u'utf-8', u'replace'),
-                item_page_range_other.encode(u'utf-8', u'replace'),
-                item_other.encode(u'utf-8', u'replace'),
-                )
-            ]
-        return utf8_data_list
-
     # def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
     #     """ Assembles data elements in order required by LAS.
     #         Called by make_csv_string() """
@@ -118,7 +97,7 @@ class LasDataMaker( object ):
     #         patron_barcode.encode( u'utf-8', u'replace' ),
     #         item_title.encode( u'utf-8', u'replace' ),
     #         modified_date_string.encode( u'utf-8', u'replace' ),
-    #         'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s -- othr, %s' % (
+    #         'EMAIL, %s -- \nARTICLE/CHAPTER_TITLE, %s -- \nPAGE_RANGE, %s -- \nOTHER, %s' % (
     #             patron_email.encode(u'utf-8', u'replace'),
     #             item_chap_vol_title.encode(u'utf-8', u'replace'),
     #             item_page_range_other.encode(u'utf-8', u'replace'),
@@ -126,6 +105,27 @@ class LasDataMaker( object ):
     #             )
     #         ]
     #     return utf8_data_list
+
+    def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
+        """ Assembles data elements in order required by LAS.
+            Called by make_csv_string() """
+        utf8_data_list = [
+            'item_id_not_applicable',
+            item_barcode.encode( u'utf-8', u'replace' ),
+            'ED',
+            'QS',
+            patron_name.encode( u'utf-8', u'replace' ),
+            patron_barcode.encode( u'utf-8', u'replace' ),
+            item_title.encode( u'utf-8', u'replace' ),
+            modified_date_string.encode( u'utf-8', u'replace' ),
+            'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s -- othr, %s' % (
+                patron_email.encode(u'utf-8', u'replace'),
+                item_chap_vol_title.encode(u'utf-8', u'replace'),
+                item_page_range_other.encode(u'utf-8', u'replace'),
+                item_other.encode(u'utf-8', u'replace'),
+                )
+            ]
+        return utf8_data_list
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
         """ Converts list into utf8 string.
