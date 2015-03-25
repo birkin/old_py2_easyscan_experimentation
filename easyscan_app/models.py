@@ -65,7 +65,7 @@ class LasDataMaker( object ):
             Called by models.ScanRequest.save() """
         modified_date_string = self.make_date_string( date_string )
         utf8_data_list = self.make_utf8_data_list(
-            modified_date_string, item_barcode, self.strip_quotes(patron_name), patron_barcode, self.strip_quotes(item_title), patron_email, self.strip_quotes(item_chap_vol_title), self.strip_quotes(item_page_range_other), self.strip_quotes(item_other)
+            modified_date_string, item_barcode, self.strip_stuff(patron_name), patron_barcode, self.strip_stuff(item_title), patron_email, self.strip_stuff(item_chap_vol_title), self.strip_stuff(item_page_range_other), self.strip_stuff(item_other)
             )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_string = utf8_csv_string.decode( u'utf-8' )
@@ -79,10 +79,12 @@ class LasDataMaker( object ):
         date_string = utf8_date_string.decode( u'utf-8' )
         return date_string
 
-    def strip_quotes( self, var ):
-        """ Strips any double-quotes from field.
+    def strip_stuff( self, var ):
+        """ Strips double-quotes, and new-lines from field.
             Called by make_csv_string() """
         updated_var = var.replace( u'"', u"'" )
+        updated_var = updated_var.replace( u'\n', u' - ' )
+        updated_var = updated_var.replace( u'\r', u' - ' )
         return updated_var
 
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
@@ -106,27 +108,6 @@ class LasDataMaker( object ):
             ]
         return utf8_data_list
 
-    # def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
-    #     """ Assembles data elements in order required by LAS.
-    #         Called by make_csv_string() """
-    #     utf8_data_list = [
-    #         'item_id_not_applicable',
-    #         item_barcode.encode( u'utf-8', u'replace' ),
-    #         'ED',
-    #         'QS',
-    #         patron_name.encode( u'utf-8', u'replace' ),
-    #         patron_barcode.encode( u'utf-8', u'replace' ),
-    #         item_title.encode( u'utf-8', u'replace' ),
-    #         modified_date_string.encode( u'utf-8', u'replace' ),
-    #         'eml, %s -- artcl-chptr-ttl, %s -- pg-rng, %s -- othr, %s' % (
-    #             patron_email.encode(u'utf-8', u'replace'),
-    #             item_chap_vol_title.encode(u'utf-8', u'replace'),
-    #             item_page_range_other.encode(u'utf-8', u'replace'),
-    #             item_other.encode(u'utf-8', u'replace'),
-    #             )
-    #         ]
-    #     return utf8_data_list
-
     def utf8list_to_utf8csv( self, utf8_data_list ):
         """ Converts list into utf8 string.
             Called by make_csv_string()
@@ -142,6 +123,73 @@ class LasDataMaker( object ):
         return csv_string
 
     # end class LasDataMaker
+
+
+# class LasDataMaker( object ):
+#     """ Container for code to make comma-delimited las string. """
+
+#     def make_csv_string(
+#         self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
+#         """ Makes and returns csv string from database data.
+#             Called by models.ScanRequest.save() """
+#         modified_date_string = self.make_date_string( date_string )
+#         utf8_data_list = self.make_utf8_data_list(
+#             modified_date_string, item_barcode, self.strip_quotes(patron_name), patron_barcode, self.strip_quotes(item_title), patron_email, self.strip_quotes(item_chap_vol_title), self.strip_quotes(item_page_range_other), self.strip_quotes(item_other)
+#             )
+#         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
+#         csv_string = utf8_csv_string.decode( u'utf-8' )
+#         return csv_string
+
+#     def make_date_string( self, datetime_object ):
+#         """ Will convert datetime_object to date format required by LAS.
+#             Example returned format, `Mon Dec 05 2014`.
+#             Called by make_csv_string() """
+#         utf8_date_string = datetime_object.strftime( u'%a %b %d %Y' )
+#         date_string = utf8_date_string.decode( u'utf-8' )
+#         return date_string
+
+#     def strip_quotes( self, var ):
+#         """ Strips any double-quotes from field.
+#             Called by make_csv_string() """
+#         updated_var = var.replace( u'"', u"'" )
+#         return updated_var
+
+#     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
+#         """ Assembles data elements in order required by LAS.
+#             Called by make_csv_string() """
+#         utf8_data_list = [
+#             'item_id_not_applicable',
+#             item_barcode.encode( u'utf-8', u'replace' ),
+#             'ED',
+#             'QS',
+#             patron_name.encode( u'utf-8', u'replace' ),
+#             patron_barcode.encode( u'utf-8', u'replace' ),
+#             item_title.encode( u'utf-8', u'replace' ),
+#             modified_date_string.encode( u'utf-8', u'replace' ),
+#             'PATRON_EMAIL: `%s` -- ARTICLE-CHAPTER-TITLE: `%s` -- PAGE-RANGE: `%s` -- OTHER: `%s`' % (
+#                 patron_email.encode(u'utf-8', u'replace'),
+#                 item_chap_vol_title.encode(u'utf-8', u'replace'),
+#                 item_page_range_other.encode(u'utf-8', u'replace'),
+#                 item_other.encode(u'utf-8', u'replace'),
+#                 )
+#             ]
+#         return utf8_data_list
+
+#     def utf8list_to_utf8csv( self, utf8_data_list ):
+#         """ Converts list into utf8 string.
+#             Called by make_csv_string()
+#             Note; this python2 csv module requires utf-8 strings. """
+#         for entry in utf8_data_list:
+#             if not type(entry) == str:
+#                 raise Exception( u'entry `%s` not of type str' % unicode(repr(entry)) )
+#         io = StringIO.StringIO()
+#         writer = csv.writer( io, delimiter=',', quoting=csv.QUOTE_ALL )
+#         writer.writerow( utf8_data_list )
+#         csv_string = io.getvalue()
+#         io.close()
+#         return csv_string
+
+#     # end class LasDataMaker
 
 
 class RequestViewGetHelper( object ):

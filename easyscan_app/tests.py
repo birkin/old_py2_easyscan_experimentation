@@ -44,6 +44,20 @@ class LasDataMakerTest( TestCase ):
             maker.make_date_string( dt )
             )
 
+    def test__strip_stuff( self ):
+        """ Tests removal of double-quotes and new-lines. """
+        self.assertEqual(
+            u"The title was 'Zen', I think.",
+            maker.strip_stuff(u'The title was "Zen", I think.') )
+        self.assertEqual(
+            u'first line - second line',
+            maker.strip_stuff(u'first line\nsecond line') )
+        self.assertEqual(
+            u'first line - second line',
+            maker.strip_stuff(u'first line\rsecond line') )
+
+    # end class class LasDataMakerTest
+
 
 class MagicBusPrepperTest( TestCase ):
     """ Tests magic_bus.py Prepper() """
@@ -55,3 +69,5 @@ class MagicBusPrepperTest( TestCase ):
             u'2014-12-08T15:40:59',
             prepper.make_filename_datestring( dt )
             )
+
+    # end class MagicBusPrepperTest
