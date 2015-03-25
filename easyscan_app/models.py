@@ -80,11 +80,12 @@ class LasDataMaker( object ):
         return date_string
 
     def strip_stuff( self, var ):
-        """ Strips double-quotes, and new-lines from field.
+        """ Replaces various characters from field.
             Called by make_csv_string() """
         updated_var = var.replace( u'"', u"'" )
         updated_var = updated_var.replace( u'\n', u' - ' )
         updated_var = updated_var.replace( u'\r', u' - ' )
+        updated_var = updated_var.replace( u'`', u"'" )
         return updated_var
 
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):

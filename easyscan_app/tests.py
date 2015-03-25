@@ -55,6 +55,9 @@ class LasDataMakerTest( TestCase ):
         self.assertEqual(
             u'first line - second line',
             maker.strip_stuff(u'first line\rsecond line') )
+        self.assertEqual(
+            u"The title was 'Zen', I think.",
+            maker.strip_stuff(u'The title was `Zen`, I think.') )
 
     # end class class LasDataMakerTest
 
