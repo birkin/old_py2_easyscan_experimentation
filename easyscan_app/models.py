@@ -406,7 +406,7 @@ class RequestViewPostHelper( object ):
         """ Emails patron confirmation.
             Called by handle_valid_form() """
         try:
-            subject = u'B.U.L. Scan Request Confirmation'
+            subject = u'Brown University Library - Scan Request Confirmation'
             body = self.build_email_body( scnrqst )
             ffrom = self.EMAIL_FROM  # `from` reserved
             to = [ scnrqst.patron_email ]
@@ -437,11 +437,11 @@ Volume/Year: %s
 
 Scans generally take two business days, and will be sent to this email address.
 
-If you have questions, feel free to email %s or call %s, and reference easyscan request #%s.''' % (
+If you have questions, feel free to email %s or call %s, and reference easyscan item_barcode '%s' and request #'%s'.''' % (
             scnrqst.patron_name,
             scnrqst.item_chap_vol_title, scnrqst.item_page_range_other, scnrqst.item_other,
             scnrqst.item_title, scnrqst.item_volume_year,
-            self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.id
+            self.EMAIL_GENERAL_HELP, self.PHONE_GENERAL_HELP, scnrqst.item_barcode, scnrqst.id
             )
         return body
 
