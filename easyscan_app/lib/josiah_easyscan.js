@@ -8,11 +8,12 @@ var esyscn_flow_manager = new function() {
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    *
    * Controller class flow description:
-   * - Attempts to grab title from where it would be on an items page
-   * - If title blank, attempts to grab the bibnumber from where it would be on a holdings page
-   * - Finds all bib-rows and for each row:
-   *   - Calls namespace `esyscn_row_processor` to process the row.
-   *   - Deletes item-barcode
+   * - Attempts to grab title from where it would be on an items-page -- FUTURE: don't grab title: always go for bibnumber
+   * - If title blank, attempts to grab bibnumber from where it might be on a holdings-page
+   * - If no bibnumber, attempts to grab bibnumber from bib-page's html, getting there via holdings page link
+   * - Finds all item-rows and for each row:
+   *   - Calls namespace `esyscn_row_processor` to process the row, which builds the links
+   *   - Deletes item-barcode html
    *
    * Reference:
    * - items page: <http://josiah.brown.edu/record=b4069600>
@@ -40,6 +41,7 @@ var esyscn_flow_manager = new function() {
   var grab_title = function() {
     /* Tries to grab bib title from `items` page; then continues processing.
      * Called by check_already_run()
+     * FUTURE: no grabbing title, straight to attempted item-page bibnumber grab
      */
     var title = null;
     var els = document.querySelectorAll( ".bibInfoData" );
@@ -84,31 +86,19 @@ var esyscn_flow_manager = new function() {
     if ( dvs.length > 0 ) {
       var el = dvs[0].children[0];  // the div contains a link to the bib page
       var url = el.toString();
-      console.log( "- in grab_bib_from_holdings_html_2(); url, " + url );
-
       $.ajaxSetup( {async: false} );  // otherwise "init" would immediately be returned while $.get makes it's request asynchronously
       $.get( url, function( data ) {
-        // console.log( "- in grab_bib_from_holdings_html_2(); typeof data, `" + typeof data + "`" );
-        // console.log( "- in grab_bib_from_holdings_html_2(); data, ```" + data + "```" );
-        // console.log( data.slice( 0, 100) );
-        console.log( "- in grab_bib_from_holdings_html_2(); data.length, `" + data.length + "`" );
         div_temp = document.createElement( "div_temp" );
-        data_temp = '<div id="recordnum"><p>foo</p></div>';
-        div_temp.innerHTML = data_temp;
-        console.log( "- in grab_bib_from_holdings_html_2(); bib-div_temp, `" + div_temp + "`" );
-        dvs_temp = div_temp.getElementsByTagName( "div" );
-        console.log( "- in grab_bib_from_holdings_html_2(); dvs_temp.length, `" + dvs_temp.length + "`" );
-        for ( var i=0; i<dvs_temp.length; i++ ) {
-          dv_temp = dvs_temp[i];
-          console.log( "- in grab_bib_from_holdings_html_2(); dv_temp.childNodes, `" + dv_temp.childNodes + "`" );
-          console.log( dv_temp.childNodes[0] );
-        }
-        // console.log( "- in grab_bib_from_holdings_html_2(); bib-lin, `" + el.href + "`" );
-        // console.log( "- in grab_bib_from_holdings_html_2(); bib-lin, `" + el + "`" );
+        div_temp.innerHTML = data;
+        dvs_temp = div_temp.querySelectorAll( "#recordnum" );
+        href = dvs_temp[0].href;
+        bib_temp = href.split( "=" )[1];
+        bibnum = bib_temp.slice( 0,8 );
+        console.log( "- in grab_bib_from_holdings_html_2(); bib_num is, " + bibnum );
       } );
-
     }
-    title = "title_unavailable";
+    console.log( "- in grab_bib_from_holdings_html_2(); outside of if; bibnum is, " + bibnum );
+    title = null;
     process_item_table( title );
 
   }
@@ -134,6 +124,7 @@ var esyscn_flow_manager = new function() {
     /* Updates bib-items to show request-scan links.
      * Called by grab_title() or grab_bib_from_holdings_html()
      */
+    console.log( "- in process_item_table(); bibnum is, " + bibnum );
     var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
