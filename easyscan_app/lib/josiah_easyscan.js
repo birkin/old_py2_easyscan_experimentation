@@ -80,8 +80,37 @@ var esyscn_flow_manager = new function() {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
      * Called by grab_bib_from_holdings_html()
      */
-     title = null;
-     process_item_table( title );
+    var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+    if ( dvs.length > 0 ) {
+      var el = dvs[0].children[0];  // the div contains a link to the bib page
+      var url = el.toString();
+      console.log( "- in grab_bib_from_holdings_html_2(); url, " + url );
+
+      $.ajaxSetup( {async: false} );  // otherwise "init" would immediately be returned while $.get makes it's request asynchronously
+      $.get( url, function( data ) {
+        // console.log( "- in grab_bib_from_holdings_html_2(); typeof data, `" + typeof data + "`" );
+        // console.log( "- in grab_bib_from_holdings_html_2(); data, ```" + data + "```" );
+        // console.log( data.slice( 0, 100) );
+        console.log( "- in grab_bib_from_holdings_html_2(); data.length, `" + data.length + "`" );
+        div_temp = document.createElement( "div_temp" );
+        data_temp = '<div id="recordnum"><p>foo</p></div>';
+        div_temp.innerHTML = data_temp;
+        console.log( "- in grab_bib_from_holdings_html_2(); bib-div_temp, `" + div_temp + "`" );
+        dvs_temp = div_temp.getElementsByTagName( "div" );
+        console.log( "- in grab_bib_from_holdings_html_2(); dvs_temp.length, `" + dvs_temp.length + "`" );
+        for ( var i=0; i<dvs_temp.length; i++ ) {
+          dv_temp = dvs_temp[i];
+          console.log( "- in grab_bib_from_holdings_html_2(); dv_temp.childNodes, `" + dv_temp.childNodes + "`" );
+          console.log( dv_temp.childNodes[0] );
+        }
+        // console.log( "- in grab_bib_from_holdings_html_2(); bib-lin, `" + el.href + "`" );
+        // console.log( "- in grab_bib_from_holdings_html_2(); bib-lin, `" + el + "`" );
+      } );
+
+    }
+    title = "title_unavailable";
+    process_item_table( title );
+
   }
 
   // var grab_bib_from_holdings_html = function() {
