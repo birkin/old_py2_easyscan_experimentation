@@ -51,57 +51,105 @@ var esyscn_flow_manager = new function() {
     }
     console.log( "- title, " + title );
     if ( title == null ){
-      grab_bib_from_holdings_html();
+      check_holdings_html();
     } else {
       process_item_table( title );
     }
   }
 
-  var grab_bib_from_holdings_html = function() {
-    /* Tries to determine bibnum from holdings html; then continues processing.
+  var check_holdings_html = function() {
+    /* Looks for presence of bib-page link (link may or may not contain bibnum).
      * Called by grab_title() if title is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
     if ( dvs.length > 0 ) {
       var dv = dvs[0];
       var el = dv.children[0];  // the div contains a link with the bibnum
-      var text = el.toString();
-      var t = text.split("/")[4];  // eg ".b4069600"
-      if ( t.length == 9 && t.slice( 0,2 ) == ".b" ) {
-        bibnum = t.slice( 1, 9 );  // updates module var
-        console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
-        title = null;
-        process_item_table( title );
-      } else {
-        grab_bib_from_holdings_html_2();
-      }
+      var href_string = el.toString();
+      console.log( "in check_holdings_html(); href_string, " + href_string );
+      grab_bib_from_holdings_html( href_string )
+    } else {
+      title = null;
+      process_item_table( title );
     }
   }
 
-  var grab_bib_from_holdings_html_2 = function() {
+  var grab_bib_from_holdings_html = function( href_string ) {
+    /* Tries to determine bibnum from holdings html; then continues processing.
+     * Called by grab_title() if title is null.
+     */
+    var segment = href_string.split("/")[4];  // eg ".b4069600"
+    if ( segment.length == 9 && segment.slice( 0,2 ) == ".b" ) {
+      bibnum = segment.slice( 1, 9 );  // updates module var
+      console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
+      title = null;
+      process_item_table( title );
+    } else {
+      grab_bib_from_holdings_html_2( href_string );
+    }
+  }
+
+  // var grab_bib_from_holdings_html = function() {
+  //   /* Tries to determine bibnum from holdings html; then continues processing.
+  //    * Called by grab_title() if title is null.
+  //    */
+  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+  //   if ( dvs.length > 0 ) {
+  //     var dv = dvs[0];
+  //     var el = dv.children[0];  // the div contains a link with the bibnum
+  //     var text = el.toString();
+  //     var t = text.split("/")[4];  // eg ".b4069600"
+  //     if ( t.length == 9 && t.slice( 0,2 ) == ".b" ) {
+  //       bibnum = t.slice( 1, 9 );  // updates module var
+  //       console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
+  //       title = null;
+  //       process_item_table( title );
+  //     } else {
+  //       grab_bib_from_holdings_html_2();
+  //     }
+  //   }
+  // }
+
+  var grab_bib_from_holdings_html_2 = function( href_string ) {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
      * Called by grab_bib_from_holdings_html()
      */
-    var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
-    if ( dvs.length > 0 ) {
-      var el = dvs[0].children[0];  // the div contains a link to the bib page
-      var url = el.toString();
-      $.ajaxSetup( {async: false} );  // otherwise "init" would immediately be returned while $.get makes it's request asynchronously
-      $.get( url, function( data ) {
-        div_temp = document.createElement( "div_temp" );
-        div_temp.innerHTML = data;
-        dvs_temp = div_temp.querySelectorAll( "#recordnum" );
-        href = dvs_temp[0].href;
-        bib_temp = href.split( "=" )[1];
-        bibnum = bib_temp.slice( 0,8 );
-        console.log( "- in grab_bib_from_holdings_html_2(); bib_num is, " + bibnum );
-      } );
-    }
-    console.log( "- in grab_bib_from_holdings_html_2(); outside of if; bibnum is, " + bibnum );
-    title = null;
-    process_item_table( title );
-
+    $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
+    $.get( href_string, function(data) {
+      var div_temp = document.createElement( "div_temp" );
+      div_temp.innerHTML = data;
+      var nodes = div_temp.querySelectorAll( "#recordnum" );
+      var bib_href = nodes[0].href;
+      var bib_temp = bib_href.split( "=" )[1];
+      bibnum = bib_temp.slice( 0,8 );  // updates module's var
+    } );
+    console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
+    var title = null; process_item_table( title );
   }
+
+  // var grab_bib_from_holdings_html_2 = function() {
+  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
+  //    * Called by grab_bib_from_holdings_html()
+  //    */
+  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+  //   if ( dvs.length > 0 ) {
+  //     var el = dvs[0].children[0];  // the div contains a link to the bib page
+  //     var url = el.toString();
+  //     $.ajaxSetup( {async: false} );  // otherwise "init" would immediately be returned while $.get makes it's request asynchronously
+  //     $.get( url, function( data ) {
+  //       div_temp = document.createElement( "div_temp" );
+  //       div_temp.innerHTML = data;
+  //       dvs_temp = div_temp.querySelectorAll( "#recordnum" );
+  //       href = dvs_temp[0].href;
+  //       bib_temp = href.split( "=" )[1];
+  //       bibnum = bib_temp.slice( 0,8 );
+  //       console.log( "- in grab_bib_from_holdings_html_2(); bib_num is, " + bibnum );
+  //     } );
+  //   }
+  //   console.log( "- in grab_bib_from_holdings_html_2(); outside of if; bibnum is, " + bibnum );
+  //   title = null;
+  //   process_item_table( title );
+  // }
 
   // var grab_bib_from_holdings_html = function() {
   //   /* Tries to determine bibnum from holdings html; then continues processing.
