@@ -38,7 +38,7 @@ var esyscn_flow_manager = new function() {
   }
 
   var grab_title = function() {
-    /* Grabs bib title; then continues processing.
+    /* Tries to grab bib title from `items` page; then continues processing.
      * Called by check_already_run()
      */
     var title = null;
@@ -49,14 +49,14 @@ var esyscn_flow_manager = new function() {
     }
     console.log( "- title, " + title );
     if ( title == null ){
-      grab_bib();
+      grab_bib_from_holdings_html();
     } else {
       process_item_table( title );
     }
   }
 
-  var grab_bib = function() {
-    /* Grabs bibnum from holdings html; then continues processing.
+  var grab_bib_from_holdings_html = function() {
+    /* Tries to determine bibnum from holdings html; then continues processing.
      * Called by grab_title() if title is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
@@ -65,16 +65,45 @@ var esyscn_flow_manager = new function() {
       var el = dv.children[0];  // the div contains a link with the bibnum
       var text = el.toString();
       var t = text.split("/")[4];  // eg ".b4069600"
-      bibnum = t.slice( 1, 9 );  // updates module var
+      if ( t.length == 9 && t.slice( 0,2 ) == ".b" ) {
+        bibnum = t.slice( 1, 9 );  // updates module var
+        console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
+        title = null;
+        process_item_table( title );
+      } else {
+        grab_bib_from_holdings_html_2();
+      }
     }
-    console.log( "in grab_bib(); bibnum, " + bibnum );
-    title = null;
-    process_item_table( title );
   }
+
+  var grab_bib_from_holdings_html_2 = function() {
+    /* Tries to load bib-page and grab bib from permalink element; then continues processing.
+     * Called by grab_bib_from_holdings_html()
+     */
+     title = null;
+     process_item_table( title );
+  }
+
+  // var grab_bib_from_holdings_html = function() {
+  //   /* Tries to determine bibnum from holdings html; then continues processing.
+  //    * Called by grab_title() if title is null.
+  //    */
+  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+  //   if ( dvs.length > 0 ) {
+  //     var dv = dvs[0];
+  //     var el = dv.children[0];  // the div contains a link with the bibnum
+  //     var text = el.toString();
+  //     var t = text.split("/")[4];  // eg ".b4069600"
+  //     bibnum = t.slice( 1, 9 );  // updates module var
+  //   }
+  //   console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
+  //   title = null;
+  //   process_item_table( title );
+  // }
 
   var process_item_table = function( title ) {
     /* Updates bib-items to show request-scan links.
-     * Called by grab_title()
+     * Called by grab_title() or grab_bib_from_holdings_html()
      */
     var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
