@@ -8,16 +8,12 @@ easyScan request
 {% block content %}
 
 <style>
+
     h1 {
         font-size: 2.5em;
         margin-top: 2em;
         text-transform: none }
-    h3#please {
-        font-size: 1.5em;
-        color: maroon;
-        margin-top: 6em; }
-    hr {
-        margin-top: 2em; }
+
     div#requested_item {
         margin-top: 4em;
         /*color: gray;*/ }
@@ -36,6 +32,20 @@ easyScan request
        margin-left:2em;
        /*color:#999;*/
        font-size: 125%; }
+
+    div#rules {
+      float:left;
+      clear:left;
+      margin-top: 3em; }
+    p.rules_lines {
+      margin-bottom: 1em;
+      font-size: 125%; }
+
+    h3#please {
+        font-size: 1.5em;
+        color: maroon;
+        margin-top: 10.5em; }
+
     form {
         margin-top: 1.5em; }
     textarea {
@@ -60,6 +70,10 @@ easyScan request
         margin-top: .5em; }
     .errorlist {
         color: red; }
+
+    hr {
+        margin-top: 2em; }
+
 </style>
 
  <h1>easyScan request</h1>
@@ -80,6 +94,11 @@ easyScan request
     </dl>
 
 </div> <!-- #requested_item -->
+
+<div id="rules">
+  <p class="rules_lines">This service permits scans of up to 50 pages, or one chapter, from non-special-collections materials located at the Annex (Brown's offsite Library storage facility).</p>
+  <p class="rules_lines">In most cases material is scanned within 2 business days. Notification will be sent to your brown email address.</p>
+</div>
 
 <h3 id="please">Please add additional information...</h3>
 
