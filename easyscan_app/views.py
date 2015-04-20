@@ -88,6 +88,10 @@ def shib_logout( request ):
     return HttpResponseRedirect( redirect_url )
 
 
+def try_again( request ):
+    return HttpResponse( u'<p>here</p>' )
+
+
 def easyscan_js( request ):
     """ Returns modified javascript file for development.
         Hit by a `dev_josiah_easyscan.js` url; production hits the apache-served js file. """
