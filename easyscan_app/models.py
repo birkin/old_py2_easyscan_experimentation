@@ -329,6 +329,8 @@ class RequestViewPostHelper( object ):
             datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
         try:
             sender.transfer_files( data_filename, count_filename )
+            scnrqst.status = u'transferred'
+            scnrqst.save()
             log.debug( u'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         except Exception as e:
             error_message = unicode( repr(e) )
