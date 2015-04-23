@@ -15,6 +15,8 @@ urlpatterns = patterns('',
 
     url( r'^confirmation/$',  'easyscan_app.views.confirmation', name=u'confirmation_url' ),
 
+    url( r'^admin/try_again/$',  'easyscan_app.views.try_again', name=u'try_again_url' ),
+
     url( r'^dev_josiah_easyscan.js/$',  'easyscan_app.views.easyscan_js', name=u'easyscan_js_url' ),  # replaces hardcoded urls for easy local development
     url( r'^dev_josiah_request_item.js/$',  'easyscan_app.views.request_item_js', name=u'request_item_js_url' ),  # replaces hardcoded urls for easy local development
 

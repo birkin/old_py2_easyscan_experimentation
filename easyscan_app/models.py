@@ -557,3 +557,13 @@ class ConfirmationViewHelper( object ):
         return return_response
 
     # end class ConfirmationViewHelper
+
+
+class TryAgainHelper( object ):
+    """ Container for views.try_again() helpers. """
+
+    def build_response( self, request ):
+        """ Builds page.
+            Called by views.try_again() """
+        return_response = HttpResponse( u'<p>here</>' )
+        return return_response

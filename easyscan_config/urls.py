@@ -8,8 +8,8 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 
-    url(r'^admin/', include(admin.site.urls)),
-
     url( r'^', include('easyscan_app.urls_app') ),
+
+    url(r'^admin/', include(admin.site.urls)),
 
 )
