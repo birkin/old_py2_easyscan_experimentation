@@ -17,6 +17,7 @@ request_view_post_helper = models.RequestViewPostHelper()
 # barcode_view_helper = models.BarcodeViewHelper()
 shib_view_helper = models.ShibViewHelper()
 confirmation_vew_helper = models.ConfirmationViewHelper()
+try_again_helper = models.TryAgainHelper()
 
 
 def info( request ):
@@ -89,7 +90,9 @@ def shib_logout( request ):
 
 
 def try_again( request ):
-    return HttpResponse( u'<p>here</p>' )
+    """ Returns `in_process` as well as recently-transferred records with a try-again button. """
+    return_response = try_again_helper.build_response( request )
+    return return_response
 
 
 def easyscan_js( request ):
@@ -101,7 +104,6 @@ def easyscan_js( request ):
     with open( js_path ) as f:
         js_utf8 = f.read()
         js_unicode = js_utf8.decode( u'utf-8' )
-
     js_unicode = js_unicode.replace( u'library.brown.edu/easyscan/josiah_request_item.js', u'%s/easyscan/dev_josiah_request_item.js' % request.get_host() )
     js_unicode = js_unicode.replace( u'library.brown.edu', request.get_host() )
     scheme = u'https' if request.is_secure() else u'http'
