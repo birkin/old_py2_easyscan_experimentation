@@ -22,6 +22,7 @@ sender = Sender()
 
 ## db models ##
 
+
 class ScanRequest( models.Model ):
     """ Contains user & item data. """
     item_title = models.CharField( blank=True, max_length=200 )
@@ -55,6 +56,27 @@ class ScanRequest( models.Model ):
 
 
 ## non db models below  ##
+
+
+class TryAgainHelper( object ):
+    """ Container for views.try_again() helpers. """
+
+    def build_response( self, request ):
+        """ Builds page.
+            Called by views.try_again() """
+        data_dct = self.build_data_dct( request )
+        format = request.GET.get( u'format', None )
+        if request.GET.get( u'format', None ) == u'json':
+          jsn = json.dumps( data_dct, sort_keys=True, indent=2 )
+          return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
+        else:
+            return_response = HttpResponse( u'<p>%s</>' % data_dct[u'foo'] )
+        return return_response
+
+    def build_data_dct( self, request ):
+        """ Prepares data.
+            Called by build_response() """
+        return { u'foo': u'bar' }
 
 
 class LasDataMaker( object ):
@@ -557,13 +579,3 @@ class ConfirmationViewHelper( object ):
         return return_response
 
     # end class ConfirmationViewHelper
-
-
-class TryAgainHelper( object ):
-    """ Container for views.try_again() helpers. """
-
-    def build_response( self, request ):
-        """ Builds page.
-            Called by views.try_again() """
-        return_response = HttpResponse( u'<p>here</>' )
-        return return_response
