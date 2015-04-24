@@ -2,17 +2,18 @@
 
 import csv, datetime, json, logging, os, pprint, StringIO
 import requests
+from django.conf import settings as project_settings
 from django.contrib.auth import logout
+from django.core import serializers
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.http import urlquote
 from django.utils.encoding import smart_unicode
-from django.conf import settings as project_settings
-from easyscan_app.lib.magic_bus import Prepper, Sender
+from django.utils.http import urlquote
 from easyscan_app.easyscan_forms import CitationForm
+from easyscan_app.lib.magic_bus import Prepper, Sender
 
 
 log = logging.getLogger(__name__)
@@ -52,6 +53,13 @@ class ScanRequest( models.Model ):
         self.las_conversion = las_string
         super( ScanRequest, self ).save() # Call the "real" save() method
 
+    def jsonify(self):
+        """ Returns object data in json-compatible dict. """
+        jsn = serializers.serialize( u'json', [self] )  # json string is single-item list
+        lst = json.loads( jsn )
+        object_dct = lst[0]
+        return object_dct
+
     # end class ScanRequest
 
 
@@ -73,10 +81,19 @@ class TryAgainHelper( object ):
             return_response = render( request, u'easyscan_app_templates/try_again.html', data_dct )
         return return_response
 
+    # def build_data_dct( self, request ):
+    #     """ Prepares data.
+    #         Called by build_response() """
+    #     return { u'foo': u'bar' }
+
     def build_data_dct( self, request ):
         """ Prepares data.
             Called by build_response() """
+        month_ago = datetime.date.today() - datetime.timedelta(days=30)
+        entries = ScanRequest.objects.filter( create_datetime__gte=month_ago ).order_by( u'-id' )
         return { u'foo': u'bar' }
+
+
 
 
 class LasDataMaker( object ):
