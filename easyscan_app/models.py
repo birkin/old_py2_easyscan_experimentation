@@ -91,9 +91,10 @@ class TryAgainHelper( object ):
             Called by build_response() """
         month_ago = datetime.date.today() - datetime.timedelta(days=30)
         entries = ScanRequest.objects.filter( create_datetime__gte=month_ago ).order_by( u'-id' )
-        return { u'foo': u'bar' }
-
-
+        jsn = serializers.serialize( u'json', entries )
+        lst = json.loads( jsn )
+        # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
+        return { u'entries': lst }
 
 
 class LasDataMaker( object ):
