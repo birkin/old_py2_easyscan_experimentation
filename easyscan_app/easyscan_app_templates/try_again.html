@@ -10,6 +10,9 @@ easyScan try-again
 
     {% for entry in entries %}
     <p>{{ entry }}</p>
+    <p>key: {{ entry.pk }}</p>
+    <p>item-title: {{ entry.fields.item_title }} </p>
+    <p>---</p>
     <p>---</p>
     {% endfor %}
 
