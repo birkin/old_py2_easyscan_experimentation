@@ -1,1 +1,16 @@
-<p>{{ entries }} </p>
+{% extends "easyscan_app_templates/base.html" %}
+
+
+{% block page_title %}
+easyScan try-again
+{% endblock page_title %}
+
+
+{% block content %}
+
+    {% for entry in entries %}
+    <p>{{ entry }}</p>
+    <p>---</p>
+    {% endfor %}
+
+{% endblock content %}
