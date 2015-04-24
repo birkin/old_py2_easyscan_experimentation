@@ -70,7 +70,7 @@ class TryAgainHelper( object ):
           jsn = json.dumps( data_dct, sort_keys=True, indent=2 )
           return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
         else:
-            return_response = HttpResponse( u'<p>%s</>' % data_dct[u'foo'] )
+            return_response = render( request, u'easyscan_app_templates/try_again.html', data_dct )
         return return_response
 
     def build_data_dct( self, request ):
