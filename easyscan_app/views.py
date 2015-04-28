@@ -80,7 +80,7 @@ def shib_logout( request ):
     logout( request )
     scheme = u'https' if request.is_secure() else u'http'
     redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
-    if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+    if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # eases local development
         pass
     else:
         encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
@@ -97,7 +97,11 @@ def try_again( request ):
 
 def try_again_confirmation( request, scan_request_id ):
     """ Confirms the user wants to try the request again. """
-    return HttpResponse( u'<p>%s</p>' % scan_request_id )
+    if request.session.get(u'try_again_page_accessed') == True:
+        request.session[u'try_again_page_accessed'] = False
+        return HttpResponse( u'<p>%s</p>' % scan_request_id )
+    else:
+        return HttpResponseRedirect( reverse(u'try_again_url') )
 
 
 def easyscan_js( request ):
