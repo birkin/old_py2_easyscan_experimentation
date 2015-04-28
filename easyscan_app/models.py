@@ -69,8 +69,31 @@ class ScanRequest( models.Model ):
 ## non db models below  ##
 
 
-class TryAgainConfirmationHelper( object ):
-    """ Contains helpers for views.try_again_confirmation() """
+class BasicAuthHelper( object ):
+
+    def check_basic_auth( self, request ):
+        """ Checks for any, and correct, http-basic-auth info, returns boolean.
+            Called by views.try_again() """
+        ( GOOD_USER, GOOD_PASSWORD ) = ( os.environ[u'EZSCAN__BASIC_AUTH_USERNAME'], os.environ[u'EZSCAN__BASIC_AUTH_PASSWORD'] )
+        basic_auth_ok = False
+        auth_info = request.META.get( u'HTTP_AUTHORIZATION', None )
+        if ( auth_info and auth_info.startswith(u'Basic ') ):
+            basic_info = auth_info.lstrip( u'Basic ' )
+            decoded_basic_info = basic_info.decode( u'base64' )
+            ( received_username, received_password ) = decoded_basic_info.rsplit( u':', 1 )   # cool; 'rsplit-1' solves problem if 'username' contains one or more colons
+            if received_username == GOOD_USER and received_password == GOOD_PASSWORD:
+                basic_auth_ok = True
+        return basic_auth_ok
+
+    def display_prompt( self ):
+        """ Builds http-basic-auth response which brings up username/password dialog box.
+            Called by views.try_again() """
+        response = HttpResponse()
+        response.status_code = 401
+        response[u'WWW-Authenticate'] = u'Basic realm="easyscan admin try-again"'
+        return response
+
+    # end class BasicAuthHelper
 
 
 class TryAgainHelper( object ):
@@ -101,6 +124,35 @@ class TryAgainHelper( object ):
         return data_dct
 
     # end class TryAgainHelper
+
+
+class TryAgainConfirmationHelper( object ):
+    """ Contains helpers for views.try_again_confirmation() """
+
+    def build_data_dct( self, scan_request_id ):
+        """ Prepares data.
+            Called by views.try_again_confirmation() """
+        entry = ScanRequest.objects.filter( id=scan_request_id ).first()
+        if entry:
+            jsn = serializers.serialize( u'json', [entry] )
+            lst = json.loads( jsn )
+            data_dct = { u'entry': lst[0] }
+        else:
+            data_dct = { u'entry': None }
+        return data_dct
+
+    def build_response( self, request, data_dct ):
+        """ Builds response.
+            Called by views.try_again_confirmation() """
+        format = request.GET.get( u'format', None )
+        if request.GET.get( u'format', None ) == u'json':
+          jsn = json.dumps( data_dct, sort_keys=True, indent=2 )
+          return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
+        else:
+            return_response = render( request, u'easyscan_app_templates/try_again_confirmation.html', data_dct )
+        return return_response
+
+    # end class TryAgainConfirmationHelper
 
 
 class LasDataMaker( object ):
