@@ -95,6 +95,11 @@ def try_again( request ):
     return return_response
 
 
+def try_again_confirmation( request, scan_request_id ):
+    """ Confirms the user wants to try the request again. """
+    return HttpResponse( u'<p>%s</p>' % scan_request_id )
+
+
 def easyscan_js( request ):
     """ Returns modified javascript file for development.
         Hit by a `dev_josiah_easyscan.js` url; production hits the apache-served js file. """

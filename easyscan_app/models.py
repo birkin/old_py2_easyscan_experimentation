@@ -73,6 +73,7 @@ class TryAgainHelper( object ):
     def build_response( self, request ):
         """ Builds page.
             Called by views.try_again() """
+        request.session[u'try_again_page_accessed'] = True
         data_dct = self.build_data_dct( request )
         format = request.GET.get( u'format', None )
         if request.GET.get( u'format', None ) == u'json':
@@ -81,11 +82,6 @@ class TryAgainHelper( object ):
         else:
             return_response = render( request, u'easyscan_app_templates/try_again.html', data_dct )
         return return_response
-
-    # def build_data_dct( self, request ):
-    #     """ Prepares data.
-    #         Called by build_response() """
-    #     return { u'foo': u'bar' }
 
     def build_data_dct( self, request ):
         """ Prepares data.
@@ -97,9 +93,12 @@ class TryAgainHelper( object ):
         # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
         return { u'entries': lst }
 
+    # end class TryAgainHelper
+
 
 class LasDataMaker( object ):
-    """ Container for code to make comma-delimited las string. """
+    """ Container for code to make comma-delimited las string.
+        Called by models.ScanRequest.save() """
 
     def make_csv_string(
         self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
