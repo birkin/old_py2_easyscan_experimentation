@@ -99,7 +99,7 @@ def try_again_confirmation( request, scan_request_id ):
     """ Confirms the user wants to try the request again. """
     if request.session.get(u'try_again_page_accessed') == True:
         request.session[u'try_again_page_accessed'] = False
-        return HttpResponse( u'<p>%s</p>' % scan_request_id )
+        return HttpResponse( u'<p>Not yet implemented; this will confirm you want to re-run the request for scan_request id `%s`</p>' % scan_request_id )
     else:
         return HttpResponseRedirect( reverse(u'try_again_url') )
 

@@ -12,15 +12,19 @@ easyScan try-again
         h1 {
             font-size: 2.5em;
             margin-top: 2em;
+            margin-bottom: .25em;
             text-transform: none }
         ul {
             list-style-type: square;
             margin-left: 2em; }
         hr {
             margin-bottom: 2em; }
+        #count{
+            margin-bottom: 2em; }
     </style>
 
     <h1>Requests for last 30 days...</h1>
+    <p id="count">( count, {{ entries_count }} )</p>
 
     {% for entry in entries %}
     <ul>

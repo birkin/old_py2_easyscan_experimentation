@@ -90,8 +90,9 @@ class TryAgainHelper( object ):
         entries = ScanRequest.objects.filter( create_datetime__gte=month_ago ).order_by( u'-id' )
         jsn = serializers.serialize( u'json', entries )
         lst = json.loads( jsn )
+        data_dct = { u'entries': lst, u'entries_count': len( lst ) }
         # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
-        return { u'entries': lst }
+        return data_dct
 
     # end class TryAgainHelper
 
