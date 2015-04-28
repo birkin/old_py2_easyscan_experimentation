@@ -41,7 +41,7 @@ class ScanRequest( models.Model ):
     create_datetime = models.DateTimeField( auto_now_add=True, blank=True )  # blank=True for backward compatibility
     las_conversion = models.TextField( blank=True )
     status = models.CharField( blank=True, max_length=200 )
-    # admin_notes = models.TextField( blank=True )
+    admin_notes = models.TextField( blank=True )
 
     def __unicode__(self):
         return smart_unicode( u'id: %s || title: %s' % (self.id, self.item_title) , u'utf-8', u'replace' )
