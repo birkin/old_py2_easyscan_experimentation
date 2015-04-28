@@ -12,15 +12,19 @@ easyScan try-again
         h1 {
             font-size: 2.5em;
             margin-top: 2em;
+            margin-bottom: .25em;
             text-transform: none }
         ul {
             list-style-type: square;
             margin-left: 2em; }
         hr {
             margin-bottom: 2em; }
+        #count{
+            margin-bottom: 2em; }
     </style>
 
     <h1>Requests for last 30 days...</h1>
+    <p id="count">( count, {{ entries_count }} )</p>
 
     {% for entry in entries %}
     <ul>
@@ -34,7 +38,10 @@ easyScan try-again
             <li>other, `{{ entry.fields.item_other }}`</li>
         </ul>
         <li>status, `{{ entry.fields.status }}`</li>
-        <li>options, <a href="http://google.com">Try Transfer Again</a>; <a href="http://google.com">View Admin Entry</a></li>
+        <li>options,
+            <a href="./confirm/{{ entry.pk }}/">Try Transfer Again</a>;
+            <a href="/easyscan/admin/easyscan_app/scanrequest/{{ entry.pk }}/">View Admin Entry</a>
+        </li>
     </ul>
     <hr/>
     {% endfor %}

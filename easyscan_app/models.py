@@ -25,7 +25,9 @@ sender = Sender()
 
 
 class ScanRequest( models.Model ):
-    """ Contains user & item data. """
+    """ Contains user & item data.
+        Called by RequestViewPostHelper, TryAgainHelper. """
+
     item_title = models.CharField( blank=True, max_length=200 )
     item_barcode = models.CharField( blank=True, max_length=50 )
     status = models.CharField( max_length=200 )
@@ -41,6 +43,7 @@ class ScanRequest( models.Model ):
     create_datetime = models.DateTimeField( auto_now_add=True, blank=True )  # blank=True for backward compatibility
     las_conversion = models.TextField( blank=True )
     status = models.CharField( blank=True, max_length=200 )
+    admin_notes = models.TextField( blank=True )
 
     def __unicode__(self):
         return smart_unicode( u'id: %s || title: %s' % (self.id, self.item_title) , u'utf-8', u'replace' )
@@ -66,12 +69,40 @@ class ScanRequest( models.Model ):
 ## non db models below  ##
 
 
+class BasicAuthHelper( object ):
+
+    def check_basic_auth( self, request ):
+        """ Checks for any, and correct, http-basic-auth info, returns boolean.
+            Called by views.try_again() """
+        ( GOOD_USER, GOOD_PASSWORD ) = ( os.environ[u'EZSCAN__BASIC_AUTH_USERNAME'], os.environ[u'EZSCAN__BASIC_AUTH_PASSWORD'] )
+        basic_auth_ok = False
+        auth_info = request.META.get( u'HTTP_AUTHORIZATION', None )
+        if ( auth_info and auth_info.startswith(u'Basic ') ):
+            basic_info = auth_info.lstrip( u'Basic ' )
+            decoded_basic_info = basic_info.decode( u'base64' )
+            ( received_username, received_password ) = decoded_basic_info.rsplit( u':', 1 )   # cool; 'rsplit-1' solves problem if 'username' contains one or more colons
+            if received_username == GOOD_USER and received_password == GOOD_PASSWORD:
+                basic_auth_ok = True
+        return basic_auth_ok
+
+    def display_prompt( self ):
+        """ Builds http-basic-auth response which brings up username/password dialog box.
+            Called by views.try_again() """
+        response = HttpResponse()
+        response.status_code = 401
+        response[u'WWW-Authenticate'] = u'Basic realm="easyscan admin try-again"'
+        return response
+
+    # end class BasicAuthHelper
+
+
 class TryAgainHelper( object ):
-    """ Container for views.try_again() helpers. """
+    """ Contains helpers for views.try_again() """
 
     def build_response( self, request ):
         """ Builds page.
             Called by views.try_again() """
+        request.session[u'try_again_page_accessed'] = True
         data_dct = self.build_data_dct( request )
         format = request.GET.get( u'format', None )
         if request.GET.get( u'format', None ) == u'json':
@@ -81,11 +112,6 @@ class TryAgainHelper( object ):
             return_response = render( request, u'easyscan_app_templates/try_again.html', data_dct )
         return return_response
 
-    # def build_data_dct( self, request ):
-    #     """ Prepares data.
-    #         Called by build_response() """
-    #     return { u'foo': u'bar' }
-
     def build_data_dct( self, request ):
         """ Prepares data.
             Called by build_response() """
@@ -93,12 +119,45 @@ class TryAgainHelper( object ):
         entries = ScanRequest.objects.filter( create_datetime__gte=month_ago ).order_by( u'-id' )
         jsn = serializers.serialize( u'json', entries )
         lst = json.loads( jsn )
+        data_dct = { u'entries': lst, u'entries_count': len( lst ) }
         # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
-        return { u'entries': lst }
+        return data_dct
+
+    # end class TryAgainHelper
+
+
+class TryAgainConfirmationHelper( object ):
+    """ Contains helpers for views.try_again_confirmation() """
+
+    def build_data_dct( self, scan_request_id ):
+        """ Prepares data.
+            Called by views.try_again_confirmation() """
+        entry = ScanRequest.objects.filter( id=scan_request_id ).first()
+        if entry:
+            jsn = serializers.serialize( u'json', [entry] )
+            lst = json.loads( jsn )
+            data_dct = { u'entry': lst[0] }
+        else:
+            data_dct = { u'entry': None }
+        return data_dct
+
+    def build_response( self, request, data_dct ):
+        """ Builds response.
+            Called by views.try_again_confirmation() """
+        format = request.GET.get( u'format', None )
+        if request.GET.get( u'format', None ) == u'json':
+          jsn = json.dumps( data_dct, sort_keys=True, indent=2 )
+          return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
+        else:
+            return_response = render( request, u'easyscan_app_templates/try_again_confirmation.html', data_dct )
+        return return_response
+
+    # end class TryAgainConfirmationHelper
 
 
 class LasDataMaker( object ):
-    """ Container for code to make comma-delimited las string. """
+    """ Contains code to make comma-delimited las string.
+        Called by models.ScanRequest.save() """
 
     def make_csv_string(
         self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
@@ -168,7 +227,7 @@ class LasDataMaker( object ):
 
 
 class RequestViewGetHelper( object ):
-    """ Container for views.request_def() helpers for handling GET. """
+    """ Contains helpers for views.request_def() for handling GET. """
 
     def __init__( self ):
         self.AVAILABILITY_API_URL_ROOT = os.environ[u'EZSCAN__AVAILABILITY_API_URL_ROOT']
@@ -308,7 +367,7 @@ class RequestViewGetHelper( object ):
 
 
 class RequestViewPostHelper( object ):
-    """ Container for views.request_def() helpers for handling POST. """
+    """ Contains helpers for views.request_def() for handling POST. """
 
     def __init__( self ):
         self.EMAIL_FROM = os.environ[u'EZSCAN__EMAIL_FROM']
@@ -479,7 +538,8 @@ class ShibViewHelper( object ):
 
 
 class ShibChecker( object ):
-    """ Contains helpers for checking Shib. """
+    """ Contains helpers for checking Shib.
+        Called by ShibViewHelper """
 
     def __init__( self ):
         self.TEST_SHIB_JSON = os.environ.get( u'EZSCAN__TEST_SHIB_JSON', u'' )

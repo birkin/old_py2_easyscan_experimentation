@@ -18,6 +18,8 @@ request_view_post_helper = models.RequestViewPostHelper()
 shib_view_helper = models.ShibViewHelper()
 confirmation_vew_helper = models.ConfirmationViewHelper()
 try_again_helper = models.TryAgainHelper()
+try_again_confirmation_helper = models.TryAgainConfirmationHelper()
+basic_auth_helper = models.BasicAuthHelper()
 
 
 def info( request ):
@@ -80,19 +82,38 @@ def shib_logout( request ):
     logout( request )
     scheme = u'https' if request.is_secure() else u'http'
     redirect_url = u'%s://%s%s' % ( scheme, request.get_host(), reverse(u'request_url') )
-    if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:
+    if request.get_host() == u'127.0.0.1' and project_settings.DEBUG == True:  # eases local development
         pass
     else:
         encoded_redirect_url =  urlquote( redirect_url )  # django's urlquote()
         redirect_url = u'%s?return=%s' % ( os.environ[u'EZSCAN__SHIB_LOGOUT_URL_ROOT'], encoded_redirect_url )
-    log.debug( u'in vierws.shib_logout(); redirect_url, `%s`' % redirect_url )
+    log.debug( u'in views.shib_logout(); redirect_url, `%s`' % redirect_url )
     return HttpResponseRedirect( redirect_url )
 
 
 def try_again( request ):
     """ Returns `in_process` as well as recently-transferred records with a try-again button. """
-    return_response = try_again_helper.build_response( request )
+    basic_auth_ok = basic_auth_helper.check_basic_auth( request )
+    log.debug( u'in views.try_again(); basic_auth_ok, `%s`' % basic_auth_ok )
+    if basic_auth_ok:
+        return_response = try_again_helper.build_response( request )
+    else:
+        return_response = basic_auth_helper.display_prompt()
     return return_response
+
+
+def try_again_confirmation( request, scan_request_id ):
+    """ Confirms, on GET, that the user wants to try the request again.
+        Performs, on POST, the transfer. """
+    if request.method == u'GET':
+        if request.session.get(u'try_again_page_accessed') == True:
+            request.session[u'try_again_page_accessed'] = False
+            request.session[u'try_again_confirmation_page_accessed'] = True
+            data_dct = try_again_confirmation_helper.build_data_dct( scan_request_id )
+            return_response = try_again_confirmation_helper.build_response( request, data_dct )
+            return return_response
+        else:
+            return HttpResponseRedirect( reverse(u'try_again_url') )
 
 
 def easyscan_js( request ):
