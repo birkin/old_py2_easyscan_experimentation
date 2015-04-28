@@ -18,6 +18,7 @@ request_view_post_helper = models.RequestViewPostHelper()
 shib_view_helper = models.ShibViewHelper()
 confirmation_vew_helper = models.ConfirmationViewHelper()
 try_again_helper = models.TryAgainHelper()
+try_again_confirmation_helper = models.TryAgainConfirmationHelper()
 
 
 def info( request ):

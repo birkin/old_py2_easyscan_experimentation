@@ -25,7 +25,9 @@ sender = Sender()
 
 
 class ScanRequest( models.Model ):
-    """ Contains user & item data. """
+    """ Contains user & item data.
+        Called by RequestViewPostHelper, TryAgainHelper. """
+
     item_title = models.CharField( blank=True, max_length=200 )
     item_barcode = models.CharField( blank=True, max_length=50 )
     status = models.CharField( max_length=200 )
@@ -67,8 +69,12 @@ class ScanRequest( models.Model ):
 ## non db models below  ##
 
 
+class TryAgainConfirmationHelper( object ):
+    """ Contains helpers for views.try_again_confirmation() """
+
+
 class TryAgainHelper( object ):
-    """ Container for views.try_again() helpers. """
+    """ Contains helpers for views.try_again() """
 
     def build_response( self, request ):
         """ Builds page.
@@ -98,7 +104,7 @@ class TryAgainHelper( object ):
 
 
 class LasDataMaker( object ):
-    """ Container for code to make comma-delimited las string.
+    """ Contains code to make comma-delimited las string.
         Called by models.ScanRequest.save() """
 
     def make_csv_string(
@@ -169,7 +175,7 @@ class LasDataMaker( object ):
 
 
 class RequestViewGetHelper( object ):
-    """ Container for views.request_def() helpers for handling GET. """
+    """ Contains helpers for views.request_def() for handling GET. """
 
     def __init__( self ):
         self.AVAILABILITY_API_URL_ROOT = os.environ[u'EZSCAN__AVAILABILITY_API_URL_ROOT']
@@ -309,7 +315,7 @@ class RequestViewGetHelper( object ):
 
 
 class RequestViewPostHelper( object ):
-    """ Container for views.request_def() helpers for handling POST. """
+    """ Contains helpers for views.request_def() for handling POST. """
 
     def __init__( self ):
         self.EMAIL_FROM = os.environ[u'EZSCAN__EMAIL_FROM']
@@ -480,7 +486,8 @@ class ShibViewHelper( object ):
 
 
 class ShibChecker( object ):
-    """ Contains helpers for checking Shib. """
+    """ Contains helpers for checking Shib.
+        Called by ShibViewHelper """
 
     def __init__( self ):
         self.TEST_SHIB_JSON = os.environ.get( u'EZSCAN__TEST_SHIB_JSON', u'' )
