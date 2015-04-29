@@ -171,7 +171,7 @@ class TryAgainConfirmationHelper( object ):
         request.session[u'try_again_confirmation_page_accessed'] = False
         request.session[u'scan_request_id'] = None
         self.update_notes( scan_request_id, u'resubmit requested' )
-        self.run_resubmit( scan_request_id )
+        self.retransfer_data( scan_request_id )
         self.update_notes( scan_request_id, u'resubmit completed' )
         return
 
@@ -184,8 +184,18 @@ class TryAgainConfirmationHelper( object ):
         entry.save()
         return
 
-    def run_resubmit( self, scan_request_id ):
-        pass
+    def retransfer_data( self, scan_request_id ):
+        scnrqst = ScanRequest.objects.get( id=scan_request_id )
+        ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=datetime.datetime.now(), data_string=scnrqst.las_conversion )
+        try:
+            sender.transfer_files( data_filename, count_filename )
+            log.debug( u'in models.TryAgainConfirmationHelper.retransfer_data(); `%s` and `%s` re-transferred' % (data_filename, count_filename) )
+        except Exception as e:
+            error_message = unicode( repr(e) )
+            log.error( u'in models.TryAgainConfirmationHelper.retransfer_data(); error, `%s`' % error_message )
+            request_view_post_helper = RequestViewPostHelper()
+            request_view_post_helper.email_admins_on_error( error_message )
+        return
 
     # end class TryAgainConfirmationHelper
 
@@ -459,8 +469,7 @@ class RequestViewPostHelper( object ):
     def transfer_data( self, scnrqst ):
         """ Transfers data.
             Called by handle_valid_form() """
-        ( data_filename, count_filename ) = prepper.make_data_files(
-            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
         try:
             sender.transfer_files( data_filename, count_filename )
             scnrqst.status = u'transferred'
