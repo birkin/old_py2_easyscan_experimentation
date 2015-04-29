@@ -193,7 +193,6 @@ class TryAgainConfirmationHelper( object ):
         scnrqst = ScanRequest.objects.get( id=scan_request_id )
         ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=datetime.datetime.now(), data_string=scnrqst.las_conversion )
         try:
-            1/0
             sender.transfer_files( data_filename, count_filename )
             check = { u'success': True, u'data_filename': data_filename, u'count_filename': count_filename }
         except Exception as e:
