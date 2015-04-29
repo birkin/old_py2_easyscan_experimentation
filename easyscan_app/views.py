@@ -113,7 +113,6 @@ def try_again_confirmation( request, scan_request_id ):
         data_dct = try_again_confirmation_helper.build_get_data_dct( scan_request_id )
         return try_again_confirmation_helper.build_get_response( request, data_dct )
     if request.method == u'POST':
-        log.debug( u'in views.try_again_confirmation(); POST detected' )
         if request.session.get(u'try_again_confirmation_page_accessed') == True:
             try_again_confirmation_helper.resubmit_request( request, scan_request_id )
         return HttpResponseRedirect( reverse(u'try_again_url') )

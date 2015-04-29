@@ -169,6 +169,22 @@ class TryAgainConfirmationHelper( object ):
             Called by views.try_again_confirmation() """
         log.debug( u'in models.TryAgainConfirmationHelper.resubmit_request(); resubmit requested' )
         request.session[u'try_again_confirmation_page_accessed'] = False
+        request.session[u'scan_request_id'] = None
+        self.update_notes( scan_request_id, u'resubmit requested' )
+        self.run_resubmit( scan_request_id )
+        self.update_notes( scan_request_id, u'resubmit completed' )
+        return
+
+    def update_notes( self, scan_request_id, message ):
+        """ Updates admin-note with datetime stamp.
+            Called by resubmit_request() """
+        entry = ScanRequest.objects.get( id=scan_request_id )
+        entry.admin_notes = u'%s -- %s\r || %s' % (
+            unicode( datetime.datetime.now() ), message, entry.admin_notes )
+        entry.save()
+        return
+
+    def run_resubmit( self, scan_request_id ):
         pass
 
     # end class TryAgainConfirmationHelper
