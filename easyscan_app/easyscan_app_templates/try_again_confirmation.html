@@ -43,7 +43,8 @@ easyScan try-again confirmation
         <li>admin-notes, `{{ entry.fields.admin_notes }}`</li>
     </ul>
 
-    <form method="POST">
+    <form method="POST" action=".">
+        {% csrf_token %}
         <input type="submit" value="Yes, re-submit this scan-request">
         <input type="submit" value="No">
     </form>

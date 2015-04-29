@@ -103,6 +103,7 @@ class TryAgainHelper( object ):
         """ Builds page.
             Called by views.try_again() """
         request.session[u'try_again_page_accessed'] = True
+        # request.session[u'try_again_confirmation_page_accessed'] = False
         data_dct = self.build_data_dct( request )
         format = request.GET.get( u'format', None )
         if request.GET.get( u'format', None ) == u'json':
@@ -129,7 +130,16 @@ class TryAgainHelper( object ):
 class TryAgainConfirmationHelper( object ):
     """ Contains helpers for views.try_again_confirmation() """
 
-    def build_data_dct( self, scan_request_id ):
+    def update_get_session( self, request, scan_request_id ):
+        """ Sets session variables on GET.
+            Called by views.try_again_confirmation() """
+        request.session[u'try_again_page_accessed'] = False
+        request.session[u'try_again_confirmation_page_accessed'] = True
+        request.session[u'scan_request_id'] = scan_request_id
+        log.debug( u'in models.TryAgainConfirmationHelper.update_get_session(); session updated' )
+        return
+
+    def build_get_data_dct( self, scan_request_id ):
         """ Prepares data.
             Called by views.try_again_confirmation() """
         entry = ScanRequest.objects.filter( id=scan_request_id ).first()
@@ -139,9 +149,10 @@ class TryAgainConfirmationHelper( object ):
             data_dct = { u'entry': lst[0] }
         else:
             data_dct = { u'entry': None }
+        log.debug( u'in models.TryAgainConfirmationHelper.build_get_data_dct(); data_dct prepared' )
         return data_dct
 
-    def build_response( self, request, data_dct ):
+    def build_get_response( self, request, data_dct ):
         """ Builds response.
             Called by views.try_again_confirmation() """
         format = request.GET.get( u'format', None )
@@ -150,7 +161,15 @@ class TryAgainConfirmationHelper( object ):
           return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
         else:
             return_response = render( request, u'easyscan_app_templates/try_again_confirmation.html', data_dct )
+        log.debug( u'in models.TryAgainConfirmationHelper.build_get_response(); `get` response prepared' )
         return return_response
+
+    def resubmit_request( self, request, scan_request_id ):
+        """ Updates admin-note that resubmit was requested, runs resubmit, updates admin-note that resubmit was performed.
+            Called by views.try_again_confirmation() """
+        log.debug( u'in models.TryAgainConfirmationHelper.resubmit_request(); resubmit requested' )
+        request.session[u'try_again_confirmation_page_accessed'] = False
+        pass
 
     # end class TryAgainConfirmationHelper
 
