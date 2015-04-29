@@ -118,20 +118,6 @@ def try_again_confirmation( request, scan_request_id ):
         return HttpResponseRedirect( reverse(u'try_again_url') )
 
 
-# def try_again_confirmation( request, scan_request_id ):
-#     """ Confirms, on GET, that the user wants to try the request again.
-#         Performs, on POST, the transfer. """
-#     if request.method == u'GET':
-#         if request.session.get(u'try_again_page_accessed') == True:
-#             request.session[u'try_again_page_accessed'] = False
-#             request.session[u'try_again_confirmation_page_accessed'] = True
-#             data_dct = try_again_confirmation_helper.build_data_dct( scan_request_id )
-#             return_response = try_again_confirmation_helper.build_response( request, data_dct )
-#             return return_response
-#         else:
-#             return HttpResponseRedirect( reverse(u'try_again_url') )
-
-
 def easyscan_js( request ):
     """ Returns modified javascript file for development.
         Hit by a `dev_josiah_easyscan.js` url; production hits the apache-served js file. """
