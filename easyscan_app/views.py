@@ -92,7 +92,7 @@ def shib_logout( request ):
 
 
 def try_again( request ):
-    """ Returns `in_process` as well as recently-transferred records with a try-again button. """
+    """ Displays recent requests with both a try-again link and a view-in-admin link. """
     basic_auth_ok = basic_auth_helper.check_basic_auth( request )
     log.debug( u'in views.try_again(); basic_auth_ok, `%s`' % basic_auth_ok )
     if basic_auth_ok:
@@ -105,15 +105,17 @@ def try_again( request ):
 def try_again_confirmation( request, scan_request_id ):
     """ Confirms, on GET, that the user wants to try the request again.
         Performs, on POST, the transfer. """
+    log.debug( u'in views.try_again_confirmation()' )
     if request.method == u'GET':
-        if request.session.get(u'try_again_page_accessed') == True:
-            request.session[u'try_again_page_accessed'] = False
-            request.session[u'try_again_confirmation_page_accessed'] = True
-            data_dct = try_again_confirmation_helper.build_data_dct( scan_request_id )
-            return_response = try_again_confirmation_helper.build_response( request, data_dct )
-            return return_response
-        else:
+        if not request.session.get(u'try_again_page_accessed') == True:
             return HttpResponseRedirect( reverse(u'try_again_url') )
+        try_again_confirmation_helper.update_get_session( request, scan_request_id )
+        data_dct = try_again_confirmation_helper.build_get_data_dct( scan_request_id )
+        return try_again_confirmation_helper.build_get_response( request, data_dct )
+    if request.method == u'POST':
+        if request.session.get(u'try_again_confirmation_page_accessed') == True:
+            try_again_confirmation_helper.resubmit_request( request, scan_request_id )
+        return HttpResponseRedirect( reverse(u'try_again_url') )
 
 
 def easyscan_js( request ):

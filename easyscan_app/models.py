@@ -27,7 +27,6 @@ sender = Sender()
 class ScanRequest( models.Model ):
     """ Contains user & item data.
         Called by RequestViewPostHelper, TryAgainHelper. """
-
     item_title = models.CharField( blank=True, max_length=200 )
     item_barcode = models.CharField( blank=True, max_length=50 )
     status = models.CharField( max_length=200 )
@@ -120,7 +119,7 @@ class TryAgainHelper( object ):
         jsn = serializers.serialize( u'json', entries )
         lst = json.loads( jsn )
         data_dct = { u'entries': lst, u'entries_count': len( lst ) }
-        # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
+        log.debug( u'in models.TryAgainHelper.build_data_dct(); data_dct prepared' )
         return data_dct
 
     # end class TryAgainHelper
@@ -129,7 +128,16 @@ class TryAgainHelper( object ):
 class TryAgainConfirmationHelper( object ):
     """ Contains helpers for views.try_again_confirmation() """
 
-    def build_data_dct( self, scan_request_id ):
+    def update_get_session( self, request, scan_request_id ):
+        """ Sets session variables on GET.
+            Called by views.try_again_confirmation() """
+        request.session[u'try_again_page_accessed'] = False
+        request.session[u'try_again_confirmation_page_accessed'] = True
+        request.session[u'scan_request_id'] = scan_request_id
+        log.debug( u'in models.TryAgainConfirmationHelper.update_get_session(); session updated' )
+        return
+
+    def build_get_data_dct( self, scan_request_id ):
         """ Prepares data.
             Called by views.try_again_confirmation() """
         entry = ScanRequest.objects.filter( id=scan_request_id ).first()
@@ -139,9 +147,10 @@ class TryAgainConfirmationHelper( object ):
             data_dct = { u'entry': lst[0] }
         else:
             data_dct = { u'entry': None }
+        log.debug( u'in models.TryAgainConfirmationHelper.build_get_data_dct(); data_dct prepared' )
         return data_dct
 
-    def build_response( self, request, data_dct ):
+    def build_get_response( self, request, data_dct ):
         """ Builds response.
             Called by views.try_again_confirmation() """
         format = request.GET.get( u'format', None )
@@ -150,7 +159,46 @@ class TryAgainConfirmationHelper( object ):
           return_response = HttpResponse( jsn, content_type = u'application/javascript; charset=utf-8' )
         else:
             return_response = render( request, u'easyscan_app_templates/try_again_confirmation.html', data_dct )
+        log.debug( u'in models.TryAgainConfirmationHelper.build_get_response(); `get` response prepared' )
         return return_response
+
+    def resubmit_request( self, request, scan_request_id ):
+        """ Updates admin-note that resubmit was requested, runs resubmit, updates admin-note that resubmit was performed.
+            Called by views.try_again_confirmation() """
+        request.session[u'try_again_confirmation_page_accessed'] = False
+        request.session[u'scan_request_id'] = None
+        self.update_notes( scan_request_id, u'resubmit requested' )
+        check = self.retransfer_data( scan_request_id )
+        if check[u'success']:
+            self.update_notes( scan_request_id, u'resubmit completed' )
+        else:
+            self.update_notes( scan_request_id, u'error on resubmit, `%s`' % check[u'error_message'] )
+        log.debug( u'in models.TryAgainConfirmationHelper.resubmit_request(); ending' )
+        return
+
+    def update_notes( self, scan_request_id, message ):
+        """ Updates admin-note with datetime stamp.
+            Called by resubmit_request() """
+        entry = ScanRequest.objects.get( id=scan_request_id )
+        entry.admin_notes = u'%s -- %s\r || %s' % (
+            unicode( datetime.datetime.now() ), message, entry.admin_notes )
+        entry.save()
+        return
+
+    def retransfer_data( self, scan_request_id ):
+        """ Retransfers data; sends admin email on transfer error.
+            Called by resubmit_request() """
+        scnrqst = ScanRequest.objects.get( id=scan_request_id )
+        ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=datetime.datetime.now(), data_string=scnrqst.las_conversion )
+        try:
+            sender.transfer_files( data_filename, count_filename )
+            check = { u'success': True, u'data_filename': data_filename, u'count_filename': count_filename }
+        except Exception as e:
+            request_view_post_helper = RequestViewPostHelper()
+            request_view_post_helper.email_admins_on_error( unicode(repr(e)) )
+            check = { u'success': False, u'error_message': unicode(repr(e)) }
+        log.debug( u'in models.TryAgainConfirmationHelper.retransfer_data(); check, `%s`' % pprint.pformat(check) )
+        return check
 
     # end class TryAgainConfirmationHelper
 
@@ -424,8 +472,7 @@ class RequestViewPostHelper( object ):
     def transfer_data( self, scnrqst ):
         """ Transfers data.
             Called by handle_valid_form() """
-        ( data_filename, count_filename ) = prepper.make_data_files(
-            datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
         try:
             sender.transfer_files( data_filename, count_filename )
             scnrqst.status = u'transferred'
