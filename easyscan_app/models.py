@@ -167,12 +167,15 @@ class TryAgainConfirmationHelper( object ):
     def resubmit_request( self, request, scan_request_id ):
         """ Updates admin-note that resubmit was requested, runs resubmit, updates admin-note that resubmit was performed.
             Called by views.try_again_confirmation() """
-        log.debug( u'in models.TryAgainConfirmationHelper.resubmit_request(); resubmit requested' )
         request.session[u'try_again_confirmation_page_accessed'] = False
         request.session[u'scan_request_id'] = None
         self.update_notes( scan_request_id, u'resubmit requested' )
-        self.retransfer_data( scan_request_id )
-        self.update_notes( scan_request_id, u'resubmit completed' )
+        check = self.retransfer_data( scan_request_id )
+        if check[u'success']:
+            self.update_notes( scan_request_id, u'resubmit completed' )
+        else:
+            self.update_notes( scan_request_id, u'error on resubmit, `%s`' % check[u'error_message'] )
+        log.debug( u'in models.TryAgainConfirmationHelper.resubmit_request(); ending' )
         return
 
     def update_notes( self, scan_request_id, message ):
@@ -190,14 +193,16 @@ class TryAgainConfirmationHelper( object ):
         scnrqst = ScanRequest.objects.get( id=scan_request_id )
         ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=datetime.datetime.now(), data_string=scnrqst.las_conversion )
         try:
+            1/0
             sender.transfer_files( data_filename, count_filename )
-            log.debug( u'in models.TryAgainConfirmationHelper.retransfer_data(); `%s` and `%s` re-transferred' % (data_filename, count_filename) )
+            check = { u'success': True, u'data_filename': data_filename, u'count_filename': count_filename }
         except Exception as e:
-            error_message = unicode( repr(e) )
-            log.error( u'in models.TryAgainConfirmationHelper.retransfer_data(); error, `%s`' % error_message )
             request_view_post_helper = RequestViewPostHelper()
-            request_view_post_helper.email_admins_on_error( error_message )
-        return
+            request_view_post_helper.email_admins_on_error( unicode(repr(e)) )
+            check = { u'success': False, u'error_message': unicode(repr(e)) }
+        log.debug( u'in models.TryAgainConfirmationHelper.retransfer_data(); check, `%s`' % pprint.pformat(check) )
+        return check
+
 
     # end class TryAgainConfirmationHelper
 
