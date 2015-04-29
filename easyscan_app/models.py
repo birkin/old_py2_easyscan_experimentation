@@ -185,6 +185,8 @@ class TryAgainConfirmationHelper( object ):
         return
 
     def retransfer_data( self, scan_request_id ):
+        """ Retransfers data; sends admin email on transfer error.
+            Called by resubmit_request() """
         scnrqst = ScanRequest.objects.get( id=scan_request_id )
         ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=datetime.datetime.now(), data_string=scnrqst.las_conversion )
         try:
