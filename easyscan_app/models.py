@@ -27,7 +27,6 @@ sender = Sender()
 class ScanRequest( models.Model ):
     """ Contains user & item data.
         Called by RequestViewPostHelper, TryAgainHelper. """
-
     item_title = models.CharField( blank=True, max_length=200 )
     item_barcode = models.CharField( blank=True, max_length=50 )
     status = models.CharField( max_length=200 )
@@ -103,7 +102,6 @@ class TryAgainHelper( object ):
         """ Builds page.
             Called by views.try_again() """
         request.session[u'try_again_page_accessed'] = True
-        # request.session[u'try_again_confirmation_page_accessed'] = False
         data_dct = self.build_data_dct( request )
         format = request.GET.get( u'format', None )
         if request.GET.get( u'format', None ) == u'json':
@@ -121,7 +119,7 @@ class TryAgainHelper( object ):
         jsn = serializers.serialize( u'json', entries )
         lst = json.loads( jsn )
         data_dct = { u'entries': lst, u'entries_count': len( lst ) }
-        # log.debug( u'lst, `%s`' % pprint.pformat(lst) )
+        log.debug( u'in models.TryAgainHelper.build_data_dct(); data_dct prepared' )
         return data_dct
 
     # end class TryAgainHelper
@@ -201,7 +199,6 @@ class TryAgainConfirmationHelper( object ):
             check = { u'success': False, u'error_message': unicode(repr(e)) }
         log.debug( u'in models.TryAgainConfirmationHelper.retransfer_data(); check, `%s`' % pprint.pformat(check) )
         return check
-
 
     # end class TryAgainConfirmationHelper
 

@@ -92,7 +92,7 @@ def shib_logout( request ):
 
 
 def try_again( request ):
-    """ Returns `in_process` as well as recently-transferred records with a try-again button. """
+    """ Displays recent requests with both a try-again link and a view-in-admin link. """
     basic_auth_ok = basic_auth_helper.check_basic_auth( request )
     log.debug( u'in views.try_again(); basic_auth_ok, `%s`' % basic_auth_ok )
     if basic_auth_ok:
