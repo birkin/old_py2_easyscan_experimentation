@@ -14,17 +14,38 @@ easyScan try-again confirmation
             margin-top: 2em;
             margin-bottom: 1em;
             text-transform: none }
+        p {
+            margin-bottom: 2em; }
         ul {
             list-style-type: square;
             margin-left: 2em; }
+        li {
+            margin-bottom: .25em; }
         hr {
             margin-bottom: 2em; }
     </style>
 
     <h1>Confirm Try-Again...</h1>
 
-    <p>Are you sure you want to re-send the following scan-request to the Annex?</p>
+    <p id="sure">Are you sure you want to re-send the following scan-request to the Annex?</p>
 
-    <p>blah...</p>
+    <ul>
+        <li>request-datetime, `{{ entry.fields.create_datetime }}`; id, `{{ entry.pk }}`</li>
+        <li>item-title, `{{ entry.fields.item_title }}`; item-volume/year, `{{ entry.fields.item_volume_year }}`; item-barcode, `{{ entry.fields.item_barcode }}` </li>
+        <li>patron-name, `{{ entry.fields.patron_name }}`; patron-email, `{{ entry.fields.patron_email }}`; patron-barcode, `{{ entry.fields.patron_barcode }}` </li>
+        <li>additional info...</li>
+        <ul>
+            <li>article / chapter-title, `{{ entry.fields.item_chap_vol_title }}`</li>
+            <li>page-range, `{{ entry.fields.item_page_range_other }}`</li>
+            <li>other, `{{ entry.fields.item_other }}`</li>
+        </ul>
+        <li>status, `{{ entry.fields.status }}`</li>
+        <li>admin-notes, `{{ entry.fields.admin_notes }}`</li>
+    </ul>
+
+    <form method="POST">
+        <input type="submit" value="Yes, re-submit this scan-request">
+        <input type="submit" value="No">
+    </form>
 
 {% endblock content %}
