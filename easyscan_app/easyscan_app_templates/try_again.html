@@ -40,7 +40,7 @@ easyScan try-again
             <li>other, `{{ entry.fields.item_other }}`</li>
         </ul>
         <li>status, `{{ entry.fields.status }}`</li>
-        <li>admin-notes, `{{ entry.fields.admin_notes }}`</li>
+        <li>admin-notes, `<pre>{{ entry.fields.admin_notes }}</pre>`</li>
         <li>options,
             <a href="./confirm/{{ entry.pk }}/">Try Transfer Again</a>;
             <a href="/easyscan/admin/easyscan_app/scanrequest/{{ entry.pk }}/">View Admin Entry</a>
