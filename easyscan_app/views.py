@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging, os, pprint
+import datetime, logging, os, pprint
 from django.conf import settings as project_settings
 from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
@@ -20,6 +20,7 @@ confirmation_vew_helper = models.ConfirmationViewHelper()
 try_again_helper = models.TryAgainHelper()
 try_again_confirmation_helper = models.TryAgainConfirmationHelper()
 basic_auth_helper = models.BasicAuthHelper()
+stats_builder = models.StatsBuilder()
 
 
 def info( request ):
@@ -93,7 +94,13 @@ def shib_logout( request ):
 
 def stats( request ):
     """ (TODO) Prepares stats for given dates; returns json. """
-    return HttpResponse( u'not yet implemented' )
+    ## grab & validate params
+    # if stats_builder.check_params(request) == False:
+    #     return HttpResponse( u'problem' )
+    ## query records for period
+    ## parse them via source
+    ## build response
+    return HttpResponse( u'%s - not yet implemented' % unicode(datetime.datetime.now()) )
 
 
 def try_again( request ):
