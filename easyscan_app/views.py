@@ -4,7 +4,7 @@ import datetime, logging, os, pprint
 from django.conf import settings as project_settings
 from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.http import urlquote
 from easyscan_app import models
@@ -92,11 +92,11 @@ def shib_logout( request ):
     return HttpResponseRedirect( redirect_url )
 
 
-def stats( request ):
+def stats_v1( request ):
     """ (TODO) Prepares stats for given dates; returns json. """
     ## grab & validate params
-    # if stats_builder.check_params(request) == False:
-    #     return HttpResponse( u'problem' )
+    if stats_builder.check_params( request.GET, request.META[u'SERVER_NAME'] ) == False:
+        return HttpResponseBadRequest( stats_builder.output, content_type=u'application/javascript; charset=utf-8' )
     ## query records for period
     ## parse them via source
     ## build response

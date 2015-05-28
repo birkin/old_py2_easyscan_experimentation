@@ -15,7 +15,7 @@ urlpatterns = patterns('',
 
     url( r'^confirmation/$',  'easyscan_app.views.confirmation', name=u'confirmation_url' ),
 
-    url( r'^stats/$',  'easyscan_app.views.stats', name=u'stats_url' ),
+    url( r'^stats_api/v1/$',  'easyscan_app.views.stats_v1', name=u'stats_v1_url' ),
 
     url( r'^admin/try_again/$',  'easyscan_app.views.try_again', name=u'try_again_url' ),
     url( r'^admin/try_again/confirm/(?P<scan_request_id>[^/]+)/$',  'easyscan_app.views.try_again_confirmation', name=u'try_again_confirmation_url' ),
