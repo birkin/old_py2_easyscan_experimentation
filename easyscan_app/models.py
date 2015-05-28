@@ -704,3 +704,12 @@ class ConfirmationViewHelper( object ):
         return return_response
 
     # end class ConfirmationViewHelper
+
+
+class StatsBuilder( object ):
+    """ Handles stats-api calls. """
+
+    def foo( self ):
+        return u'bar'
+
+    # end class StatsBuilder
