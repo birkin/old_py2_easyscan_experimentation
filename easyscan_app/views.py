@@ -91,6 +91,11 @@ def shib_logout( request ):
     return HttpResponseRedirect( redirect_url )
 
 
+def stats( request ):
+    """ (TODO) Prepares stats for given dates; returns json. """
+    return HttpResponse( u'not yet implemented' )
+
+
 def try_again( request ):
     """ Displays recent requests with both a try-again link and a view-in-admin link. """
     basic_auth_ok = basic_auth_helper.check_basic_auth( request )
