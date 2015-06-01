@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import datetime
+import datetime, pprint
+from django.http import QueryDict
 from django.test import TestCase
-from easyscan_app.models import LasDataMaker
+from easyscan_app.models import LasDataMaker, ScanRequest, StatsBuilder
 from easyscan_app.lib.magic_bus import Prepper
 
 
 maker = LasDataMaker()
 prepper = Prepper()
+statsbuilder = StatsBuilder()
 
 
 class LasDataMakerTest( TestCase ):
@@ -74,3 +76,27 @@ class MagicBusPrepperTest( TestCase ):
             )
 
     # end class MagicBusPrepperTest
+
+
+class StatsBuilderTest( TestCase ):
+    """ Tests models.py StatsBuilder() """
+
+    def test__check_params( self ):
+        """ Tests keys. """
+        ## bad params
+        qdict = QueryDict( u'', mutable=True ); qdict.update( {u'start': u'a', u'end': u'b'} )
+        self.assertEqual( False, statsbuilder.check_params(qdict, u'server_name') )
+        ## good params
+        qdict = QueryDict( u'', mutable=True ); qdict.update( {u'start_date': 'a', u'end_date': 'b'} )
+        self.assertEqual( True, statsbuilder.check_params(qdict, u'server_name') )
+
+    def test__run_query( self ):
+        """ Tests that scanrequest is found and returned. """
+        sr = ScanRequest( item_title=u'foo' )
+        sr.save()
+        qdict = QueryDict( u'', mutable=True ); qdict.update( {u'start_date': datetime.date.today(), u'end_date': datetime.date.today()} )
+        statsbuilder.check_params( qdict, u'server_name' )
+        results = statsbuilder.run_query()
+        self.assertEqual( 1, len(results) )
+
+

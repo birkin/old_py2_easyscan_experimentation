@@ -93,14 +93,17 @@ def shib_logout( request ):
 
 
 def stats_v1( request ):
-    """ (TODO) Prepares stats for given dates; returns json. """
+    """ Prepares stats for given dates; returns json. """
     ## grab & validate params
     if stats_builder.check_params( request.GET, request.META[u'SERVER_NAME'] ) == False:
         return HttpResponseBadRequest( stats_builder.output, content_type=u'application/javascript; charset=utf-8' )
-    ## query records for period
-    ## parse them via source
+    ## query records for period (parse them via source)
+    requests = stats_builder.run_query()
+    ## process results
+    data = stats_builder.process_results( requests )
     ## build response
-    return HttpResponse( u'%s - not yet implemented' % unicode(datetime.datetime.now()) )
+    stats_builder.build_response( data )
+    return HttpResponse( stats_builder.output, content_type=u'application/javascript; charset=utf-8' )
 
 
 def try_again( request ):

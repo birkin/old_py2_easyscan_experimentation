@@ -717,6 +717,7 @@ class StatsBuilder( object ):
     def check_params( self, get_params, server_name ):
         """ Checks parameters; returns boolean.
             Called by views.stats_v1() """
+        log.debug( u'get_params, `%s`' % get_params )
         if u'start_date' not in get_params or u'end_date' not in get_params:  # not valid
             self._handle_bad_params( server_name )
             return False
@@ -724,6 +725,34 @@ class StatsBuilder( object ):
             self.date_start = u'%s 00:00:00' % get_params[u'start_date']
             self.date_end = u'%s 23:59:59' % get_params[u'end_date']
             return True
+
+    def run_query( self ):
+        """ Queries db.
+            Called by views.stats_v1() """
+        requests = ScanRequest.objects.filter(
+            create_datetime__gte=self.date_start).filter(create_datetime__lte=self.date_end)
+        return requests
+
+    def process_results( self, requests ):
+        """ Extracts desired data from resultset.
+            Called by views.stats_v1() """
+        data = { u'count_request_for_period': len(requests) }
+        for request in requests:
+            # TODO: add in 'source'
+            pass
+        return data
+
+    def build_response( self, data ):
+        """ Builds json response.
+            Called by views.stats_v1() """
+        jdict = {
+            u'request': {
+                u'date_begin': self.date_start, u'date_end': self.date_end },
+            u'response': {
+                u'count_total': data[u'count_request_for_period'] }
+            }
+        self.output = json.dumps( jdict, sort_keys=True, indent=2 )
+        return
 
     def _handle_bad_params( self, server_name ):
         """ Prepares bad-parameters data.
