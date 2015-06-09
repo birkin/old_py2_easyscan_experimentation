@@ -134,27 +134,6 @@ var esyscn_flow_manager = new function() {
     }
   }
 
-  // var check_annex_request_start = function() {
-  //   console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); starting" );
-  //   if ( location.toString().search("goal=request_annex_item") != -1 ){
-  //     console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); detected `goal=request_annex_item`" );
-  //     var annex_doc = document.getElementById( "annex" );
-  //     annex_doc.style.display = "block";
-  //     var divs = document.getElementsByTagName( "div" );
-  //     for( var i=0; i < divs.length; i++ ) {
-  //       var div = divs[i];
-  //       var id = div.id;
-  //       if ( (id != "requestForm") && (id != "footer") && (id != "banner") && (id != "banner_text") && (id != "requesting") && (id != "wrapper") && (id != "container_padded") && (id != "annex") ) {
-  //         div.style.display = "none";
-  //       }
-  //       if ( (id != "requestForm") || (id != "annex") ) {
-  //         div.style.display = "block";
-  //       }
-  //     }
-  //   }
-  //   console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); done" );
-  // }
-
 };  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
 
 
@@ -260,7 +239,10 @@ var esyscn_row_processor = new function() {
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
-    request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
+    // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
+    // request_item_manager.display_request_link( easyscan_link_element, local_bibnum, row_dict["barcode"] );
+    // request_item_manager.display_request_link( last_cell, local_bibnum, row_dict["barcode"] );
+    request_item_manager.display_request_link( row, local_bibnum, row_dict["barcode"] );
     return;
   }
 
