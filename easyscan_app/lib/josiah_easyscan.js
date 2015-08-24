@@ -8,23 +8,25 @@ var esyscn_flow_manager = new function() {
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    *
    * Controller class flow description:
-   * - Attempts to grab title from where it would be on an items-page -- FUTURE: don't grab title: always go for bibnumber
-   * - If title blank, attempts to grab bibnumber from where it might be on a holdings-page
-   * - If no bibnumber, attempts to grab bibnumber from bib-page's html, getting there via holdings page link
+   * - Attempts to grab bib from permalink page
+   * - If bib null, attempts to grab bib from where it might be on a holdings-page
+   * - If bib null, attempts to grab bib from bib-page's html, getting there via holdings page link
+   * - If bib null, proceeds to item-rows processing
    * - Finds all item-rows and for each row:
-   *   - Calls namespace `esyscn_row_processor` to process the row, which builds the links
+   *   - Calls namespace `esyscn_row_processor` to process the row
+   *     - If bib null, row-processing tries to grab bib from multiple-result-page's enclosing element's input field
+   *     - Row-processing then builds the links
    *   - Deletes item-barcode html
    *
    * Reference:
    * - items page: <http://josiah.brown.edu/record=b4069600>
-   * - holdings page: <http://josiah.brown.edu/search~S7?/.b4069600/.b4069600/1,1,1,B/holdings~4069600&FF=&1,0,>
-   * - results page: <http://josiah.brown.edu/search~S11/?searchtype=X&searcharg=zen&searchscope=11&sortdropdown=-&SORT=D&extended=1&SUBMIT=Search&searchlimits=&searchorigarg=tzen>
+   * - holdings page containing bib: <http://josiah.brown.edu/search~S7?/.b4069600/.b4069600/1,1,1,B/holdings~4069600&FF=&1,0,>
+   * - holdings page without direct bib: <http://josiah.brown.edu/search~S7?/XAmerican+imago&searchscope=7&SORT=D/XAmerican+imago&searchscope=7&SORT=D&searchscope=07&SUBKEY=American+imago/1,53,53,B/holdings&FF=XAmerican+imago&2,2,>
+   * - multiple results page: <http://josiah.brown.edu/search~S11/?searchtype=X&searcharg=zen&searchscope=11&sortdropdown=-&SORT=D&extended=1&SUBMIT=Search&searchlimits=&searchorigarg=tzen>
    */
 
   var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
   var bibnum = null;
-
-
 
   this.check_already_run = function() {
     /* Checks to see if javascript has already been run.
@@ -39,22 +41,6 @@ var esyscn_flow_manager = new function() {
       grab_permalink_bib();
     }
   }
-
-  // this.check_already_run = function() {
-  //   /* Checks to see if javascript has already been run.
-  //    * Called by document.ready()
-  //    */
-  //   var all_html = $("body").html().toString();  // jquery already loaded (whew)
-  //   var index = all_html.indexOf( "Request Scan" );
-  //   if (index != -1) {
-  //     console.log( "- aready run" );
-  //   } else {
-  //     console.log( "- not already run" );
-  //     grab_title();
-  //   }
-  // }
-
-
 
   var grab_permalink_bib = function() {
     /* Grabs bib via #recordnum; then continues processing.
@@ -77,24 +63,6 @@ var esyscn_flow_manager = new function() {
     }
   }
 
-  // var grab_permalink_bib = function() {
-  //   /* Grabs bib via #recordnum; then continues processing.
-  //    * Called by check_already_run()
-  //    */
-  //   var elmnt = document.querySelector( "#recordnum" );
-  //   var url_string = elmnt.href;
-  //   var segments = url_string.split( "=" )[1];
-  //   bibnum = segments.slice( 0,8 );
-  //   console.log( "- bibnum, " + bibnum );
-  //   if ( bibnum == null ) {
-  //     check_holdings_html();
-  //   } else {
-  //     process_item_table();
-  //   }
-  // }
-
-
-
   var check_holdings_html_for_bib = function() {
     /* Looks for presence of bib-page link (link may or may not contain bibnum).
      * Called by grab_permalink_bib() if bib is null.
@@ -116,25 +84,6 @@ var esyscn_flow_manager = new function() {
     }
   }
 
-  // var check_holdings_html = function() {
-  //   /* Looks for presence of bib-page link (link may or may not contain bibnum).
-  //    * Called by grab_permalink_bib() if bib is null.
-  //    */
-  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
-  //   if ( dvs.length > 0 ) {
-  //     var dv = dvs[0];
-  //     var el = dv.children[0];  // the div contains a link with the bibnum
-  //     var href_string = el.toString();
-  //     console.log( "in check_holdings_html(); href_string, " + href_string );
-  //     grab_bib_from_holdings_html( href_string )
-  //   } else {
-  //     console.log( "in check_holdings_html(); dvs length must be zero" );
-  //     process_item_table();
-  //   }
-  // }
-
-
-
   var grab_bib_from_holdings_html = function( href_string ) {
     /* Tries to determine bibnum from holdings html; then continues processing.
      * Called by grab_title() if title is null.
@@ -143,13 +92,8 @@ var esyscn_flow_manager = new function() {
     if ( segment.length == 9 && segment.slice( 0,2 ) == ".b" ) {
       bibnum = segment.slice( 1, 9 );  // updates module var
       console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
-      // title = null;
-    //   process_item_table();
-    // } else {
-    //   grab_bib_from_holdings_html_2( href_string );
     }
   }
-
 
   var grab_bib_from_following_href = function( href_string ) {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
@@ -172,59 +116,6 @@ var esyscn_flow_manager = new function() {
     } );
   }
 
-  // var grab_bib_from_following_href = function( href_string ) {
-  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
-  //    * Called by grab_bib_from_holdings_html()
-  //    */
-  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
-  //   $.get( href_string, function(data) {
-  //     var div_temp = document.createElement( "div_temp" );
-  //     div_temp.innerHTML = data;
-  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
-  //     var bib_temp = nodes[0].href.split( "=" )[1];
-  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
-  //   } );
-  //   console.log( "- in grab_bib_from_following_href(); outside of $.get(); bibnum is, " + bibnum );
-  //   // var title = null;
-  //   process_item_table();
-  // }
-
-  // var grab_bib_from_holdings_html_2 = function( href_string ) {
-  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
-  //    * Called by grab_bib_from_holdings_html()
-  //    */
-  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
-  //   $.get( href_string, function(data) {
-  //     var div_temp = document.createElement( "div_temp" );
-  //     div_temp.innerHTML = data;
-  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
-  //     var bib_temp = nodes[0].href.split( "=" )[1];
-  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
-  //   } );
-  //   console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
-  //   // var title = null;
-  //   process_item_table();
-  // }
-
-  // var grab_bib_from_holdings_html_2 = function( href_string ) {
-  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
-  //    * Called by grab_bib_from_holdings_html()
-  //    */
-  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
-  //   $.get( href_string, function(data) {
-  //     var div_temp = document.createElement( "div_temp" );
-  //     div_temp.innerHTML = data;
-  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
-  //     var bib_temp = nodes[0].href.split( "=" )[1];
-  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
-  //   } );
-  //   console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
-  //   var title = null;
-  //   process_item_table( title );
-  // }
-
-
-
   var process_item_table = function() {
     /* Updates bib-items to show request-scan links.
      * Called by grab_title() or grab_bib_from_holdings_html()
@@ -237,20 +128,6 @@ var esyscn_flow_manager = new function() {
     }
     delete_header_cell();
   }
-
-  // var process_item_table = function( title ) {
-  //   /* Updates bib-items to show request-scan links.
-  //    * Called by grab_title() or grab_bib_from_holdings_html()
-  //    */
-  //   console.log( "- in process_item_table(); bibnum is, " + bibnum );
-  //   var rows = $( ".bibItemsEntry" );
-  //   for (var i = 0; i < rows.length; i++) {
-  //     var row = rows[i];
-  //     esyscn_row_processor.process_item( row, title, cell_position_map, bibnum );
-  //   }
-  //   delete_header_cell();
-  // }
-
 
   var delete_header_cell = function() {
     /* Deletes barcode header cell
