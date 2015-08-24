@@ -291,6 +291,7 @@ var esyscn_row_processor = new function() {
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       if ( local_bibnum == null ) {
         console.log( "would handle blank bibnum here" );
+        local_bibnum = grab_ancestor_bib( row );
       }
       // if ( title == null && local_bibnum == null ) {
       //   title = grab_ancestor_title( row );
@@ -365,6 +366,18 @@ var esyscn_row_processor = new function() {
   }
 
 
+
+  var grab_ancestor_bib = function( row ) {
+    /* Grabs bib on results page.
+     * Called by process_item()
+     */
+    var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
+    console.log( "- in grab_ancestor_bib(); big_element, `" + big_element + "`" );
+    var temp_bibnum = big_element.querySelector( "input" ).value;
+    console.log( "- in grab_ancestor_bib(); temp_bibnum, `" + temp_bibnum + "`" );
+    return temp_bibnum;
+  }
+
   // var grab_ancestor_title = function( row ) {
   //   /* Grabs title on results page.
   //    * Called by process_item()
@@ -378,6 +391,7 @@ var esyscn_row_processor = new function() {
   //   console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
   //   return title;
   // }
+
 
 
   var update_row = function( row_dict, row ) {
