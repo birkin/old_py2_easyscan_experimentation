@@ -8,17 +8,21 @@ var esyscn_flow_manager = new function() {
    * Only check_already_run() can be called publicly, and only via ```esyscn.check_already_run();```.
    *
    * Controller class flow description:
-   * - Attempts to grab title from where it would be on an items-page -- FUTURE: don't grab title: always go for bibnumber
-   * - If title blank, attempts to grab bibnumber from where it might be on a holdings-page
-   * - If no bibnumber, attempts to grab bibnumber from bib-page's html, getting there via holdings page link
+   * - Attempts to grab bib from permalink page
+   * - If bib null, attempts to grab bib from where it might be on a holdings-page
+   * - If bib null, attempts to grab bib from bib-page's html, getting there via holdings page link
+   * - If bib null, proceeds to item-rows processing
    * - Finds all item-rows and for each row:
-   *   - Calls namespace `esyscn_row_processor` to process the row, which builds the links
+   *   - Calls namespace `esyscn_row_processor` to process the row
+   *     - If bib null, row-processing tries to grab bib from multiple-result-page's enclosing element's input field
+   *     - Row-processing then builds the links
    *   - Deletes item-barcode html
    *
    * Reference:
    * - items page: <http://josiah.brown.edu/record=b4069600>
-   * - holdings page: <http://josiah.brown.edu/search~S7?/.b4069600/.b4069600/1,1,1,B/holdings~4069600&FF=&1,0,>
-   * - results page: <http://josiah.brown.edu/search~S11/?searchtype=X&searcharg=zen&searchscope=11&sortdropdown=-&SORT=D&extended=1&SUBMIT=Search&searchlimits=&searchorigarg=tzen>
+   * - holdings page containing bib: <http://josiah.brown.edu/search~S7?/.b4069600/.b4069600/1,1,1,B/holdings~4069600&FF=&1,0,>
+   * - holdings page without direct bib: <http://josiah.brown.edu/search~S7?/XAmerican+imago&searchscope=7&SORT=D/XAmerican+imago&searchscope=7&SORT=D&searchscope=07&SUBKEY=American+imago/1,53,53,B/holdings&FF=XAmerican+imago&2,2,>
+   * - multiple results page: <http://josiah.brown.edu/search~S11/?searchtype=X&searcharg=zen&searchscope=11&sortdropdown=-&SORT=D&extended=1&SUBMIT=Search&searchlimits=&searchorigarg=tzen>
    */
 
   var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
@@ -34,43 +38,49 @@ var esyscn_flow_manager = new function() {
       console.log( "- aready run" );
     } else {
       console.log( "- not already run" );
-      grab_title();
+      grab_permalink_bib();
     }
   }
 
-  var grab_title = function() {
-    /* Tries to grab bib title from `items` page; then continues processing.
+  var grab_permalink_bib = function() {
+    /* Grabs bib via #recordnum; then continues processing.
      * Called by check_already_run()
-     * FUTURE: no grabbing title, straight to attempted item-page bibnumber grab
      */
-    var title = null;
-    var els = document.querySelectorAll( ".bibInfoData" );
-    if ( els.length > 0 ) {
-      var el = els[0];
-      title = el.textContent.trim();
-    }
-    console.log( "- title, " + title );
-    if ( title == null ){
-      check_holdings_html();
+    var elmnt = document.querySelector( "#recordnum" );
+    console.log( 'elmnt, ' + elmnt )
+    if ( elmnt == null ) {
+      check_holdings_html_for_bib();
     } else {
-      process_item_table( title );
+      var url_string = elmnt.href;
+      var segments = url_string.split( "=" )[1];
+      bibnum = segments.slice( 0,8 );
+      console.log( "- bibnum, " + bibnum );
+      if ( bibnum == null ) {
+        check_holdings_html_for_bib();
+      } else {
+        process_item_table();
+      }
     }
   }
 
-  var check_holdings_html = function() {
+  var check_holdings_html_for_bib = function() {
     /* Looks for presence of bib-page link (link may or may not contain bibnum).
-     * Called by grab_title() if title is null.
+     * Called by grab_permalink_bib() if bib is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
     if ( dvs.length > 0 ) {
+      console.log( "in check_holdings_html_for_bib(); checking dvs" );
       var dv = dvs[0];
       var el = dv.children[0];  // the div contains a link with the bibnum
       var href_string = el.toString();
-      console.log( "in check_holdings_html(); href_string, " + href_string );
+      console.log( "in check_holdings_html_for_bib(); href_string, " + href_string );
       grab_bib_from_holdings_html( href_string )
+    }
+    if ( bibnum == null ) {
+      console.log( "in check_holdings_html_for_bib(); no bib luck yet" );
+      grab_bib_from_following_href( href_string );
     } else {
-      title = null;
-      process_item_table( title );
+      process_item_table();
     }
   }
 
@@ -82,14 +92,10 @@ var esyscn_flow_manager = new function() {
     if ( segment.length == 9 && segment.slice( 0,2 ) == ".b" ) {
       bibnum = segment.slice( 1, 9 );  // updates module var
       console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
-      title = null;
-      process_item_table( title );
-    } else {
-      grab_bib_from_holdings_html_2( href_string );
     }
   }
 
-  var grab_bib_from_holdings_html_2 = function( href_string ) {
+  var grab_bib_from_following_href = function( href_string ) {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
      * Called by grab_bib_from_holdings_html()
      */
@@ -98,15 +104,19 @@ var esyscn_flow_manager = new function() {
       var div_temp = document.createElement( "div_temp" );
       div_temp.innerHTML = data;
       var nodes = div_temp.querySelectorAll( "#recordnum" );
-      var bib_temp = nodes[0].href.split( "=" )[1];
-      bibnum = bib_temp.slice( 0,8 );  // updates module's var
+      console.log( "nodes.length, " + nodes.length );
+      if ( nodes.length > 0 ) {
+        var bib_temp = nodes[0].href.split( "=" )[1];
+        bibnum = bib_temp.slice( 0,8 );  // updates module's var
+        console.log( "- in grab_bib_from_following_href(); outside of $.get(); bibnum is, " + bibnum );
+      } else {
+        console.log( "ah, the tricky multiple results page" );
+      }
+      process_item_table();  // process it either way
     } );
-    console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
-    var title = null;
-    process_item_table( title );
   }
 
-  var process_item_table = function( title ) {
+  var process_item_table = function() {
     /* Updates bib-items to show request-scan links.
      * Called by grab_title() or grab_bib_from_holdings_html()
      */
@@ -114,7 +124,7 @@ var esyscn_flow_manager = new function() {
     var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
-      esyscn_row_processor.process_item( row, title, cell_position_map, bibnum );
+      esyscn_row_processor.process_item( row, cell_position_map, bibnum );
     }
     delete_header_cell();
   }
@@ -134,27 +144,6 @@ var esyscn_flow_manager = new function() {
     }
   }
 
-  // var check_annex_request_start = function() {
-  //   console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); starting" );
-  //   if ( location.toString().search("goal=request_annex_item") != -1 ){
-  //     console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); detected `goal=request_annex_item`" );
-  //     var annex_doc = document.getElementById( "annex" );
-  //     annex_doc.style.display = "block";
-  //     var divs = document.getElementsByTagName( "div" );
-  //     for( var i=0; i < divs.length; i++ ) {
-  //       var div = divs[i];
-  //       var id = div.id;
-  //       if ( (id != "requestForm") && (id != "footer") && (id != "banner") && (id != "banner_text") && (id != "requesting") && (id != "wrapper") && (id != "container_padded") && (id != "annex") ) {
-  //         div.style.display = "none";
-  //       }
-  //       if ( (id != "requestForm") || (id != "annex") ) {
-  //         div.style.display = "block";
-  //       }
-  //     }
-  //   }
-  //   console.log( "- in josiah_easyscan.esyscn_flow_manager.check_annex_request_start(); done" );
-  // }
-
 };  // end namespace esyscn_flow_manager, ```var esyscn_flow_manager = new function() {```
 
 
@@ -162,24 +151,27 @@ var esyscn_row_processor = new function() {
   /*
    * Class flow description:
    *   - Determines whether to show a scan button
-   *   - If so, and if title still blank, grabs title from where it would be on a results page
-   *   - Builds and displays 'Request Scan' link from title, and barcode and item-info in row's html
+   *   - If so, and if bib still blank, grabs bib from where it would be on a multiple-results page
+   *   - Builds and displays 'Request Scan' link from bib and barcode and item-info in row's html
+   *   - Calls the 'Request Item' link builder from `josiah_request_item.js`
    */
 
   var local_cell_position_map = null;
   var local_bibnum = null;
 
-  this.process_item = function( row, title, cell_position_map, bibnum ) {
+
+  this.process_item = function( row, cell_position_map, bibnum ) {
     /* Processes each row.
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
     var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-      if ( title == null && local_bibnum == null ) {
-        title = grab_ancestor_title( row );
+      if ( local_bibnum == null ) {
+        console.log( "would handle blank bibnum here" );
+        local_bibnum = grab_ancestor_bib( row );
       }
-      update_row( title, row_dict, row );
+      update_row( row_dict, row );
     }
     row.deleteCell( cell_position_map["barcode"] );
   }
@@ -227,52 +219,47 @@ var esyscn_row_processor = new function() {
     if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
         row_evaluation = { "show_scan_button": true };
     }
-    // console.log( "- row_evaluation, " + row_evaluation );
     console.log( "- row_evaluation, " + JSON.stringify(row_evaluation, null, 4) );
     return row_evaluation;
   }
 
-  var grab_ancestor_title = function( row ) {
-    /* Grabs title on results page.
+  var grab_ancestor_bib = function( row ) {
+    /* Grabs bib on results page.
      * Called by process_item()
      */
     var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
-    console.log( "- in grab_ancestor_title(); big_element, `" + big_element + "`" );
-    var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
-    console.log( "- in grab_ancestor_title(); title_td, `" + title_td + "`" );
-    var title_plus = title_td.textContent.trim();
-    var title = title_plus.split("\n")[0];
-    console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
-    return title;
+    console.log( "- in grab_ancestor_bib(); big_element, `" + big_element + "`" );
+    var temp_bibnum = big_element.querySelector( "input" ).value;
+    console.log( "- in grab_ancestor_bib(); temp_bibnum, `" + temp_bibnum + "`" );
+    return temp_bibnum;
   }
 
-  var update_row = function( title, row_dict, row ) {
+  var update_row = function( row_dict, row ) {
     /* Adds `Request Scan` link to row html.
      * Triggers start of request-item link process.
      * Called by process_item()
      */
-    link_html = build_link_html( title, row_dict );
+    link_html = build_link_html( row_dict );
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
-    $( last_cell ).after( link_html );
+    $( last_cell ).after( link_html );  // TODO: build more explicitly with plain js, like jcb project
     console.log( "- request-scan link added" );
     easyscan_link_element = $(last_cell).next();
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
-    request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
+    request_item_manager.display_request_link( row, local_bibnum, row_dict["barcode"] );
     return;
   }
 
-  var build_link_html = function( title, row_dict ) {
+  var build_link_html = function( row_dict ) {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
     // link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
-    link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+    link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
-    link = link.replace( "THETITLE", title );
     link = link.replace( "THEBIBNUM", local_bibnum );
     link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
     console.log( "- link end, " + link );
