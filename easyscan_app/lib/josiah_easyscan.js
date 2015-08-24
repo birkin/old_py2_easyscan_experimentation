@@ -287,11 +287,11 @@ var esyscn_row_processor = new function() {
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
-    if ( local_bibnum == null ) {
-      console.log( "would handle blank bibnum here" );
-    }
     var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+      if ( local_bibnum == null ) {
+        console.log( "would handle blank bibnum here" );
+      }
       // if ( title == null && local_bibnum == null ) {
       //   title = grab_ancestor_title( row );
       // }
