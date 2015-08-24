@@ -151,8 +151,9 @@ var esyscn_row_processor = new function() {
   /*
    * Class flow description:
    *   - Determines whether to show a scan button
-   *   - If so, and if title still blank, grabs title from where it would be on a results page
-   *   - Builds and displays 'Request Scan' link from title, and barcode and item-info in row's html
+   *   - If so, and if bib still blank, grabs bib from where it would be on a multiple-results page
+   *   - Builds and displays 'Request Scan' link from bib and barcode and item-info in row's html
+   *   - Calls the 'Request Item' link builder from `josiah_request_item.js`
    */
 
   var local_cell_position_map = null;
@@ -170,29 +171,10 @@ var esyscn_row_processor = new function() {
         console.log( "would handle blank bibnum here" );
         local_bibnum = grab_ancestor_bib( row );
       }
-      // if ( title == null && local_bibnum == null ) {
-      //   title = grab_ancestor_title( row );
-      // }
       update_row( row_dict, row );
     }
     row.deleteCell( cell_position_map["barcode"] );
   }
-
-  // this.process_item = function( row, title, cell_position_map, bibnum ) {
-  //   /* Processes each row.
-  //    * Called by esyscn_flow_manager.process_item_table()
-  //    */
-  //   init( cell_position_map, bibnum );
-  //   var row_dict = extract_row_data( row );
-  //   if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-  //     if ( title == null && local_bibnum == null ) {
-  //       title = grab_ancestor_title( row );
-  //     }
-  //     update_row( title, row_dict, row );
-  //   }
-  //   row.deleteCell( cell_position_map["barcode"] );
-  // }
-
 
   var init = function( cell_position_map, bibnum ) {
     /* Sets class variables.
@@ -237,12 +219,9 @@ var esyscn_row_processor = new function() {
     if ( (row_dict["location"] == "ANNEX") && (row_dict["availability"] == "AVAILABLE") ) {
         row_evaluation = { "show_scan_button": true };
     }
-    // console.log( "- row_evaluation, " + row_evaluation );
     console.log( "- row_evaluation, " + JSON.stringify(row_evaluation, null, 4) );
     return row_evaluation;
   }
-
-
 
   var grab_ancestor_bib = function( row ) {
     /* Grabs bib on results page.
@@ -254,22 +233,6 @@ var esyscn_row_processor = new function() {
     console.log( "- in grab_ancestor_bib(); temp_bibnum, `" + temp_bibnum + "`" );
     return temp_bibnum;
   }
-
-  // var grab_ancestor_title = function( row ) {
-  //   /* Grabs title on results page.
-  //    * Called by process_item()
-  //    */
-  //   var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
-  //   console.log( "- in grab_ancestor_title(); big_element, `" + big_element + "`" );
-  //   var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
-  //   console.log( "- in grab_ancestor_title(); title_td, `" + title_td + "`" );
-  //   var title_plus = title_td.textContent.trim();
-  //   var title = title_plus.split("\n")[0];
-  //   console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
-  //   return title;
-  // }
-
-
 
   var update_row = function( row_dict, row ) {
     /* Adds `Request Scan` link to row html.
@@ -285,34 +248,9 @@ var esyscn_row_processor = new function() {
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
-    // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
-    // request_item_manager.display_request_link( easyscan_link_element, local_bibnum, row_dict["barcode"] );
-    // request_item_manager.display_request_link( last_cell, local_bibnum, row_dict["barcode"] );
     request_item_manager.display_request_link( row, local_bibnum, row_dict["barcode"] );
     return;
   }
-
-  // var update_row = function( title, row_dict, row ) {
-  //   /* Adds `Request Scan` link to row html.
-  //    * Triggers start of request-item link process.
-  //    * Called by process_item()
-  //    */
-  //   link_html = build_link_html( title, row_dict );
-  //   last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
-  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
-  //   $( last_cell ).after( link_html );
-  //   console.log( "- request-scan link added" );
-  //   easyscan_link_element = $(last_cell).next();
-  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
-  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
-  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
-  //   // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
-  //   // request_item_manager.display_request_link( easyscan_link_element, local_bibnum, row_dict["barcode"] );
-  //   // request_item_manager.display_request_link( last_cell, local_bibnum, row_dict["barcode"] );
-  //   request_item_manager.display_request_link( row, local_bibnum, row_dict["barcode"] );
-  //   return;
-  // }
-
 
   var build_link_html = function( row_dict ) {
     /* Takes row dict; returns html link.
@@ -322,28 +260,11 @@ var esyscn_row_processor = new function() {
     link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
-    // link = link.replace( "THETITLE", title );
     link = link.replace( "THEBIBNUM", local_bibnum );
     link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
     console.log( "- link end, " + link );
     return link;
   }
-
-  // var build_link_html = function( title, row_dict ) {
-  //   /* Takes row dict; returns html link.
-  //    * Called by update_row()
-  //    */
-  //   // link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
-  //   link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
-  //   link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
-  //   link = link.replace( "THEBARCODE", row_dict["barcode"] );
-  //   link = link.replace( "THETITLE", title );
-  //   link = link.replace( "THEBIBNUM", local_bibnum );
-  //   link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
-  //   console.log( "- link end, " + link );
-  //   return link;
-  // }
-
 
 };  // end namespace esyscn_row_processor
 
