@@ -63,14 +63,14 @@ var esyscn_flow_manager = new function() {
     var elmnt = document.querySelector( "#recordnum" );
     console.log( 'elmnt, ' + elmnt )
     if ( elmnt == null ) {
-      check_holdings_html();
+      check_holdings_html_for_bib();
     } else {
       var url_string = elmnt.href;
       var segments = url_string.split( "=" )[1];
       bibnum = segments.slice( 0,8 );
       console.log( "- bibnum, " + bibnum );
       if ( bibnum == null ) {
-        check_holdings_html();
+        check_holdings_html_for_bib();
       } else {
         process_item_table();
       }
@@ -95,43 +95,45 @@ var esyscn_flow_manager = new function() {
 
 
 
-  // var grab_title = function() {
-  //   /* Tries to grab bib title from `items` page; then continues processing.
-  //    * Called by check_already_run()
-  //    * FUTURE: no grabbing title, straight to attempted item-page bibnumber grab
-  //    */
-  //   var title = null;
-  //   var els = document.querySelectorAll( ".bibInfoData" );
-  //   if ( els.length > 0 ) {
-  //     var el = els[0];
-  //     title = el.textContent.trim();
-  //   }
-  //   console.log( "- title, " + title );
-  //   if ( title == null ){
-  //     check_holdings_html();
-  //   } else {
-  //     process_item_table( title );
-  //   }
-  // }
-
-
-
-  var check_holdings_html = function() {
+  var check_holdings_html_for_bib = function() {
     /* Looks for presence of bib-page link (link may or may not contain bibnum).
      * Called by grab_permalink_bib() if bib is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
     if ( dvs.length > 0 ) {
+      console.log( "in check_holdings_html_for_bib(); checking dvs" );
       var dv = dvs[0];
       var el = dv.children[0];  // the div contains a link with the bibnum
       var href_string = el.toString();
-      console.log( "in check_holdings_html(); href_string, " + href_string );
+      console.log( "in check_holdings_html_for_bib(); href_string, " + href_string );
       grab_bib_from_holdings_html( href_string )
+    }
+    if ( bibnum == null ) {
+      console.log( "in check_holdings_html_for_bib(); no bib luck yet" );
+      grab_bib_from_following_href( href_string );
     } else {
-      console.log( "in check_holdings_html(); dvs length must be zero" );
       process_item_table();
     }
   }
+
+  // var check_holdings_html = function() {
+  //   /* Looks for presence of bib-page link (link may or may not contain bibnum).
+  //    * Called by grab_permalink_bib() if bib is null.
+  //    */
+  //   var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
+  //   if ( dvs.length > 0 ) {
+  //     var dv = dvs[0];
+  //     var el = dv.children[0];  // the div contains a link with the bibnum
+  //     var href_string = el.toString();
+  //     console.log( "in check_holdings_html(); href_string, " + href_string );
+  //     grab_bib_from_holdings_html( href_string )
+  //   } else {
+  //     console.log( "in check_holdings_html(); dvs length must be zero" );
+  //     process_item_table();
+  //   }
+  // }
+
+
 
   var grab_bib_from_holdings_html = function( href_string ) {
     /* Tries to determine bibnum from holdings html; then continues processing.
@@ -142,15 +144,14 @@ var esyscn_flow_manager = new function() {
       bibnum = segment.slice( 1, 9 );  // updates module var
       console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
       // title = null;
-      process_item_table();
-    } else {
-      grab_bib_from_holdings_html_2( href_string );
+    //   process_item_table();
+    // } else {
+    //   grab_bib_from_holdings_html_2( href_string );
     }
   }
 
 
-
-  var grab_bib_from_holdings_html_2 = function( href_string ) {
+  var grab_bib_from_following_href = function( href_string ) {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
      * Called by grab_bib_from_holdings_html()
      */
@@ -159,13 +160,51 @@ var esyscn_flow_manager = new function() {
       var div_temp = document.createElement( "div_temp" );
       div_temp.innerHTML = data;
       var nodes = div_temp.querySelectorAll( "#recordnum" );
-      var bib_temp = nodes[0].href.split( "=" )[1];
-      bibnum = bib_temp.slice( 0,8 );  // updates module's var
+      console.log( "nodes.length, " + nodes.length );
+      if ( nodes.length > 0 ) {
+        var bib_temp = nodes[0].href.split( "=" )[1];
+        bibnum = bib_temp.slice( 0,8 );  // updates module's var
+        console.log( "- in grab_bib_from_following_href(); outside of $.get(); bibnum is, " + bibnum );
+      } else {
+        console.log( "ah, the tricky multiple results page" );
+      }
+      process_item_table();  // process it either way
     } );
-    console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
-    // var title = null;
-    process_item_table();
   }
+
+  // var grab_bib_from_following_href = function( href_string ) {
+  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
+  //    * Called by grab_bib_from_holdings_html()
+  //    */
+  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
+  //   $.get( href_string, function(data) {
+  //     var div_temp = document.createElement( "div_temp" );
+  //     div_temp.innerHTML = data;
+  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
+  //     var bib_temp = nodes[0].href.split( "=" )[1];
+  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
+  //   } );
+  //   console.log( "- in grab_bib_from_following_href(); outside of $.get(); bibnum is, " + bibnum );
+  //   // var title = null;
+  //   process_item_table();
+  // }
+
+  // var grab_bib_from_holdings_html_2 = function( href_string ) {
+  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
+  //    * Called by grab_bib_from_holdings_html()
+  //    */
+  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
+  //   $.get( href_string, function(data) {
+  //     var div_temp = document.createElement( "div_temp" );
+  //     div_temp.innerHTML = data;
+  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
+  //     var bib_temp = nodes[0].href.split( "=" )[1];
+  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
+  //   } );
+  //   console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
+  //   // var title = null;
+  //   process_item_table();
+  // }
 
   // var grab_bib_from_holdings_html_2 = function( href_string ) {
   //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
@@ -248,6 +287,9 @@ var esyscn_row_processor = new function() {
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
+    if ( local_bibnum == null ) {
+      console.log( "would handle blank bibnum here" );
+    }
     var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
       // if ( title == null && local_bibnum == null ) {
