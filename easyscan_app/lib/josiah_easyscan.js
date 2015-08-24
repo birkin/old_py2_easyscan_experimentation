@@ -24,6 +24,8 @@ var esyscn_flow_manager = new function() {
   var cell_position_map = { "location": 0, "callnumber": 1, "availability": 2, "barcode": 3 };
   var bibnum = null;
 
+
+
   this.check_already_run = function() {
     /* Checks to see if javascript has already been run.
      * Called by document.ready()
@@ -34,32 +36,89 @@ var esyscn_flow_manager = new function() {
       console.log( "- aready run" );
     } else {
       console.log( "- not already run" );
-      grab_title();
+      grab_permalink_bib();
     }
   }
 
-  var grab_title = function() {
-    /* Tries to grab bib title from `items` page; then continues processing.
+  // this.check_already_run = function() {
+  //   /* Checks to see if javascript has already been run.
+  //    * Called by document.ready()
+  //    */
+  //   var all_html = $("body").html().toString();  // jquery already loaded (whew)
+  //   var index = all_html.indexOf( "Request Scan" );
+  //   if (index != -1) {
+  //     console.log( "- aready run" );
+  //   } else {
+  //     console.log( "- not already run" );
+  //     grab_title();
+  //   }
+  // }
+
+
+
+  var grab_permalink_bib = function() {
+    /* Grabs bib via #recordnum; then continues processing.
      * Called by check_already_run()
-     * FUTURE: no grabbing title, straight to attempted item-page bibnumber grab
      */
-    var title = null;
-    var els = document.querySelectorAll( ".bibInfoData" );
-    if ( els.length > 0 ) {
-      var el = els[0];
-      title = el.textContent.trim();
-    }
-    console.log( "- title, " + title );
-    if ( title == null ){
+    var elmnt = document.querySelector( "#recordnum" );
+    console.log( 'elmnt, ' + elmnt )
+    if ( elmnt == null ) {
       check_holdings_html();
     } else {
-      process_item_table( title );
+      var url_string = elmnt.href;
+      var segments = url_string.split( "=" )[1];
+      bibnum = segments.slice( 0,8 );
+      console.log( "- bibnum, " + bibnum );
+      if ( bibnum == null ) {
+        check_holdings_html();
+      } else {
+        process_item_table();
+      }
     }
   }
+
+  // var grab_permalink_bib = function() {
+  //   /* Grabs bib via #recordnum; then continues processing.
+  //    * Called by check_already_run()
+  //    */
+  //   var elmnt = document.querySelector( "#recordnum" );
+  //   var url_string = elmnt.href;
+  //   var segments = url_string.split( "=" )[1];
+  //   bibnum = segments.slice( 0,8 );
+  //   console.log( "- bibnum, " + bibnum );
+  //   if ( bibnum == null ) {
+  //     check_holdings_html();
+  //   } else {
+  //     process_item_table();
+  //   }
+  // }
+
+
+
+  // var grab_title = function() {
+  //   /* Tries to grab bib title from `items` page; then continues processing.
+  //    * Called by check_already_run()
+  //    * FUTURE: no grabbing title, straight to attempted item-page bibnumber grab
+  //    */
+  //   var title = null;
+  //   var els = document.querySelectorAll( ".bibInfoData" );
+  //   if ( els.length > 0 ) {
+  //     var el = els[0];
+  //     title = el.textContent.trim();
+  //   }
+  //   console.log( "- title, " + title );
+  //   if ( title == null ){
+  //     check_holdings_html();
+  //   } else {
+  //     process_item_table( title );
+  //   }
+  // }
+
+
 
   var check_holdings_html = function() {
     /* Looks for presence of bib-page link (link may or may not contain bibnum).
-     * Called by grab_title() if title is null.
+     * Called by grab_permalink_bib() if bib is null.
      */
     var dvs = document.querySelectorAll(".additionalCopiesNav");  // first of two identical div elements
     if ( dvs.length > 0 ) {
@@ -69,8 +128,8 @@ var esyscn_flow_manager = new function() {
       console.log( "in check_holdings_html(); href_string, " + href_string );
       grab_bib_from_holdings_html( href_string )
     } else {
-      title = null;
-      process_item_table( title );
+      console.log( "in check_holdings_html(); dvs length must be zero" );
+      process_item_table();
     }
   }
 
@@ -82,12 +141,14 @@ var esyscn_flow_manager = new function() {
     if ( segment.length == 9 && segment.slice( 0,2 ) == ".b" ) {
       bibnum = segment.slice( 1, 9 );  // updates module var
       console.log( "in grab_bib_from_holdings_html(); bibnum, " + bibnum );
-      title = null;
-      process_item_table( title );
+      // title = null;
+      process_item_table();
     } else {
       grab_bib_from_holdings_html_2( href_string );
     }
   }
+
+
 
   var grab_bib_from_holdings_html_2 = function( href_string ) {
     /* Tries to load bib-page and grab bib from permalink element; then continues processing.
@@ -102,11 +163,30 @@ var esyscn_flow_manager = new function() {
       bibnum = bib_temp.slice( 0,8 );  // updates module's var
     } );
     console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
-    var title = null;
-    process_item_table( title );
+    // var title = null;
+    process_item_table();
   }
 
-  var process_item_table = function( title ) {
+  // var grab_bib_from_holdings_html_2 = function( href_string ) {
+  //   /* Tries to load bib-page and grab bib from permalink element; then continues processing.
+  //    * Called by grab_bib_from_holdings_html()
+  //    */
+  //   $.ajaxSetup( {async: false} );  // otherwise processing would immediately continue while $.get() makes it's request asynchronously
+  //   $.get( href_string, function(data) {
+  //     var div_temp = document.createElement( "div_temp" );
+  //     div_temp.innerHTML = data;
+  //     var nodes = div_temp.querySelectorAll( "#recordnum" );
+  //     var bib_temp = nodes[0].href.split( "=" )[1];
+  //     bibnum = bib_temp.slice( 0,8 );  // updates module's var
+  //   } );
+  //   console.log( "- in grab_bib_from_holdings_html_2(); outside of $.get(); bibnum is, " + bibnum );
+  //   var title = null;
+  //   process_item_table( title );
+  // }
+
+
+
+  var process_item_table = function() {
     /* Updates bib-items to show request-scan links.
      * Called by grab_title() or grab_bib_from_holdings_html()
      */
@@ -114,10 +194,24 @@ var esyscn_flow_manager = new function() {
     var rows = $( ".bibItemsEntry" );
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
-      esyscn_row_processor.process_item( row, title, cell_position_map, bibnum );
+      esyscn_row_processor.process_item( row, cell_position_map, bibnum );
     }
     delete_header_cell();
   }
+
+  // var process_item_table = function( title ) {
+  //   /* Updates bib-items to show request-scan links.
+  //    * Called by grab_title() or grab_bib_from_holdings_html()
+  //    */
+  //   console.log( "- in process_item_table(); bibnum is, " + bibnum );
+  //   var rows = $( ".bibItemsEntry" );
+  //   for (var i = 0; i < rows.length; i++) {
+  //     var row = rows[i];
+  //     esyscn_row_processor.process_item( row, title, cell_position_map, bibnum );
+  //   }
+  //   delete_header_cell();
+  // }
+
 
   var delete_header_cell = function() {
     /* Deletes barcode header cell
@@ -148,20 +242,37 @@ var esyscn_row_processor = new function() {
   var local_cell_position_map = null;
   var local_bibnum = null;
 
-  this.process_item = function( row, title, cell_position_map, bibnum ) {
+
+  this.process_item = function( row, cell_position_map, bibnum ) {
     /* Processes each row.
      * Called by esyscn_flow_manager.process_item_table()
      */
     init( cell_position_map, bibnum );
     var row_dict = extract_row_data( row );
     if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
-      if ( title == null && local_bibnum == null ) {
-        title = grab_ancestor_title( row );
-      }
-      update_row( title, row_dict, row );
+      // if ( title == null && local_bibnum == null ) {
+      //   title = grab_ancestor_title( row );
+      // }
+      update_row( row_dict, row );
     }
     row.deleteCell( cell_position_map["barcode"] );
   }
+
+  // this.process_item = function( row, title, cell_position_map, bibnum ) {
+  //   /* Processes each row.
+  //    * Called by esyscn_flow_manager.process_item_table()
+  //    */
+  //   init( cell_position_map, bibnum );
+  //   var row_dict = extract_row_data( row );
+  //   if ( evaluate_row_data(row_dict)["show_scan_button"] == true ) {
+  //     if ( title == null && local_bibnum == null ) {
+  //       title = grab_ancestor_title( row );
+  //     }
+  //     update_row( title, row_dict, row );
+  //   }
+  //   row.deleteCell( cell_position_map["barcode"] );
+  // }
+
 
   var init = function( cell_position_map, bibnum ) {
     /* Sets class variables.
@@ -211,26 +322,28 @@ var esyscn_row_processor = new function() {
     return row_evaluation;
   }
 
-  var grab_ancestor_title = function( row ) {
-    /* Grabs title on results page.
-     * Called by process_item()
-     */
-    var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
-    console.log( "- in grab_ancestor_title(); big_element, `" + big_element + "`" );
-    var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
-    console.log( "- in grab_ancestor_title(); title_td, `" + title_td + "`" );
-    var title_plus = title_td.textContent.trim();
-    var title = title_plus.split("\n")[0];
-    console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
-    return title;
-  }
 
-  var update_row = function( title, row_dict, row ) {
+  // var grab_ancestor_title = function( row ) {
+  //   /* Grabs title on results page.
+  //    * Called by process_item()
+  //    */
+  //   var big_element = row.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;  // apologies to all sentient beings
+  //   console.log( "- in grab_ancestor_title(); big_element, `" + big_element + "`" );
+  //   var title_td = big_element.querySelectorAll( ".briefcitDetail" )[0];
+  //   console.log( "- in grab_ancestor_title(); title_td, `" + title_td + "`" );
+  //   var title_plus = title_td.textContent.trim();
+  //   var title = title_plus.split("\n")[0];
+  //   console.log( "- in grab_ancestor_title(); title, `" + title + "`" );
+  //   return title;
+  // }
+
+
+  var update_row = function( row_dict, row ) {
     /* Adds `Request Scan` link to row html.
      * Triggers start of request-item link process.
      * Called by process_item()
      */
-    link_html = build_link_html( title, row_dict );
+    link_html = build_link_html( row_dict );
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
     $( last_cell ).after( link_html );
@@ -246,20 +359,58 @@ var esyscn_row_processor = new function() {
     return;
   }
 
-  var build_link_html = function( title, row_dict ) {
+  // var update_row = function( title, row_dict, row ) {
+  //   /* Adds `Request Scan` link to row html.
+  //    * Triggers start of request-item link process.
+  //    * Called by process_item()
+  //    */
+  //   link_html = build_link_html( title, row_dict );
+  //   last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
+  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
+  //   $( last_cell ).after( link_html );
+  //   console.log( "- request-scan link added" );
+  //   easyscan_link_element = $(last_cell).next();
+  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
+  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context, " + easyscan_link_element.context );
+  //   console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element context.nodeName, " + easyscan_link_element.context.nodeName );
+  //   // request_item_flow_manager.check_permalink( easyscan_link_element );  // holding off on adding `request-item` functionality
+  //   // request_item_manager.display_request_link( easyscan_link_element, local_bibnum, row_dict["barcode"] );
+  //   // request_item_manager.display_request_link( last_cell, local_bibnum, row_dict["barcode"] );
+  //   request_item_manager.display_request_link( row, local_bibnum, row_dict["barcode"] );
+  //   return;
+  // }
+
+
+  var build_link_html = function( row_dict ) {
     /* Takes row dict; returns html link.
      * Called by update_row()
      */
     // link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
-    link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+    link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
     link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
     link = link.replace( "THEBARCODE", row_dict["barcode"] );
-    link = link.replace( "THETITLE", title );
+    // link = link.replace( "THETITLE", title );
     link = link.replace( "THEBIBNUM", local_bibnum );
     link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
     console.log( "- link end, " + link );
     return link;
   }
+
+  // var build_link_html = function( title, row_dict ) {
+  //   /* Takes row dict; returns html link.
+  //    * Called by update_row()
+  //    */
+  //   // link = 'Request <a class="easyscan" href="http://HOST/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+  //   link = 'Request <a class="easyscan" href="https://library.brown.edu/easyscan/request?callnumber=THECALLNUMBER&barcode=THEBARCODE&title=THETITLE&bibnum=THEBIBNUM&volume_year=THEVOLYEAR">Scan</a>';
+  //   link = link.replace( "THECALLNUMBER", row_dict["callnumber"] );
+  //   link = link.replace( "THEBARCODE", row_dict["barcode"] );
+  //   link = link.replace( "THETITLE", title );
+  //   link = link.replace( "THEBIBNUM", local_bibnum );
+  //   link = link.replace( "THEVOLYEAR", row_dict["volume_year"] );
+  //   console.log( "- link end, " + link );
+  //   return link;
+  // }
+
 
 };  // end namespace esyscn_row_processor
 
