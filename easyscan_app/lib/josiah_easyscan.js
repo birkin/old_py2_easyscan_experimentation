@@ -242,7 +242,7 @@ var esyscn_row_processor = new function() {
     link_html = build_link_html( row_dict );
     last_cell = row.getElementsByTagName("td")[local_cell_position_map["availability"]];
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); last_cell, " + last_cell.nodeName );
-    $( last_cell ).after( link_html );
+    $( last_cell ).after( link_html );  // TODO: build more explicitly with plain js, like jcb project
     console.log( "- request-scan link added" );
     easyscan_link_element = $(last_cell).next();
     console.log( "- in josiah_easyscan.esyscn_row_processor.update_row(); easyscan_link_element, " + easyscan_link_element );
