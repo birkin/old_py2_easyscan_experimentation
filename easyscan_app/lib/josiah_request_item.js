@@ -39,7 +39,7 @@ var request_item_manager = new function() {
     /* Builds url.
      * Called by display_request_link()
      */
-    var url_a = 'https://worfdev.services.brown.edu/easyrequest/login/?bibnum=BIBNUM&barcode=BARCODE';
+    var url_a = 'https://library.brown.edu/easyrequest/login/?bibnum=BIBNUM&barcode=BARCODE';
     var url_b = url_a.replace( /BIBNUM/g, local_bibnum );  // http://www.w3schools.com/jsref/jsref_replace.asp
     var url = url_b.replace( /BARCODE/g, local_barcode );
     console.log( "- in request_item_manager.build_url(); url, " + url );
