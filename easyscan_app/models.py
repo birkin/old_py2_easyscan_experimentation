@@ -232,10 +232,10 @@ class LasDataMaker( object ):
     def strip_stuff( self, var ):
         """ Replaces various characters from field.
             Called by make_csv_string() """
-        updated_var = var.replace( '"', u"'" )
+        updated_var = var.replace( '"', "'" )
         updated_var = updated_var.replace( '\n', ' - ' )
         updated_var = updated_var.replace( '\r', ' - ' )
-        updated_var = updated_var.replace( '`', u"'" )
+        updated_var = updated_var.replace( '`', "'" )
         return updated_var
 
     # def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
@@ -271,22 +271,31 @@ class LasDataMaker( object ):
             patron_barcode.encode( 'utf-8', 'replace' ),
             item_title.encode( 'utf-8', 'replace' ),
             modified_date_string.encode( 'utf-8', 'replace' ),
-            self.make_utf8_notes_field( patron_email, item_chap_vol_title, item_page_range_other, item_other )
+            self.make_notes_field( patron_email, item_chap_vol_title, item_page_range_other, item_other ).encode( 'utf-8', 'replace' )
             ]
         return utf8_data_list
 
-    def make_utf8_notes_field( self, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
+    def make_notes_field( self, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
         """ Assembles notes field.
             Called by make_utf8_data_list() """
-        data = ''
-        data = self.add_email( data, patron_email )
+        data = self.add_email( patron_email )
+        data = self.add_article_chapter_title( data, item_chap_vol_title )
+        data = '{init}PAGE-RANGE: {rng}'.format( init=data, rng=item_page_range_other )
+        data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
+        log.debug( 'data, ```{}```'.format(data) )
+        return data
 
-    def add_email( self, data, patron_email ):
+    def add_email( self, patron_email ):
         """ Adds email.
-            Called by make_utf8_data_list() """
-        output =
+            Called by make_utf8_notes_field() """
+        data = 'PATRON_EMAIL:\n\n{}\n\n'.format( patron_email )
+        return data
 
-
+    def add_article_chapter_title( self, data, item_chap_vol_title ):
+        """ Adds email.
+            Called by make_utf8_notes_field() """
+        data = '{init}ARTICLE-CHAPTER-TITLE:\n\n{title}\n\n'.format( init=data, title=item_chap_vol_title )
+        return data
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
         """ Converts list into utf8 string.
