@@ -217,6 +217,7 @@ class LasDataMaker( object ):
         utf8_data_list = self.make_utf8_data_list(
             modified_date_string, item_barcode, self.strip_stuff(patron_name), patron_barcode, self.strip_stuff(item_title), patron_email, self.strip_stuff(item_chap_vol_title), self.strip_stuff(item_page_range_other), self.strip_stuff(item_other)
             )
+        log.debug( 'utf8_data_list, ```{}```'.format(pprint.pformat(utf8_data_list)) )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_unicode_string = utf8_csv_string.decode( 'utf-8' )
         return csv_unicode_string
