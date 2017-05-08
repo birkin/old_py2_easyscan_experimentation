@@ -218,8 +218,8 @@ class LasDataMaker( object ):
             modified_date_string, item_barcode, self.strip_stuff(patron_name), patron_barcode, self.strip_stuff(item_title), patron_email, self.strip_stuff(item_chap_vol_title), self.strip_stuff(item_page_range_other), self.strip_stuff(item_other)
             )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
-        csv_string = utf8_csv_string.decode( 'utf-8' )
-        return csv_string
+        csv_unicode_string = utf8_csv_string.decode( 'utf-8' )
+        return csv_unicode_string
 
     def make_date_string( self, datetime_object ):
         """ Will convert datetime_object to date format required by LAS.
@@ -263,10 +263,10 @@ class LasDataMaker( object ):
         """ Assembles data elements in order required by LAS.
             Called by make_csv_string() """
         utf8_data_list = [
-            'item_id_not_applicable',
+            'item_id_not_applicable'.encode( 'utf-8' ),
             item_barcode.encode( 'utf-8', 'replace' ),
-            'ED',
-            'QS',
+            'ED'.encode( 'utf-8' ),
+            'QS'.encode( 'utf-8' ),
             patron_name.encode( 'utf-8', 'replace' ),
             patron_barcode.encode( 'utf-8', 'replace' ),
             item_title.encode( 'utf-8', 'replace' ),
@@ -280,7 +280,7 @@ class LasDataMaker( object ):
             Called by make_utf8_data_list() """
         data = self.add_email( patron_email )
         data = self.add_article_chapter_title( data, item_chap_vol_title )
-        data = '{init}PAGE-RANGE: {rng}'.format( init=data, rng=item_page_range_other )
+        data = '{init}PAGE-RANGE: {rng}\n'.format( init=data, rng=item_page_range_other )
         data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
         log.debug( 'data, ```{}```'.format(data) )
         return data
@@ -288,7 +288,7 @@ class LasDataMaker( object ):
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = 'PATRON_EMAIL:\n\n{}\n\n'.format( patron_email )
+        data = 'PATRON_EMAIL:\n\n{nrml} -- {uppr}\n\n'.format( nrml=patron_email, uppr=patron_email.upper() )
         return data
 
     def add_article_chapter_title( self, data, item_chap_vol_title ):
@@ -305,7 +305,7 @@ class LasDataMaker( object ):
             if not type(entry) == str:
                 raise Exception( 'entry `%s` not of type str' % unicode(repr(entry)) )
         io = StringIO.StringIO()
-        writer = csv.writer( io, delimiter=',', quoting=csv.QUOTE_ALL )
+        writer = csv.writer( io, delimiter=','.encode('utf-8'), quoting=csv.QUOTE_ALL )
         writer.writerow( utf8_data_list )
         csv_string = io.getvalue()
         io.close()
@@ -514,9 +514,12 @@ class RequestViewPostHelper( object ):
             Called by handle_valid_form() """
         ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
         try:
+            # log.debug( 'here-A' )
             sender.transfer_files( data_filename, count_filename )
+            log.debug( 'here-B' )
             scnrqst.status = 'transferred'
             scnrqst.save()
+            log.debug( 'here-C' )
             log.debug( 'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         except Exception as e:
             error_message = unicode( repr(e) )
