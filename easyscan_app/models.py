@@ -121,7 +121,7 @@ class TryAgainHelper( object ):
         jsn = serializers.serialize( 'json', entries )
         lst = json.loads( jsn )
         data_dct = { 'entries': lst, 'entries_count': len( lst ) }
-        log.debug( 'in models.TryAgainHelper.build_data_dct(); data_dct prepared' )
+        log.debug( 'TryAgainHelper(); data_dct prepared' )
         return data_dct
 
     # end class TryAgainHelper
@@ -136,7 +136,7 @@ class TryAgainConfirmationHelper( object ):
         request.session['try_again_page_accessed'] = False
         request.session['try_again_confirmation_page_accessed'] = True
         request.session['scan_request_id'] = scan_request_id
-        log.debug( 'in models.TryAgainConfirmationHelper.update_get_session(); session updated' )
+        log.debug( 'TryAgainConfirmationHelper(); session updated' )
         return
 
     def build_get_data_dct( self, scan_request_id ):
@@ -149,7 +149,7 @@ class TryAgainConfirmationHelper( object ):
             data_dct = { 'entry': lst[0] }
         else:
             data_dct = { 'entry': None }
-        log.debug( 'in models.TryAgainConfirmationHelper.build_get_data_dct(); data_dct prepared' )
+        log.debug( 'TryAgainConfirmationHelper(); data_dct prepared' )
         return data_dct
 
     def build_get_response( self, request, data_dct ):
@@ -161,7 +161,7 @@ class TryAgainConfirmationHelper( object ):
           return_response = HttpResponse( jsn, content_type = 'application/javascript; charset=utf-8' )
         else:
             return_response = render( request, 'easyscan_app_templates/try_again_confirmation.html', data_dct )
-        log.debug( 'in models.TryAgainConfirmationHelper.build_get_response(); `get` response prepared' )
+        log.debug( 'TryAgainConfirmationHelper(); `get` response prepared' )
         return return_response
 
     def resubmit_request( self, request, scan_request_id ):
@@ -175,7 +175,7 @@ class TryAgainConfirmationHelper( object ):
             self.update_notes( scan_request_id, 'resubmit completed' )
         else:
             self.update_notes( scan_request_id, 'error on resubmit, `%s`' % check['error_message'] )
-        log.debug( 'in models.TryAgainConfirmationHelper.resubmit_request(); ending' )
+        log.debug( 'TryAgainConfirmationHelper(); ending' )
         return
 
     def update_notes( self, scan_request_id, message ):
@@ -199,7 +199,7 @@ class TryAgainConfirmationHelper( object ):
             request_view_post_helper = RequestViewPostHelper()
             request_view_post_helper.email_admins_on_error( unicode(repr(e)) )
             check = { 'success': False, 'error_message': unicode(repr(e)) }
-        log.debug( 'in models.TryAgainConfirmationHelper.retransfer_data(); check, `%s`' % pprint.pformat(check) )
+        log.debug( 'TryAgainConfirmationHelper(); check, `%s`' % pprint.pformat(check) )
         return check
 
     # end class TryAgainConfirmationHelper
@@ -217,7 +217,7 @@ class LasDataMaker( object ):
         utf8_data_list = self.make_utf8_data_list(
             modified_date_string, item_barcode, self.strip_stuff(patron_name), patron_barcode, self.strip_stuff(item_title), patron_email, self.strip_stuff(item_chap_vol_title), self.strip_stuff(item_page_range_other), self.strip_stuff(item_other)
             )
-        log.debug( 'utf8_data_list, ```{}```'.format(pprint.pformat(utf8_data_list)) )
+        log.debug( 'LasDataMaker(); utf8_data_list, ```{}```'.format(pprint.pformat(utf8_data_list)) )
         utf8_csv_string = self.utf8list_to_utf8csv( utf8_data_list )
         csv_unicode_string = utf8_csv_string.decode( 'utf-8' )
         return csv_unicode_string
@@ -283,7 +283,7 @@ class LasDataMaker( object ):
         data = self.add_article_chapter_title( data, item_chap_vol_title )
         data = '{init}PAGE-RANGE: {rng}\n'.format( init=data, rng=item_page_range_other )
         data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
-        log.debug( 'data, ```{}```'.format(data) )
+        log.debug( 'LasDataMaker(); data, ```{}```'.format(data) )
         return data
 
     def add_email( self, patron_email ):
@@ -324,7 +324,7 @@ class RequestViewGetHelper( object ):
     def handle_get( self, request ):
         """ Handles request-page GET; returns response.
             Called by views.request_def() """
-        log.debug( 'in models.RequestViewGetHelper.handle_get(); referrer, `%s`' % request.META.get('HTTP_REFERER', 'not_in_request_meta'), )
+        log.debug( 'RequestViewGetHelper(); referrer, `%s`' % request.META.get('HTTP_REFERER', 'not_in_request_meta'), )
         self.store_remote_source_url( request )
         https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
         if https_check['is_secure'] == False:
@@ -332,18 +332,18 @@ class RequestViewGetHelper( object ):
         title = self.check_title( request )
         self.initialize_session( request, title )
         return_response = self.build_response( request )
-        log.debug( 'in models.RequestViewGetHelper.handle_get(); returning' )
+        log.debug( 'RequestViewGetHelper(); returning' )
         return return_response
 
     def store_remote_source_url( self, request ):
         """ Stores http-refferer if from external domain.
             Called by handle_get() """
-        log.debug( 'in models.RequestViewGetHelper.store_remote_source_url(); referrer, `%s`' % request.META.get('HTTP_REFERER', 'not_in_request_meta'), )
+        log.debug( 'RequestViewGetHelper(); referrer, `%s`' % request.META.get('HTTP_REFERER', 'not_in_request_meta'), )
         remote_referrer = request.META.get( 'HTTP_REFERER', '' )
         if not request.get_host() in remote_referrer:  # ignore same-domain and shib redirects
             if not 'sso.brown.edu' in remote_referrer:
                 request.session['last_remote_referrer'] = remote_referrer
-        log.debug( 'in models.RequestViewGetHelper.store_remote_source_url(); session items, `%s`' % pprint.pformat(request.session.items()) )
+        log.debug( 'RequestViewGetHelper(); session items, `%s`' % pprint.pformat(request.session.items()) )
         return
 
     def check_https( self, is_secure, get_host, full_path ):
@@ -354,7 +354,7 @@ class RequestViewGetHelper( object ):
             return_dict = { 'is_secure': False, 'redirect_url': redirect_url }
         else:
             return_dict = { 'is_secure': True, 'redirect_url': 'N/A' }
-        log.debug( 'in models.RequestViewGetHelper.check_https(); return_dict, `%s`' % return_dict )
+        log.debug( 'RequestViewGetHelper(); return_dict, `%s`' % return_dict )
         return return_dict
 
     def check_title( self, request ):
@@ -368,7 +368,7 @@ class RequestViewGetHelper( object ):
             bibnum = request.GET.get( 'bibnum', '' )
             if len( bibnum ) == 8:
                 title = self.hit_availability_api( bibnum )
-        log.debug( 'in models.RequestViewGetHelper.check_title(); title, %s' % title )
+        log.debug( 'RequestViewGetHelper(); title, %s' % title )
         return title
 
     def hit_availability_api( self, bibnum ):
@@ -380,14 +380,14 @@ class RequestViewGetHelper( object ):
             d = r.json()
             title = d['response']['backend_response'][0]['title']
         except Exception as e:
-            log.debug( 'in models.RequestViewGetHelper.hit_availability_api(); exception, %s' % unicode(repr(e)) )
+            log.debug( 'RequestViewGetHelper(); exception, %s' % unicode(repr(e)) )
             title = ''
         return title
 
     def initialize_session( self, request, title ):
         """ Initializes session vars if needed.
             Called by handle_get() """
-        log.debug( 'in models.RequestViewGetHelper.initialize_session(); session items, `%s`' % pprint.pformat(request.session.items()) )
+        log.debug( 'RequestViewGetHelper(); session items, `%s`' % pprint.pformat(request.session.items()) )
         if not 'authz_info' in request.session:
             request.session['authz_info'] = { 'authorized': False }
         if not 'user_info' in request.session:
@@ -395,7 +395,7 @@ class RequestViewGetHelper( object ):
         self.update_session_iteminfo( request, title )
         if not 'shib_login_error' in request.session:
             request.session['shib_login_error'] = False
-        log.debug( 'in models.RequestViewGetHelper.initialize_session(); session initialized' )
+        log.debug( 'RequestViewGetHelper(); session initialized' )
         return
 
     def update_session_iteminfo( self, request, title ):
@@ -410,7 +410,7 @@ class RequestViewGetHelper( object ):
                 request.session['item_info'][key] = value
         request.session['item_info']['item_source_url'] = request.session.get( 'last_remote_referrer', 'not_in_request_meta' )
         request.session['item_info']['title'] = title
-        log.debug( 'in models.RequestViewGetHelper.update_session_iteminfo(); request.session["item_info"], `%s`' % pprint.pformat(request.session['item_info']) )
+        log.debug( 'RequestViewGetHelper(); request.session["item_info"], `%s`' % pprint.pformat(request.session['item_info']) )
         return
 
     def build_response( self, request ):
@@ -422,7 +422,7 @@ class RequestViewGetHelper( object ):
             return_response = render( request, 'easyscan_app_templates/request_login.html', self.build_data_dict(request) )
         else:
             return_response = self.handle_good_get( request )
-        log.debug( 'in models.RequestViewGetHelper.build_response(); returning' )
+        log.debug( 'RequestViewGetHelper(); returning' )
         return return_response
 
     def handle_good_get( self, request ):
@@ -449,7 +449,7 @@ class RequestViewGetHelper( object ):
         if request.session['authz_info']['authorized']:
             context['patron_name'] = request.session['user_info']['name']
             context['logout_url'] = reverse( 'logout_url' )
-        log.debug( 'in models.RequestViewGetHelper.build_data_dict(); return_dict, `%s`' % pprint.pformat(context) )
+        log.debug( 'RequestViewGetHelper(); return_dict, `%s`' % pprint.pformat(context) )
         return context
 
     # end class RequestViewGetHelper
@@ -469,22 +469,23 @@ class RequestViewPostHelper( object ):
     def handle_valid_form( self, request ):
         """ Handles request page POST if form is valid.
             Called by views.request_def() """
-        log.debug( 'in models.RequestViewPostHelper.handle_valid_form(); starting' )
+        log.debug( 'RequestViewPostHelper(); starting' )
         self.update_session( request )
         scnrqst = self.save_post_data( request )
         self.transfer_data( scnrqst )  # will eventually trigger queue job instead of sending directly
         self.email_patron( scnrqst )
         scheme = 'https' if request.is_secure() else 'http'
         redirect_url = '%s://%s%s' % ( scheme, request.get_host(), reverse('confirmation_url') )
-        log.debug( 'in models.RequestViewPostHelper.handle_valid_form(); redirecting' )
+        log.debug( 'RequestViewPostHelper(); redirecting' )
         return redirect_url
 
     def update_session( self, request ):
         """ Updates session vars.
             Called by handle_valid_form() """
-        request.session['item_info']['article_chapter_title'] = request.POST.get( 'article_chapter_title'.strip(), '' )
-        request.session['item_info']['page_range'] = request.POST.get( 'page_range'.strip(), '' )
-        request.session['item_info']['other'] = request.POST.get( 'other'.strip(), '' )
+        request.session['item_info']['article_chapter_title'] = request.POST.get( 'article_chapter_title'.strip(), b'' )
+        request.session['item_info']['page_range'] = request.POST.get( 'page_range'.strip(), b'' )
+        request.session['item_info']['other'] = request.POST.get( 'other'.strip(), b'' )
+        log.debug( 'RequestViewPostHelper(); session-updated' )
         return
 
     def save_post_data( self, request ):
@@ -493,21 +494,22 @@ class RequestViewPostHelper( object ):
         scnrqst = None
         try:
             scnrqst = ScanRequest()
-            scnrqst.item_title = request.session['item_info']['title']
-            scnrqst.item_barcode = request.session['item_info']['barcode']
+            scnrqst.item_title = request.session['item_info']['title'].decode('utf-8')
+            scnrqst.item_barcode = request.session['item_info']['barcode'].decode('utf-8')
             scnrqst.status = 'in_process'
-            scnrqst.item_callnumber = request.session['item_info']['callnumber']
-            scnrqst.item_volume_year = request.session['item_info']['volume_year']
-            scnrqst.item_chap_vol_title = request.session['item_info']['article_chapter_title']
-            scnrqst.item_page_range_other = request.session['item_info']['page_range']
-            scnrqst.item_other = request.session['item_info']['other']
-            scnrqst.item_source_url = request.session['item_info']['item_source_url']
-            scnrqst.patron_name = request.session['user_info']['name']
-            scnrqst.patron_barcode = request.session['user_info']['patron_barcode']
-            scnrqst.patron_email = request.session['user_info']['email']
+            scnrqst.item_callnumber = request.session['item_info']['callnumber'].decode('utf-8')
+            scnrqst.item_volume_year = request.session['item_info']['volume_year'].decode('utf-8')
+            scnrqst.item_chap_vol_title = request.session['item_info']['article_chapter_title'].decode('utf-8')
+            scnrqst.item_page_range_other = request.session['item_info']['page_range'].decode('utf-8')
+            scnrqst.item_other = request.session['item_info']['other'].decode('utf-8')
+            scnrqst.item_source_url = request.session['item_info']['item_source_url'].decode('utf-8')
+            scnrqst.patron_name = request.session['user_info']['name'].decode('utf-8')
+            scnrqst.patron_barcode = request.session['user_info']['patron_barcode'].decode('utf-8')
+            scnrqst.patron_email = request.session['user_info']['email'].decode('utf-8')
             scnrqst.save()
+            log.debug( 'RequestViewPostHelper(); post-data saved' )
         except Exception as e:
-            log.debug( 'in models.RequestViewPostHelper.save_post_data(); exception, `%s`' % unicode(repr(e)) )
+            log.debug( 'RequestViewPostHelper(); exception, `%s`' % unicode(repr(e)) )
         return scnrqst
 
     def transfer_data( self, scnrqst ):
@@ -517,14 +519,13 @@ class RequestViewPostHelper( object ):
         try:
             # log.debug( 'here-A' )
             sender.transfer_files( data_filename, count_filename )
-            log.debug( 'here-B' )
+            log.debug( 'RequestViewPostHelper(); here-B' )
             scnrqst.status = 'transferred'
             scnrqst.save()
-            log.debug( 'here-C' )
-            log.debug( 'in models.RequestViewPostHelper.transfer_data(); `%s` and `%s` transferred' % (data_filename, count_filename) )
+            log.debug( 'RequestViewPostHelper(); `%s` and `%s` transferred' % (data_filename, count_filename) )
         except Exception as e:
             error_message = unicode( repr(e) )
-            log.error( 'in models.RequestViewPostHelper.transfer_data(); error, `%s`' % error_message )
+            log.error( 'RequestViewPostHelper(); error, `%s`' % error_message )
             self.email_admins_on_error( error_message )
         return
 
@@ -539,9 +540,9 @@ class RequestViewPostHelper( object ):
             extra_headers = { 'Reply-To': self.EMAIL_REPLY_TO }
             email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
             email.send()
-            log.debug( 'in models.RequestViewPostHelper.email_patron(); mail sent' )
+            log.debug( 'RequestViewPostHelper(); mail sent' )
         except Exception as e:
-            log.debug( 'in models.RequestViewPostHelper.email_patron(); exception, `%s`' % unicode(repr(e)) )
+            log.debug( 'RequestViewPostHelper(); exception, `%s`' % unicode(repr(e)) )
         return
 
     def build_email_body( self, scnrqst ):
@@ -583,9 +584,9 @@ If you have questions, feel free to email %s or call %s, and reference easyscan 
             # email = EmailMessage( subject, body, ffrom, to, headers=extra_headers )
             email = EmailMessage( subject, body, ffrom, to )
             email.send()
-            log.debug( 'in models.RequestViewPostHelper.email_admins_on_error(); mail sent' )
+            log.debug( 'RequestViewPostHelper(); mail sent' )
         except Exception as e:
-            log.debug( 'in models.RequestViewPostHelper.email_admins_on_error(); exception, `%s`' % unicode(repr(e)) )
+            log.debug( 'RequestViewPostHelper(); exception, `%s`' % unicode(repr(e)) )
         return
 
     # end class RequestViewPostHelper
@@ -600,7 +601,7 @@ class ShibViewHelper( object ):
         shib_checker = ShibChecker()
         shib_dict = shib_checker.grab_shib_info( request )
         validity = shib_checker.evaluate_shib_info( shib_dict )
-        log.debug( 'in models.ShibViewHelper.check_shib_headers(); returning validity `%s`' % validity )
+        log.debug( 'ShibViewHelper(); returning validity `%s`' % validity )
         return ( validity, shib_dict )
 
     def build_response( self, request, validity, shib_dict ):
@@ -611,7 +612,7 @@ class ShibViewHelper( object ):
         scheme = 'https' if request.is_secure() else 'http'
         redirect_url = '%s://%s%s' % ( scheme, request.get_host(), reverse('request_url') )
         return_response = HttpResponseRedirect( redirect_url )
-        log.debug( 'in models.ShibViewHelper.build_response(); returning response' )
+        log.debug( 'ShibViewHelper(); returning response' )
         return return_response
 
     def update_session( self, request, validity, shib_dict ):
@@ -645,7 +646,7 @@ class ShibChecker( object ):
         else:
             if request.get_host() == '127.0.0.1' and project_settings.DEBUG == True:
                 shib_dict = json.loads( self.TEST_SHIB_JSON )
-        log.debug( 'in models.ShibChecker.grab_shib_info(); shib_dict is: %s' % pprint.pformat(shib_dict) )
+        log.debug( 'ShibChecker(); shib_dict is: %s' % pprint.pformat(shib_dict) )
         return shib_dict
 
     def grab_shib_from_meta( self, request ):
@@ -666,7 +667,7 @@ class ShibChecker( object ):
         validity = False
         if self.all_values_present(shib_dict) and self.brown_user_confirmed(shib_dict) and self.eresources_allowed(shib_dict):
             validity = True
-        log.debug( 'in models.ShibChecker.evaluate_shib_info(); validity, `%s`' % validity )
+        log.debug( 'ShibChecker(); validity, `%s`' % validity )
         return validity
 
     def all_values_present( self, shib_dict ):
@@ -680,7 +681,7 @@ class ShibChecker( object ):
                     value_test = 'fail'
             if value_test == 'init':
                 present_check = True
-        log.debug( 'in models.ShibChecker.all_values_present(); present_check, `%s`' % present_check )
+        log.debug( 'ShibChecker(); present_check, `%s`' % present_check )
         return present_check
 
     def brown_user_confirmed( self, shib_dict ):
@@ -689,7 +690,7 @@ class ShibChecker( object ):
         brown_check = False
         if '@brown.edu' in shib_dict['eppn']:
             brown_check = True
-        log.debug( 'in models.ShibChecker.brown_user_confirmed(); brown_check, `%s`' % brown_check )
+        log.debug( 'ShibChecker(); brown_check, `%s`' % brown_check )
         return brown_check
 
     def eresources_allowed( self, shib_dict ):
@@ -698,7 +699,7 @@ class ShibChecker( object ):
         eresources_check = False
         if self.SHIB_ERESOURCE_PERMISSION in shib_dict['member_of']:
             eresources_check = True
-        log.debug( 'in models.ShibChecker.eresources_allowed(); eresources_check, `%s`' % eresources_check )
+        log.debug( 'ShibChecker(); eresources_check, `%s`' % eresources_check )
         return eresources_check
 
     # end class ShibChecker
@@ -761,7 +762,7 @@ class StatsBuilder( object ):
     def check_params( self, get_params, server_name ):
         """ Checks parameters; returns boolean.
             Called by views.stats_v1() """
-        log.debug( 'get_params, `%s`' % get_params )
+        log.debug( 'StatsBuilder(); get_params, `%s`' % get_params )
         if 'start_date' not in get_params or 'end_date' not in get_params:  # not valid
             self._handle_bad_params( server_name )
             return False
