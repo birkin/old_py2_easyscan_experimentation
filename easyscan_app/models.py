@@ -281,7 +281,7 @@ class LasDataMaker( object ):
             Called by make_utf8_data_list() """
         data = self.add_email( patron_email )
         data = self.add_article_chapter_title( data, item_chap_vol_title )
-        data = '{init}PAGE-RANGE: {rng}\n'.format( init=data, rng=item_page_range_other )
+        data = '{init}PAGE-RANGE: {rng}\r'.format( init=data, rng=item_page_range_other )
         data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
         log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
         return data
@@ -289,13 +289,13 @@ class LasDataMaker( object ):
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = 'PATRON_EMAIL:\n\n{nrml} -- {uppr}\n\n'.format( nrml=patron_email, uppr=patron_email.upper() )
+        data = 'PATRON_EMAIL:\r\r{nrml} -- {uppr}\r\r'.format( nrml=patron_email, uppr=patron_email.upper() )
         return data
 
     def add_article_chapter_title( self, data, item_chap_vol_title ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = '{init}ARTICLE-CHAPTER-TITLE:\n\n{title}\n\n'.format( init=data, title=item_chap_vol_title )
+        data = '{init}ARTICLE-CHAPTER-TITLE:\r\r{title}\r\r'.format( init=data, title=item_chap_vol_title )
         return data
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
