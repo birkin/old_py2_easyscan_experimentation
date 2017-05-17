@@ -324,7 +324,7 @@ class LasDataMaker( object ):
         """ Converts list into utf8 string.
             Called by make_csv_string()
             Note; this python2 csv module requires utf-8 strings. """
-        log.debug( 'utf8_data_list, ```{}```'.format(pprint.pformat(utf8_data_list)) )
+        log.debug( 'utf8_data_list, ```{0}```'.format(pprint.pformat(utf8_data_list)) )
         for entry in utf8_data_list:
             if not type(entry) == str:
                 raise Exception( 'entry `%s` not of type str' % unicode(repr(entry)) )
@@ -332,7 +332,7 @@ class LasDataMaker( object ):
         writer = csv.writer( io, delimiter=','.encode('utf-8'), quoting=csv.QUOTE_ALL )
         writer.writerow( utf8_data_list )
         csv_string = io.getvalue()
-        log.debug( 'csv_string, ```{}```'.format(csv_string) )
+        log.debug( 'csv_string, ```{0}```'.format(csv_string) )
         io.close()
         return csv_string
 
