@@ -281,7 +281,7 @@ class LasDataMaker( object ):
             Called by make_utf8_data_list() """
         data = self.add_email( patron_email )
         data = self.add_article_chapter_title( data, item_chap_vol_title )
-        data = '{init}PAGE-RANGE: {rng}\r'.format( init=data, rng=item_page_range_other )
+        data = '{init}PAGE-RANGE: {rng} -- '.format( init=data, rng=item_page_range_other )
         data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
         log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
         return data
@@ -289,19 +289,42 @@ class LasDataMaker( object ):
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = 'PATRON_EMAIL:\r\r{nrml} -- {uppr}\r\r'.format( nrml=patron_email, uppr=patron_email.upper() )
+        data = 'PATRON_EMAIL:                    {nrml} -- {uppr}                    '.format( nrml=patron_email, uppr=patron_email.upper() )
         return data
 
     def add_article_chapter_title( self, data, item_chap_vol_title ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = '{init}ARTICLE-CHAPTER-TITLE:\r\r{title}\r\r'.format( init=data, title=item_chap_vol_title )
+        data = '{init}ARTICLE-CHAPTER-TITLE:                    {title}                    '.format( init=data, title=item_chap_vol_title )
         return data
+
+    # def make_notes_field( self, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
+    #     """ Assembles notes field.
+    #         Called by make_utf8_data_list() """
+    #     data = self.add_email( patron_email )
+    #     data = self.add_article_chapter_title( data, item_chap_vol_title )
+    #     data = '{init}PAGE-RANGE: {rng}\r'.format( init=data, rng=item_page_range_other )
+    #     data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
+    #     log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
+    #     return data
+
+    # def add_email( self, patron_email ):
+    #     """ Adds email.
+    #         Called by make_utf8_notes_field() """
+    #     data = 'PATRON_EMAIL:\r\r{nrml} -- {uppr}\r\r'.format( nrml=patron_email, uppr=patron_email.upper() )
+    #     return data
+
+    # def add_article_chapter_title( self, data, item_chap_vol_title ):
+    #     """ Adds email.
+    #         Called by make_utf8_notes_field() """
+    #     data = '{init}ARTICLE-CHAPTER-TITLE:\r\r{title}\r\r'.format( init=data, title=item_chap_vol_title )
+    #     return data
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
         """ Converts list into utf8 string.
             Called by make_csv_string()
             Note; this python2 csv module requires utf-8 strings. """
+        log.debug( 'utf8_data_list, ```{}```'.format(pprint.pformat(utf8_data_list)) )
         for entry in utf8_data_list:
             if not type(entry) == str:
                 raise Exception( 'entry `%s` not of type str' % unicode(repr(entry)) )
@@ -309,6 +332,7 @@ class LasDataMaker( object ):
         writer = csv.writer( io, delimiter=','.encode('utf-8'), quoting=csv.QUOTE_ALL )
         writer.writerow( utf8_data_list )
         csv_string = io.getvalue()
+        log.debug( 'csv_string, ```{}```'.format(csv_string) )
         io.close()
         return csv_string
 
