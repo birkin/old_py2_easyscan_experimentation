@@ -211,7 +211,7 @@ class LasDataMaker( object ):
 
     def __init__( self ):
         self.notes_line_length = 48
-        self.spacer_character = '|'
+        self.spacer_character = ' '
 
     def make_csv_string(
         self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
