@@ -7,7 +7,7 @@ from easyscan_app.models import LasDataMaker, ScanRequest, StatsBuilder
 from easyscan_app.lib.magic_bus import Prepper
 
 
-maker = LasDataMaker()
+# maker = LasDataMaker()
 prepper = Prepper()
 statsbuilder = StatsBuilder()
 
@@ -15,10 +15,13 @@ statsbuilder = StatsBuilder()
 class LasDataMakerTest( TestCase ):
     """ Tests models.LasDataMaker() """
 
+    def setUp(self):
+        self.maker = LasDataMaker()
+
     def test__utf8list_to_utf8csv__str( self ):
         """ Tests good utf8 strings (required by csv module). """
-        utf8_list = [ 'foo', 'bar', '“iñtërnâtiônàlĭzætiøn”' ]
-        result = maker.utf8list_to_utf8csv( utf8_list )
+        utf8_list = [ b'foo', b'bar', b'“iñtërnâtiônàlĭzætiøn”' ]
+        result = self.maker.utf8list_to_utf8csv( utf8_list )
         self.assertEqual(
             '"foo","bar","\xe2\x80\x9ci\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xc3\xa0l\xc4\xadz\xc3\xa6ti\xc3\xb8n\xe2\x80\x9d"\r\n',
             result )
@@ -31,7 +34,7 @@ class LasDataMakerTest( TestCase ):
         unicode_list = [ u'foo', u'bar', u'“iñtërnâtiônàlĭzætiøn”' ]
         result = u'init'
         try:
-            maker.utf8list_to_utf8csv( unicode_list )
+            self.maker.utf8list_to_utf8csv( unicode_list )
         except Exception as e:
             result = unicode(e)
         self.assertEqual(
@@ -43,23 +46,49 @@ class LasDataMakerTest( TestCase ):
         dt = datetime.datetime( 2014, 12, 8, 12, 40, 59 )
         self.assertEqual(
             u'Mon Dec 08 2014',
-            maker.make_date_string( dt )
+            self.maker.make_date_string( dt )
             )
 
     def test__strip_stuff( self ):
         """ Tests removal of double-quotes and new-lines. """
         self.assertEqual(
             u"The title was 'Zen', I think.",
-            maker.strip_stuff(u'The title was "Zen", I think.') )
+            self.maker.strip_stuff(u'The title was "Zen", I think.') )
         self.assertEqual(
             u'first line - second line',
-            maker.strip_stuff(u'first line\nsecond line') )
+            self.maker.strip_stuff(u'first line\nsecond line') )
         self.assertEqual(
             u'first line - second line',
-            maker.strip_stuff(u'first line\rsecond line') )
+            self.maker.strip_stuff(u'first line\rsecond line') )
         self.assertEqual(
             u"The title was 'Zen', I think.",
-            maker.strip_stuff(u'The title was `Zen`, I think.') )
+            self.maker.strip_stuff(u'The title was `Zen`, I think.') )
+
+    def test__add_spacer_small_string( self ):
+        """ Tests filler in no-wrap situation. """
+        self.maker.notes_line_length = 10
+        self.assertEqual(
+            u'abc|||||||',
+            self.maker.add_spacer( 'abc' )
+            )
+
+    def test__add_spacer_big_string( self ):
+        """ Tests filler when wrapping. """
+        self.maker.notes_line_length = 10
+        fifteen_characters = 'x' * 15
+        self.assertEqual(
+            'xxxxxxxxxxxxxxx|||||',
+            self.maker.add_spacer( fifteen_characters )
+            )
+
+    def test__add_spacer_full_length_string( self ):
+        """ Tests filler when wrapping. """
+        self.maker.notes_line_length = 10
+        ten_characters = 'x' * 10
+        self.assertEqual(
+            ten_characters,
+            self.maker.add_spacer( ten_characters )
+            )
 
     # end class class LasDataMakerTest
 

@@ -209,6 +209,10 @@ class LasDataMaker( object ):
     """ Contains code to make comma-delimited las string.
         Called by models.ScanRequest.save() """
 
+    def __init__( self ):
+        self.notes_line_length = 48
+        self.spacer_character = '|'
+
     def make_csv_string(
         self, date_string, patron_name, patron_barcode, patron_email, item_title, item_barcode, item_chap_vol_title, item_page_range_other, item_other ):
         """ Makes and returns csv string from database data.
@@ -281,29 +285,79 @@ class LasDataMaker( object ):
             Called by make_utf8_data_list() """
         data = self.add_email( patron_email )
         data = self.add_article_chapter_title( data, item_chap_vol_title )
-        data = '{init}PAGE-RANGE: {rng} -- '.format( init=data, rng=item_page_range_other )
-        data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
+        data = self.add_page_range( data, item_page_range_other )
+        data = self.add_other( data, item_other )
         log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
         return data
 
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = 'PATRON_EMAIL:                    {nrml} -- {uppr}                    '.format( nrml=patron_email, uppr=patron_email.upper() )
+        line_1_start = 'PATRON_EMAIL...'
+        line_1 = self.add_spacer( line_1_start )
+        line_2_start = '{nrml} -- {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
+        line_2 = self.add_spacer( line_2_start )
+        data = line_1 + line_2
+        log.debug( 'data, ```{0}```'.format(data) )
         return data
 
     def add_article_chapter_title( self, data, item_chap_vol_title ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        data = '{init}ARTICLE-CHAPTER-TITLE:                    {title}                    '.format( init=data, title=item_chap_vol_title )
+        line_1_start = 'ARTICLE-CHAPTER-TITLE...'
+        line_1 = self.add_spacer( line_1_start )
+        line_2_start = '{0}'.format( item_chap_vol_title )
+        line_2 = self.add_spacer( line_2_start )
+        data = data + line_1 + line_2
+        log.debug( 'data, ```{0}```'.format(data) )
         return data
+
+    def add_page_range( self, data, item_page_range_other ):
+        """ Adds page-range.
+            Called by make_utf8_notes_field() """
+        line_start = 'PAGE-RANGE: {0}'.format(item_page_range_other)
+        line = self.add_spacer( line_start )
+        data = data + line
+        log.debug( 'data, ```{0}```'.format(data) )
+        return data
+
+    def add_other( self, data, item_other ):
+        """ Adds other info.
+            Called by make_utf8_notes_field() """
+        line_start = 'PAGE-OTHER: {0}'.format(item_other)
+        line = self.add_spacer( line_start )
+        data = data + line
+        log.debug( 'data, ```{0}```'.format(data) )
+        return data
+
+    def add_spacer( self, line_start ):
+        """ Adds spacer to line-start-text.
+            Called by different make_notes_field sub-functions. """
+        line_len = len( line_start )
+        if line_len <= self.notes_line_length:
+            line_spacer_len = self.notes_line_length - line_len
+        else:
+            line_spacer_len = line_len % self.notes_line_length
+        line_spacer = self.spacer_character * line_spacer_len
+        spaced_line = line_start + line_spacer
+        log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
+        return spaced_line
+
+    # def add_spacer( self, line_start ):
+    #     """ Adds spacer to line-start-text.
+    #         Called by different make_notes_field sub-functions. """
+    #     line_spacer_len = self.notes_line_length - len(line_start)
+    #     line_spacer = self.spacer_character * line_spacer_len
+    #     spaced_line = line_start + line_spacer
+    #     log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
+    #     return spaced_line
 
     # def make_notes_field( self, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
     #     """ Assembles notes field.
     #         Called by make_utf8_data_list() """
     #     data = self.add_email( patron_email )
     #     data = self.add_article_chapter_title( data, item_chap_vol_title )
-    #     data = '{init}PAGE-RANGE: {rng}\r'.format( init=data, rng=item_page_range_other )
+    #     data = '{init}PAGE-RANGE: {rng} -- '.format( init=data, rng=item_page_range_other )
     #     data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
     #     log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
     #     return data
@@ -311,13 +365,13 @@ class LasDataMaker( object ):
     # def add_email( self, patron_email ):
     #     """ Adds email.
     #         Called by make_utf8_notes_field() """
-    #     data = 'PATRON_EMAIL:\r\r{nrml} -- {uppr}\r\r'.format( nrml=patron_email, uppr=patron_email.upper() )
+    #     data = 'PATRON_EMAIL:                    {nrml} -- {uppr}                    '.format( nrml=patron_email, uppr=patron_email.upper() )
     #     return data
 
     # def add_article_chapter_title( self, data, item_chap_vol_title ):
     #     """ Adds email.
     #         Called by make_utf8_notes_field() """
-    #     data = '{init}ARTICLE-CHAPTER-TITLE:\r\r{title}\r\r'.format( init=data, title=item_chap_vol_title )
+    #     data = '{init}ARTICLE-CHAPTER-TITLE:                    {title}                    '.format( init=data, title=item_chap_vol_title )
     #     return data
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
@@ -331,8 +385,9 @@ class LasDataMaker( object ):
         io = StringIO.StringIO()
         writer = csv.writer( io, delimiter=','.encode('utf-8'), quoting=csv.QUOTE_ALL )
         writer.writerow( utf8_data_list )
-        csv_string = io.getvalue()
-        log.debug( 'csv_string, ```{0}```'.format(csv_string) )
+        csv_string = io.getvalue()  # csv_string is a byte-string
+        log.debug( 'type(csv_string), `{0}'.format( type(csv_string) ) )
+        log.debug( 'csv_string, ```{0}```'.format( csv_string.decode('utf-8') ) )
         io.close()
         return csv_string
 
