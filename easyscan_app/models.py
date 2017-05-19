@@ -210,7 +210,7 @@ class LasDataMaker( object ):
         Called by models.ScanRequest.save() """
 
     def __init__( self ):
-        self.notes_line_length = 48
+        self.notes_line_length = 50
         self.spacer_character = ' '
 
     def make_csv_string(
@@ -243,27 +243,6 @@ class LasDataMaker( object ):
         updated_var = updated_var.replace( '`', "'" )
         return updated_var
 
-    # def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
-    #     """ Assembles data elements in order required by LAS.
-    #         Called by make_csv_string() """
-    #     utf8_data_list = [
-    #         'item_id_not_applicable',
-    #         item_barcode.encode( 'utf-8', 'replace' ),
-    #         'ED',
-    #         'QS',
-    #         patron_name.encode( 'utf-8', 'replace' ),
-    #         patron_barcode.encode( 'utf-8', 'replace' ),
-    #         item_title.encode( 'utf-8', 'replace' ),
-    #         modified_date_string.encode( 'utf-8', 'replace' ),
-    #         'PATRON_EMAIL: `%s` -- ARTICLE-CHAPTER-TITLE: `%s` -- PAGE-RANGE: `%s` -- OTHER: `%s`' % (
-    #             patron_email.encode('utf-8', 'replace'),
-    #             item_chap_vol_title.encode('utf-8', 'replace'),
-    #             item_page_range_other.encode('utf-8', 'replace'),
-    #             item_other.encode('utf-8', 'replace'),
-    #             )
-    #         ]
-    #     return utf8_data_list
-
     def make_utf8_data_list( self, modified_date_string, item_barcode, patron_name, patron_barcode, item_title, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
         """ Assembles data elements in order required by LAS.
             Called by make_csv_string() """
@@ -295,7 +274,7 @@ class LasDataMaker( object ):
             Called by make_utf8_notes_field() """
         line_1_start = 'PATRON_EMAIL...'
         line_1 = self.add_spacer( line_1_start )
-        line_2_start = '{nrml} -- {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
+        line_2_start = '{nrml} | {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
         line_2 = self.add_spacer( line_2_start )
         data = line_1 + line_2
         log.debug( 'data, ```{0}```'.format(data) )
@@ -332,47 +311,69 @@ class LasDataMaker( object ):
 
     def add_spacer( self, line_start ):
         """ Adds spacer to line-start-text.
+            The spacer should start and end with a space, to ensure the next line breaks fine.
             Called by different make_notes_field sub-functions. """
-        line_len = len( line_start )
+        cleaned_line_start = line_start.strip()
+        line_len = len( cleaned_line_start )
         if line_len <= self.notes_line_length:
-            line_spacer_len = self.notes_line_length - line_len
+            spaces_needed = self.notes_line_length - line_len
         else:
-            line_spacer_len = line_len % self.notes_line_length
-        line_spacer = self.spacer_character * line_spacer_len
+            spaces_needed = line_len % self.notes_line_length
+        line_spacer = self.assemble_spacer( spaces_needed )
         spaced_line = line_start + line_spacer
         log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
         return spaced_line
 
+    def assemble_spacer( self, spaces_needed ):
+        """ Calculates and returns spacer.
+            Called by add_spacer() """
+        if spaces_needed == 0:  # add a whole other line of spacers
+            temp_spacer = self.spacer_character * self.notes_line_length
+            line_spacer = ' ' + temp_spacer[0:-2] + ' '
+        elif spaces_needed == 1 or spaces_needed == 2:
+            line_spacer = ' ' * spaces_needed
+        elif spaces_needed > 2:
+            temp_spacer = self.spacer_character * spaces_needed
+            line_spacer = ' ' + temp_spacer[0:-2] + ' '
+        log.debug( 'line_spacer, ```{0}```'.format(line_spacer) )
+        return line_spacer
+
     # def add_spacer( self, line_start ):
     #     """ Adds spacer to line-start-text.
+    #         The spacer should start and end with a space, to ensure the next line breaks fine.
     #         Called by different make_notes_field sub-functions. """
-    #     line_spacer_len = self.notes_line_length - len(line_start)
-    #     line_spacer = self.spacer_character * line_spacer_len
+    #     cleaned_line_start = line_start.strip()
+    #     line_len = len( cleaned_line_start )
+    #     if line_len <= self.notes_line_length:
+    #         spaces_needed = self.notes_line_length - line_len
+    #     else:
+    #         spaces_needed = line_len % self.notes_line_length
+    #     if spaces_needed == 0:  # add a whole other line of spacers
+    #         temp_spacer = self.spacer_character * self.notes_line_length
+    #         line_spacer = ' ' + temp_spacer[0:-2] + ' '
+    #     elif spaces_needed == 1:
+    #         line_spacer = ' '
+    #     elif spaces_needed == 2:
+    #         line_spacer = '  '
+    #     elif spaces_needed > 2:
+    #         temp_spacer = self.spacer_character * spaces_needed
+    #         line_spacer = ' ' + temp_spacer[0:-2] + ' '
     #     spaced_line = line_start + line_spacer
     #     log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
     #     return spaced_line
 
-    # def make_notes_field( self, patron_email, item_chap_vol_title, item_page_range_other, item_other ):
-    #     """ Assembles notes field.
-    #         Called by make_utf8_data_list() """
-    #     data = self.add_email( patron_email )
-    #     data = self.add_article_chapter_title( data, item_chap_vol_title )
-    #     data = '{init}PAGE-RANGE: {rng} -- '.format( init=data, rng=item_page_range_other )
-    #     data = '{init}OTHER: {oth}'.format( init=data, oth=item_other )
-    #     log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
-    #     return data
-
-    # def add_email( self, patron_email ):
-    #     """ Adds email.
-    #         Called by make_utf8_notes_field() """
-    #     data = 'PATRON_EMAIL:                    {nrml} -- {uppr}                    '.format( nrml=patron_email, uppr=patron_email.upper() )
-    #     return data
-
-    # def add_article_chapter_title( self, data, item_chap_vol_title ):
-    #     """ Adds email.
-    #         Called by make_utf8_notes_field() """
-    #     data = '{init}ARTICLE-CHAPTER-TITLE:                    {title}                    '.format( init=data, title=item_chap_vol_title )
-    #     return data
+    # def add_spacer( self, line_start ):
+    #     """ Adds spacer to line-start-text.
+    #         Called by different make_notes_field sub-functions. """
+    #     line_len = len( line_start )
+    #     if line_len <= self.notes_line_length:
+    #         line_spacer_len = self.notes_line_length - line_len
+    #     else:
+    #         line_spacer_len = line_len % self.notes_line_length
+    #     line_spacer = self.spacer_character * line_spacer_len
+    #     spaced_line = line_start + line_spacer
+    #     log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
+    #     return spaced_line
 
     def utf8list_to_utf8csv( self, utf8_data_list ):
         """ Converts list into utf8 string.

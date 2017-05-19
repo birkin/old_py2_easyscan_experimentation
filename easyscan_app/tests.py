@@ -67,26 +67,39 @@ class LasDataMakerTest( TestCase ):
     def test__add_spacer_small_string( self ):
         """ Tests filler in no-wrap situation. """
         self.maker.notes_line_length = 10
+        self.maker.spacer_character = '|'
         self.assertEqual(
-            u'abc|||||||',
+            'abc ||||| ',
             self.maker.add_spacer( 'abc' )
             )
 
     def test__add_spacer_big_string( self ):
         """ Tests filler when wrapping. """
         self.maker.notes_line_length = 10
+        self.maker.spacer_character = '|'
         fifteen_characters = 'x' * 15
         self.assertEqual(
-            'xxxxxxxxxxxxxxx|||||',
+            'xxxxxxxxxxxxxxx ||| ',
             self.maker.add_spacer( fifteen_characters )
             )
 
     def test__add_spacer_full_length_string( self ):
-        """ Tests filler when wrapping. """
+        """ Checks that full-string gets a full extra string added (ending in a space). """
         self.maker.notes_line_length = 10
+        self.maker.spacer_character = '|'
         ten_characters = 'x' * 10
         self.assertEqual(
-            ten_characters,
+            'xxxxxxxxxx||||||||| ',
+            self.maker.add_spacer( ten_characters )
+            )
+
+    def test__add_spacer_full_length_string( self ):
+        """ Checks that full-string gets a full extra string added (ending in a space) when using expected spacer character of ' '. """
+        self.maker.notes_line_length = 10
+        self.maker.spacer_character = ' '
+        ten_characters = 'x' * 10
+        self.assertEqual(
+            'xxxxxxxxxx          ',
             self.maker.add_spacer( ten_characters )
             )
 
