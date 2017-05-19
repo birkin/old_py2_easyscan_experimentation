@@ -83,6 +83,16 @@ class LasDataMakerTest( TestCase ):
             self.maker.add_spacer( fifteen_characters )
             )
 
+    def test__add_spacer_big_string2( self ):
+        """ Tests filler when wrapping2. """
+        self.maker.notes_line_length = 50
+        self.maker.spacer_character = '|'
+        long_text = '''A really long article title. A really long article title. A really long article title.'''
+        self.assertEqual(
+            'A really long article title. A really long article title. A really long article title. |||||||||||| ',
+            self.maker.add_spacer( long_text )
+            )
+
     def test__add_spacer_full_length_string( self ):
         """ Checks that full-string gets a full extra string added (ending in a space). """
         self.maker.notes_line_length = 10

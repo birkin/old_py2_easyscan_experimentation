@@ -318,7 +318,9 @@ class LasDataMaker( object ):
         if line_len <= self.notes_line_length:
             spaces_needed = self.notes_line_length - line_len
         else:
-            spaces_needed = line_len % self.notes_line_length
+            # spaces_needed = line_len % self.notes_line_length
+            spaces_needed = self.notes_line_length - ( line_len % self.notes_line_length )
+        log.debug( 'spaces_needed, `{0}`'.format(spaces_needed) )
         line_spacer = self.assemble_spacer( spaces_needed )
         spaced_line = line_start + line_spacer
         log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
