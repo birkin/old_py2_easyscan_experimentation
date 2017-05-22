@@ -84,12 +84,33 @@ class LasDataMakerTest( TestCase ):
             )
 
     def test__add_spacer_big_string2( self ):
-        """ Tests filler when wrapping2. """
+        """ Tests filler when wrapping will hit on a break. """
         self.maker.notes_line_length = 50
         self.maker.spacer_character = '|'
         long_text = '''A really long article title. A really long article title. A really long article title.'''
         self.assertEqual(
-            'A really long article title. A really long article title. A really long article title. |||||||||||| ',
+            'A really long article title. A really long |||||| article title. A really long article title. ||||| ',
+            self.maker.add_spacer( long_text )
+            )
+
+    def test__add_spacer_big_string3( self ):
+        """ Tests filler wrapping will hit on a break2. """
+        self.maker.notes_line_length = 50
+        self.maker.spacer_character = '|'
+        long_text = '''First line will break after (46th letter) THIS aanndd then continue.'''
+        self.assertEqual(
+            'First line will break after (46th letter) THIS || aanndd then continue. ||||||||||||||||||||||||||| ',
+            self.maker.add_spacer( long_text )
+            )
+
+    def test__add_spacer_big_string4( self ):
+        """ Tests filler wrapping will hit on end-of-word.
+            (Ends up breaking on the previous word.) """
+        self.maker.notes_line_length = 50
+        self.maker.spacer_character = '|'
+        long_text = '''First line will break afterrrrr (50th letter) THIS and then continue.'''
+        self.assertEqual(
+            'First line will break afterrrrr (50th letter) ||| THIS and then continue. ||||||||||||||||||||||||| ',
             self.maker.add_spacer( long_text )
             )
 
@@ -99,11 +120,11 @@ class LasDataMakerTest( TestCase ):
         self.maker.spacer_character = '|'
         ten_characters = 'x' * 10
         self.assertEqual(
-            'xxxxxxxxxx||||||||| ',
+            'xxxxxxxxxx |||||||| ',
             self.maker.add_spacer( ten_characters )
             )
 
-    def test__add_spacer_full_length_string( self ):
+    def test__add_spacer_full_length_string_using_spaces( self ):
         """ Checks that full-string gets a full extra string added (ending in a space) when using expected spacer character of ' '. """
         self.maker.notes_line_length = 10
         self.maker.spacer_character = ' '
