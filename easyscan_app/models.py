@@ -314,8 +314,6 @@ class LasDataMaker( object ):
             The spacer should start and end with a space, to ensure the next line breaks fine.
             Called by different make_notes_field sub-functions. """
         new_lines = self.convert_line_to_lines( line_start )
-
-
         full_line = ''
         for new_line in new_lines:
             if new_line == '' or new_line == ' ':
@@ -325,7 +323,6 @@ class LasDataMaker( object ):
             spaced_line = new_line + line_spacer
             log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
             full_line = full_line + spaced_line
-
         log.debug( 'full_line, ```{0}```'.format(full_line) )
         return full_line
 
@@ -336,20 +333,47 @@ class LasDataMaker( object ):
         words = cleaned_line_start.split()
         line = ''
         for word in words:
-            log.debug( 'word, `{0}`'.format(word) )
-            if len(word) == self.notes_line_length:
-                new_lines.append( line.lstrip() + ' ' )
-                new_lines.append( word )
-                line = ''
-            if ( len(word) <= self.notes_line_length ) and ( len(line) + len(' ') + len(word) <= self.notes_line_length ):
-                line = line + ' ' + word
-            else:
-                new_lines.append( line.lstrip() )
-                line = word
+            ( new_lines, line ) = self.handle_words_loop( word, new_lines, line )
         if line not in new_lines:
             new_lines.append( line.lstrip() )
         log.debug( 'new_lines, ```{0}```'.format(new_lines) )
         return new_lines
+
+    def handle_words_loop( self, word, new_lines, line ):
+        log.debug( 'word, `{0}`'.format(word) )
+        if len(word) == self.notes_line_length:
+            new_lines.append( line.lstrip() + ' ' )
+            new_lines.append( word )
+            line = ''
+        if ( len(word) <= self.notes_line_length ) and ( len(line) + len(' ') + len(word) <= self.notes_line_length ):
+            line = line + ' ' + word
+        else:
+            new_lines.append( line.lstrip() )
+            line = word
+        return ( new_lines, line )
+
+
+    # def convert_line_to_lines( self, line_start ):
+    #     cleaned_line_start = line_start.strip()
+    #     log.debug( 'cleaned_line_start, ```{0}```'.format(cleaned_line_start) )
+    #     new_lines = []  # need to convert the string to individual lines for calculation, because lines will auto-break on spaces
+    #     words = cleaned_line_start.split()
+    #     line = ''
+    #     for word in words:
+    #         log.debug( 'word, `{0}`'.format(word) )
+    #         if len(word) == self.notes_line_length:
+    #             new_lines.append( line.lstrip() + ' ' )
+    #             new_lines.append( word )
+    #             line = ''
+    #         if ( len(word) <= self.notes_line_length ) and ( len(line) + len(' ') + len(word) <= self.notes_line_length ):
+    #             line = line + ' ' + word
+    #         else:
+    #             new_lines.append( line.lstrip() )
+    #             line = word
+    #     if line not in new_lines:
+    #         new_lines.append( line.lstrip() )
+    #     log.debug( 'new_lines, ```{0}```'.format(new_lines) )
+    #     return new_lines
 
     def calc_spacers_needed( self, new_line ):
         line_len = len( new_line )
