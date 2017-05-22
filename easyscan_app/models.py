@@ -313,6 +313,23 @@ class LasDataMaker( object ):
         """ Adds spacer to line-start-text.
             The spacer should start and end with a space, to ensure the next line breaks fine.
             Called by different make_notes_field sub-functions. """
+        new_lines = self.convert_line_to_lines( line_start )
+
+
+        full_line = ''
+        for new_line in new_lines:
+            if new_line == '' or new_line == ' ':
+                continue
+            spacers_needed = self.calc_spacers_needed( new_line )
+            line_spacer = self.assemble_spacer( spacers_needed )
+            spaced_line = new_line + line_spacer
+            log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
+            full_line = full_line + spaced_line
+
+        log.debug( 'full_line, ```{0}```'.format(full_line) )
+        return full_line
+
+    def convert_line_to_lines( self, line_start ):
         cleaned_line_start = line_start.strip()
         log.debug( 'cleaned_line_start, ```{0}```'.format(cleaned_line_start) )
         new_lines = []  # need to convert the string to individual lines for calculation, because lines will auto-break on spaces
@@ -332,19 +349,7 @@ class LasDataMaker( object ):
         if line not in new_lines:
             new_lines.append( line.lstrip() )
         log.debug( 'new_lines, ```{0}```'.format(new_lines) )
-
-        full_line = ''
-        for new_line in new_lines:
-            if new_line == '' or new_line == ' ':
-                continue
-            spacers_needed = self.calc_spacers_needed( new_line )
-            line_spacer = self.assemble_spacer( spacers_needed )
-            spaced_line = new_line + line_spacer
-            log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
-            full_line = full_line + spaced_line
-
-        log.debug( 'full_line, ```{0}```'.format(full_line) )
-        return full_line
+        return new_lines
 
     def calc_spacers_needed( self, new_line ):
         line_len = len( new_line )
@@ -368,23 +373,51 @@ class LasDataMaker( object ):
             line_spacer = ' ' + temp_spacer[0:-2] + ' '
         log.debug( 'line_spacer, ```{0}```'.format(line_spacer) )
         return line_spacer
-
     # def add_spacer( self, line_start ):
     #     """ Adds spacer to line-start-text.
     #         The spacer should start and end with a space, to ensure the next line breaks fine.
     #         Called by different make_notes_field sub-functions. """
     #     cleaned_line_start = line_start.strip()
-    #     line_len = len( cleaned_line_start )
+    #     log.debug( 'cleaned_line_start, ```{0}```'.format(cleaned_line_start) )
+    #     new_lines = []  # need to convert the string to individual lines for calculation, because lines will auto-break on spaces
+    #     words = cleaned_line_start.split()
+    #     line = ''
+    #     for word in words:
+    #         log.debug( 'word, `{0}`'.format(word) )
+    #         if len(word) == self.notes_line_length:
+    #             new_lines.append( line.lstrip() + ' ' )
+    #             new_lines.append( word )
+    #             line = ''
+    #         if ( len(word) <= self.notes_line_length ) and ( len(line) + len(' ') + len(word) <= self.notes_line_length ):
+    #             line = line + ' ' + word
+    #         else:
+    #             new_lines.append( line.lstrip() )
+    #             line = word
+    #     if line not in new_lines:
+    #         new_lines.append( line.lstrip() )
+    #     log.debug( 'new_lines, ```{0}```'.format(new_lines) )
+
+    #     full_line = ''
+    #     for new_line in new_lines:
+    #         if new_line == '' or new_line == ' ':
+    #             continue
+    #         spacers_needed = self.calc_spacers_needed( new_line )
+    #         line_spacer = self.assemble_spacer( spacers_needed )
+    #         spaced_line = new_line + line_spacer
+    #         log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
+    #         full_line = full_line + spaced_line
+
+    #     log.debug( 'full_line, ```{0}```'.format(full_line) )
+    #     return full_line
+
+    # def calc_spacers_needed( self, new_line ):
+    #     line_len = len( new_line )
     #     if line_len <= self.notes_line_length:
-    #         spaces_needed = self.notes_line_length - line_len
+    #         spacers_needed = self.notes_line_length - line_len
     #     else:
-    #         # spaces_needed = line_len % self.notes_line_length
-    #         spaces_needed = self.notes_line_length - ( line_len % self.notes_line_length )
-    #     log.debug( 'spaces_needed, `{0}`'.format(spaces_needed) )
-    #     line_spacer = self.assemble_spacer( spaces_needed )
-    #     spaced_line = line_start + line_spacer
-    #     log.debug( 'spaced_line, ```{0}```'.format(spaced_line) )
-    #     return spaced_line
+    #         spacers_needed = self.notes_line_length - ( line_len % self.notes_line_length )
+    #     log.debug( 'spacers_needed, ```{0}```'.format(spacers_needed) )
+    #     return spacers_needed
 
     # def assemble_spacer( self, spaces_needed ):
     #     """ Calculates and returns spacer.
