@@ -134,6 +134,23 @@ class LasDataMakerTest( TestCase ):
             self.maker.add_spacer( ten_characters )
             )
 
+    def test__add_email( self ):
+        """ Checks for space before and after actual email line. """
+        self.maker.notes_line_length = 20
+        self.maker.spacer_character = '|'
+        email = 'a@a.edu'
+        expected_lst = [
+            'PATRON_EMAIL... ||| ',
+            ' |||||||||||||||||| ',
+            'a@a.edu | A@A.EDU | ',
+            ' |||||||||||||||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.maker.add_email( email )
+            )
+
+
     # end class class LasDataMakerTest
 
 
