@@ -5,6 +5,7 @@ from django.http import QueryDict
 from django.test import TestCase
 from easyscan_app.models import LasDataMaker, ScanRequest, StatsBuilder
 from easyscan_app.lib.magic_bus import Prepper
+from easyscan_app.lib.spacer import Spacer
 
 
 # maker = LasDataMaker()
@@ -152,6 +153,69 @@ class LasDataMakerTest( TestCase ):
 
 
     # end class class LasDataMakerTest
+
+
+class SpacerTest( TestCase ):
+    """ Checks spacer.py Spacer() """
+
+    def setUp(self):
+        self.spcr = Spacer()
+
+    def test__convert_string_to_lines__short(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            [ 'abc' ],
+            self.spcr.convert_string_to_lines( 'abc' )
+            )
+
+    def test__convert_string_to_lines__full(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            ['1234567890', ''],
+            self.spcr.convert_string_to_lines( '1234567890' )
+            )
+
+    def test__convert_string_to_lines__single_bigger(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            ['foo', ''],
+            self.spcr.convert_string_to_lines( '123456789012' )
+            )
+
+    def test__convert_string_to_lines__single_bigger_plus_more_words(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            ['foo', ''],
+            self.spcr.convert_string_to_lines( '123456789012 aaa' )
+            )
+
+    def test__convert_string_to_lines__bigger_even_break(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            ['1234567890', '123'],
+            self.spcr.convert_string_to_lines( '1234567890 123' )
+            )
+
+    def test__convert_string_to_lines__bigger_uneven_break(self):
+        self.spcr.notes_line_length = 10
+        self.assertEqual(
+            ['12345678', '012'],
+            self.spcr.convert_string_to_lines( '12345678 012' )
+            )
+
+    # def test__add_spacer_small_string( self ):
+    #     """ Tests filler in no-wrap situation. """
+    #     self.spcr.notes_line_length = 10
+    #     self.spcr.spacer_character = '|'
+    #     expected_lst = [
+    #         'abc ||||| '
+    #         ]
+    #     self.assertEqual(
+    #         ''.join( expected_lst ),
+    #         self.spcr.add_spacer( 'abc' )
+    #         )
+
+    # end class SpacerTest()
 
 
 class MagicBusPrepperTest( TestCase ):
