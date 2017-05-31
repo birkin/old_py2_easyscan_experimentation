@@ -20,6 +20,7 @@ class LasDataMakerTest( TestCase ):
 
     def setUp(self):
         self.maker = LasDataMaker()
+        self.maxDiff = None
 
     def test__utf8list_to_utf8csv__str( self ):
         """ Tests good utf8 strings (required by csv module). """
@@ -79,6 +80,24 @@ class LasDataMakerTest( TestCase ):
         self.assertEqual(
             ''.join( expected_lst ),
             self.maker.add_email( email )
+            )
+
+    def test__add_article_chapter_title( self ):
+        """ Checks for space before and after article-chapter-title line. """
+        initial_data = 'foo bar                                           '  # 50 characters
+        article_chapter_title = 'Ultrastructural analysis of the effect of ethane dimethanesulphonate on the testis of the rat, guinea pig, hamster and mouse.'
+        expected_lst = [
+            'foo bar                                           ',  # 50 characters
+            'ARTICLE-CHAPTER-TITLE...                          ',
+            '                                                  ',
+            'Ultrastructural analysis of the effect of ethane  ',
+            'dimethanesulphonate on the testis of the rat,     ',
+            'guinea pig, hamster and mouse.                    ',
+            '                                                  '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.maker.add_article_chapter_title( initial_data, article_chapter_title )
             )
 
 
