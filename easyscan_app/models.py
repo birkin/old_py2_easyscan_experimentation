@@ -300,17 +300,6 @@ class LasDataMaker( object ):
         log.debug( 'data, ```{0}```'.format(data) )
         return data
 
-    # def add_article_chapter_title( self, data, item_chap_vol_title ):
-    #     """ Adds email.
-    #         Called by make_utf8_notes_field() """
-    #     line_1_start = 'ARTICLE-CHAPTER-TITLE...'
-    #     line_1 = spcr.add_spacer( line_1_start )
-    #     line_2_start = '{0}'.format( item_chap_vol_title )
-    #     line_2 = spcr.add_spacer( line_2_start )
-    #     data = data + line_1 + line_2
-    #     log.debug( 'data, ```{0}```'.format(data) )
-    #     return data
-
     def add_page_range( self, data, item_page_range_other ):
         """ Adds page-range.
             Called by make_utf8_notes_field() """
