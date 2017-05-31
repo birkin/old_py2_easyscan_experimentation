@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 import datetime, pprint
 from django.http import QueryDict
 from django.test import TestCase
@@ -24,7 +26,7 @@ class LasDataMakerTest( TestCase ):
         utf8_list = [ b'foo', b'bar', b'“iñtërnâtiônàlĭzætiøn”' ]
         result = self.maker.utf8list_to_utf8csv( utf8_list )
         self.assertEqual(
-            '"foo","bar","\xe2\x80\x9ci\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xc3\xa0l\xc4\xadz\xc3\xa6ti\xc3\xb8n\xe2\x80\x9d"\r\n',
+            b'"foo","bar","\xe2\x80\x9ci\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xc3\xa0l\xc4\xadz\xc3\xa6ti\xc3\xb8n\xe2\x80\x9d"\r\n',
             result )
         self.assertEqual(
             str,
@@ -65,86 +67,14 @@ class LasDataMakerTest( TestCase ):
             u"The title was 'Zen', I think.",
             self.maker.strip_stuff(u'The title was `Zen`, I think.') )
 
-    def test__add_spacer_small_string( self ):
-        """ Tests filler in no-wrap situation. """
-        self.maker.notes_line_length = 10
-        self.maker.spacer_character = '|'
-        self.assertEqual(
-            'abc ||||| ',
-            self.maker.add_spacer( 'abc' )
-            )
-
-    def test__add_spacer_big_string( self ):
-        """ Tests filler when wrapping. """
-        self.maker.notes_line_length = 10
-        self.maker.spacer_character = '|'
-        fifteen_characters = 'x' * 15
-        self.assertEqual(
-            'xxxxxxxxxxxxxxx ||| ',
-            self.maker.add_spacer( fifteen_characters )
-            )
-
-    def test__add_spacer_big_string2( self ):
-        """ Tests filler when wrapping will hit on a break. """
-        self.maker.notes_line_length = 50
-        self.maker.spacer_character = '|'
-        long_text = '''A really long article title. A really long article title. A really long article title.'''
-        self.assertEqual(
-            'A really long article title. A really long |||||| article title. A really long article title. ||||| ',
-            self.maker.add_spacer( long_text )
-            )
-
-    def test__add_spacer_big_string3( self ):
-        """ Tests filler wrapping will hit on a break2. """
-        self.maker.notes_line_length = 50
-        self.maker.spacer_character = '|'
-        long_text = '''First line will break after (46th letter) THIS aanndd then continue.'''
-        self.assertEqual(
-            'First line will break after (46th letter) THIS || aanndd then continue. ||||||||||||||||||||||||||| ',
-            self.maker.add_spacer( long_text )
-            )
-
-    def test__add_spacer_big_string4( self ):
-        """ Tests filler wrapping will hit on end-of-word.
-            (Ends up breaking on the previous word.) """
-        self.maker.notes_line_length = 50
-        self.maker.spacer_character = '|'
-        long_text = '''First line will break afterrrrr (50th letter) THIS and then continue.'''
-        self.assertEqual(
-            'First line will break afterrrrr (50th letter) ||| THIS and then continue. ||||||||||||||||||||||||| ',
-            self.maker.add_spacer( long_text )
-            )
-
-    def test__add_spacer_full_length_string( self ):
-        """ Checks that full-string gets a full extra string added (ending in a space). """
-        self.maker.notes_line_length = 10
-        self.maker.spacer_character = '|'
-        ten_characters = 'x' * 10
-        self.assertEqual(
-            'xxxxxxxxxx |||||||| ',
-            self.maker.add_spacer( ten_characters )
-            )
-
-    def test__add_spacer_full_length_string_using_spaces( self ):
-        """ Checks that full-string gets a full extra string added (ending in a space) when using expected spacer character of ' '. """
-        self.maker.notes_line_length = 10
-        self.maker.spacer_character = ' '
-        ten_characters = 'x' * 10
-        self.assertEqual(
-            'xxxxxxxxxx          ',
-            self.maker.add_spacer( ten_characters )
-            )
-
     def test__add_email( self ):
         """ Checks for space before and after actual email line. """
-        self.maker.notes_line_length = 20
-        self.maker.spacer_character = '|'
         email = 'a@a.edu'
         expected_lst = [
-            'PATRON_EMAIL... ||| ',
-            ' |||||||||||||||||| ',
-            'a@a.edu | A@A.EDU | ',
-            ' |||||||||||||||||| '
+            'PATRON_EMAIL...                                   ',  # 50 characters
+            '                                                  ',
+            'a@a.edu | A@A.EDU                                 ',
+            '                                                  '
             ]
         self.assertEqual(
             ''.join( expected_lst ),
@@ -161,6 +91,15 @@ class SpacerTest( TestCase ):
     def setUp(self):
         self.spcr = Spacer()
 
+    ## convert_string_to_lines() ##
+
+    def test__convert_string_to_lines__short_blank(self):
+        self.spcr.notes_line_length = 4
+        self.assertEqual(
+            [ '' ],
+            self.spcr.convert_string_to_lines( ' ' )
+            )
+
     def test__convert_string_to_lines__short(self):
         self.spcr.notes_line_length = 10
         self.assertEqual(
@@ -171,21 +110,21 @@ class SpacerTest( TestCase ):
     def test__convert_string_to_lines__full(self):
         self.spcr.notes_line_length = 10
         self.assertEqual(
-            ['1234567890', ''],
+            ['1234567890'],
             self.spcr.convert_string_to_lines( '1234567890' )
             )
 
     def test__convert_string_to_lines__single_bigger(self):
         self.spcr.notes_line_length = 10
         self.assertEqual(
-            ['foo', ''],
+            [u'123456789012'],
             self.spcr.convert_string_to_lines( '123456789012' )
             )
 
     def test__convert_string_to_lines__single_bigger_plus_more_words(self):
         self.spcr.notes_line_length = 10
         self.assertEqual(
-            ['foo', ''],
+            ['123456789012', 'aaa'],
             self.spcr.convert_string_to_lines( '123456789012 aaa' )
             )
 
@@ -203,17 +142,101 @@ class SpacerTest( TestCase ):
             self.spcr.convert_string_to_lines( '12345678 012' )
             )
 
-    # def test__add_spacer_small_string( self ):
-    #     """ Tests filler in no-wrap situation. """
-    #     self.spcr.notes_line_length = 10
-    #     self.spcr.spacer_character = '|'
-    #     expected_lst = [
-    #         'abc ||||| '
-    #         ]
-    #     self.assertEqual(
-    #         ''.join( expected_lst ),
-    #         self.spcr.add_spacer( 'abc' )
-    #         )
+    ## add_spacer() ##
+
+    def test__add_spacer_small_string( self ):
+        """ Tests filler in no-wrap situation. """
+        self.spcr.notes_line_length = 10
+        self.spcr.spacer_character = '|'
+        self.assertEqual(
+            'abc ||||| ',
+            self.spcr.add_spacer( 'abc' )
+            )
+
+    def test__add_spacer_full_length_string( self ):
+        """ Checks that full-string gets a full extra string added (ending in a space). """
+        self.spcr.notes_line_length = 10
+        self.spcr.spacer_character = '|'
+        ten_characters = 'x' * 10
+        expected_lst = [
+            'xxxxxxxxxx',
+            ' |||||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( ten_characters )
+            )
+
+    def test__add_spacer_full_length_string_using_spaces( self ):
+        """ Checks that full-string gets a full extra string added (ending in a space) when using expected spacer character of ' '. """
+        self.spcr.notes_line_length = 10
+        self.spcr.spacer_character = ' '
+        ten_characters = 'x' * 10
+        expected_lst = [
+            'xxxxxxxxxx',
+            '          '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( ten_characters )
+            )
+
+    def test__add_spacer_big_string( self ):
+        """ Tests filler when wrapping. """
+        self.spcr.notes_line_length = 10
+        self.spcr.spacer_character = '|'
+        fifteen_characters = 'x' * 15
+        expected_lst = [
+            'xxxxxxxxxx',
+            'xxxxx ||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( fifteen_characters )
+            )
+
+    def test__add_spacer_big_string2( self ):
+        """ Tests filler when wrapping will hit on a break. """
+        self.spcr.notes_line_length = 50
+        self.spcr.spacer_character = '|'
+        long_text = '''A really long article title. A really long article title. A really long article title.'''
+        expected_lst = [
+            'A really long article title. A really long |||||| ',
+            'article title. A really long article title. ||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( long_text )
+            )
+
+    def test__add_spacer_big_string3( self ):
+        """ Tests filler wrapping will hit on a break2. """
+        self.spcr.notes_line_length = 50
+        self.spcr.spacer_character = '|'
+        long_text = '''First line will break after (46th letter) THIS aanndd then continue.'''
+        expected_lst = [
+            'First line will break after (46th letter) THIS || ',
+            'aanndd then continue. ||||||||||||||||||||||||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( long_text )
+            )
+
+    def test__add_spacer_big_string4( self ):
+        """ Tests filler wrapping will hit on end-of-word.
+            (Ends up breaking on the previous word.) """
+        self.spcr.notes_line_length = 50
+        self.spcr.spacer_character = '|'
+        long_text = '''First line will break afterrrrr (50th letter) THIS and then continue.'''
+        expected_lst = [
+            'First line will break afterrrrr (50th letter) ||| ',
+            'THIS and then continue. ||||||||||||||||||||||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( long_text )
+            )
 
     # end class SpacerTest()
 
