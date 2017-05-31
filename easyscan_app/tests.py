@@ -261,7 +261,7 @@ class SpacerTest( TestCase ):
             )
 
     def test__add_spacer_big_string3( self ):
-        """ Tests filler wrapping will hit on a break2. """
+        """ Tests filler when wrapping will hit on a break2. """
         self.spcr.notes_line_length = 50
         self.spcr.spacer_character = '|'
         long_text = '''First line will break after (46th letter) THIS aanndd then continue.'''
@@ -275,8 +275,8 @@ class SpacerTest( TestCase ):
             )
 
     def test__add_spacer_big_string4( self ):
-        """ Tests filler wrapping will hit on end-of-word.
-            (Ends up breaking on the previous word.) """
+        """ Tests filler when wrapping will hit on end-of-word.
+            (Should breaking on the previous word.) """
         self.spcr.notes_line_length = 50
         self.spcr.spacer_character = '|'
         long_text = '''First line will break afterrrrr (50th letter) THIS and then continue.'''
@@ -289,21 +289,22 @@ class SpacerTest( TestCase ):
             self.spcr.add_spacer( long_text )
             )
 
-    def test__add_spacer_big_string4( self ):
-        """ This didn't wrap as expected... """
+    def test__add_spacer_big_string5( self ):
+        """ Tests filler when wrapping will hit on end-of-word2.
+            (Should breaking on the previous word.)
+            For some reason the above passed and this initially didn't """
         self.spcr.notes_line_length = 50
         self.spcr.spacer_character = '|'
         long_text = 'A surprisingly long TEST article-title, because of the repetition of the surprisingly long article title.'
         expected_lst = [
-            'First line will break afterrrrr (50th letter) ||| ',
-            'THIS and then continue. ||||||||||||||||||||||||| '
+            'A surprisingly long TEST article-title, because | ',
+            'of the repetition of the surprisingly long |||||| '
+            'article title. |||||||||||||||||||||||||||||||||| '
             ]
         self.assertEqual(
             ''.join( expected_lst ),
             self.spcr.add_spacer( long_text )
             )
-
-
 
     # end class SpacerTest()
 

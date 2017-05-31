@@ -36,10 +36,10 @@ class Spacer( object ):
         ( lines, words, line ) = ( [], start_string.split(), '' )
         for word in words:
             ( line, lines ) = self.apply_word_logic( word, line, lines )
-        if len(lines) == 0:
+        if len(lines) == 0:  # lines was empty, so add line
             lines.append( line.strip() )
-        elif lines[-1] != line:
-            if len(line) > 0:
+        elif lines[-1] != line:  # the last line of lines doesn't match the current line...
+            if len(line) > 0:  # ...and the current line is not empty, so add it to lines
                 lines.append( line.strip() )
         log.debug( 'lines, ```{0}```'.format(lines) )
         return lines
@@ -48,12 +48,12 @@ class Spacer( object ):
         """ Builds a line word-by-word. Just before the line-length would exceed the maximum limit,
               adds the line to lines, and starts with a fresh empty line.
             Called by convert_string_to_lines() """
-        if len(word) >= self.notes_line_length:
+        if len(word) >= self.notes_line_length:  # if word is greater-or-equal-to max-line-length (sigh), update `lines` & refresh `line`
             lines.append( word )
             line = ''
-        elif ( len(word) + len(line) + len(' ') <= self.notes_line_length ):
-            line = line + ' ' + word
-        elif ( len(word) + len(line) + len(' ') > self.notes_line_length ):
+        elif ( len(line) + len(' ') + len(word) + len(' ') <= self.notes_line_length ):  # if adding the word to the line doesn't make the line too long, do it
+            line = '{ln} {wd}'.format( ln=line, wd=word ).lstrip()
+        elif ( len(line) + len(' ') + len(word) + len(' ') > self.notes_line_length ):  # if adding the word to the line makes it too long, and the line to lines, and add the word to the new line
             lines.append( line.strip() )
             line = word
         else:
