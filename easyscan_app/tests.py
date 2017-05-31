@@ -100,7 +100,6 @@ class LasDataMakerTest( TestCase ):
             self.maker.add_article_chapter_title( initial_data, article_chapter_title )
             )
 
-
     def test__make_notes_field( self ):
         """ Checks for proper spacing. """
         patron_email = 'a@a.edu'
@@ -123,8 +122,6 @@ class LasDataMakerTest( TestCase ):
             ''.join( expected_lst ),
             self.maker.make_notes_field( patron_email, item_chap_vol_title, item_page_range_other, item_other )
             )
-
-
 
     # end class class LasDataMakerTest
 
@@ -184,6 +181,16 @@ class SpacerTest( TestCase ):
         self.assertEqual(
             ['12345678', '012'],
             self.spcr.convert_string_to_lines( '12345678 012' )
+            )
+
+    def test__convert_string_to_lines__bigger_miscellaneous(self):
+        self.spcr.notes_line_length = 50
+        self.assertEqual( [
+            'A surprisingly long TEST article-title, because',  # 47, would be 50
+            'of the repetition of the surprisingly long',  # 42, would be 50
+            'article title.'
+            ],
+            self.spcr.convert_string_to_lines( 'A surprisingly long TEST article-title, because of the repetition of the surprisingly long article title.' )
             )
 
     ## add_spacer() ##
@@ -281,6 +288,22 @@ class SpacerTest( TestCase ):
             ''.join( expected_lst ),
             self.spcr.add_spacer( long_text )
             )
+
+    def test__add_spacer_big_string4( self ):
+        """ This didn't wrap as expected... """
+        self.spcr.notes_line_length = 50
+        self.spcr.spacer_character = '|'
+        long_text = 'A surprisingly long TEST article-title, because of the repetition of the surprisingly long article title.'
+        expected_lst = [
+            'First line will break afterrrrr (50th letter) ||| ',
+            'THIS and then continue. ||||||||||||||||||||||||| '
+            ]
+        self.assertEqual(
+            ''.join( expected_lst ),
+            self.spcr.add_spacer( long_text )
+            )
+
+
 
     # end class SpacerTest()
 
