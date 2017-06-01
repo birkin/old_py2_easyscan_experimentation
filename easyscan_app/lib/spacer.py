@@ -90,4 +90,4 @@ class Spacer( object ):
         log.debug( 'line_spacer, ```{0}```'.format(line_spacer) )
         return line_spacer
 
-    # def convert_str
+    # end class Spacer()
