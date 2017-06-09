@@ -27,8 +27,6 @@ class Spacer( object ):
         log.debug( 'full_line, ```{0}```'.format(full_line) )
         return full_line
 
-        return lines
-
     def convert_string_to_lines( self, start_string ):
         """ Converts full-string to separate lines of words, trying to keep each line's length less-than-or-equal-to the line-length limit.
               (Goal not possible if word-length exceeds line-length limit.)
