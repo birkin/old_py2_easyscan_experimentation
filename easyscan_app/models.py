@@ -514,7 +514,7 @@ class RequestViewPostHelper( object ):
     def save_post_data( self, request ):
         """ Saves posted data to db.
             Called by handle_valid_form() """
-        log.debug( 'RequestViewPostHelper(); session items, `%s`' % pprint.pformat(request.session.items()) )
+        # log.debug( 'RequestViewPostHelper(); session items, `%s`' % pprint.pformat(request.session.items()) )
         scnrqst = None
         try:
             scnrqst = ScanRequest()
@@ -535,31 +535,6 @@ class RequestViewPostHelper( object ):
         except Exception as e:
             log.debug( 'RequestViewPostHelper(); exception, `%s`' % unicode(repr(e)) )
         return scnrqst
-
-    # def save_post_data( self, request ):
-    #     """ Saves posted data to db.
-    #         Called by handle_valid_form() """
-    #     log.debug( 'RequestViewPostHelper(); session items, `%s`' % pprint.pformat(request.session.items()) )
-    #     scnrqst = None
-    #     try:
-    #         scnrqst = ScanRequest()
-    #         scnrqst.item_title = request.session['item_info']['title'].decode('utf-8')
-    #         scnrqst.item_barcode = request.session['item_info']['barcode'].decode('utf-8')
-    #         scnrqst.status = 'in_process'
-    #         scnrqst.item_callnumber = request.session['item_info']['callnumber'].decode('utf-8')
-    #         scnrqst.item_volume_year = request.session['item_info']['volume_year'].decode('utf-8')
-    #         scnrqst.item_chap_vol_title = request.session['item_info']['article_chapter_title'].decode('utf-8')
-    #         scnrqst.item_page_range_other = request.session['item_info']['page_range'].decode('utf-8')
-    #         scnrqst.item_other = request.session['item_info']['other'].decode('utf-8')
-    #         scnrqst.item_source_url = request.session['item_info']['item_source_url'].decode('utf-8')
-    #         scnrqst.patron_name = request.session['user_info']['name'].decode('utf-8')
-    #         scnrqst.patron_barcode = request.session['user_info']['patron_barcode'].decode('utf-8')
-    #         scnrqst.patron_email = request.session['user_info']['email'].decode('utf-8')
-    #         scnrqst.save()
-    #         log.debug( 'RequestViewPostHelper(); post-data saved' )
-    #     except Exception as e:
-    #         log.debug( 'RequestViewPostHelper(); exception, `%s`' % unicode(repr(e)) )
-    #     return scnrqst
 
     def transfer_data( self, scnrqst ):
         """ Transfers data.
