@@ -62,17 +62,28 @@ WSGI_APPLICATION = 'easyscan_config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.environ['EZSCAN__DATABASES_ENGINE'],
+#         'NAME': os.environ['EZSCAN__DATABASES_NAME'],
+#         'USER': os.environ['EZSCAN__DATABASES_USER'],
+#         'PASSWORD': os.environ['EZSCAN__DATABASES_PASSWORD'],
+#         'HOST': os.environ['EZSCAN__DATABASES_HOST'],
+#         'PORT': os.environ['EZSCAN__DATABASES_PORT'],
+#     }
+# }
+
+## the environ.get() sytax allows env_var settings to point to either mysql or sqlite
 DATABASES = {
     'default': {
         'ENGINE': os.environ['EZSCAN__DATABASES_ENGINE'],
         'NAME': os.environ['EZSCAN__DATABASES_NAME'],
-        'USER': os.environ['EZSCAN__DATABASES_USER'],
-        'PASSWORD': os.environ['EZSCAN__DATABASES_PASSWORD'],
-        'HOST': os.environ['EZSCAN__DATABASES_HOST'],
-        'PORT': os.environ['EZSCAN__DATABASES_PORT'],
+        'USER': os.environ.get('EZSCAN__DATABASES_USER'),
+        'PASSWORD': os.environ.get('EZSCAN__DATABASES_PASSWORD'),
+        'HOST': os.environ.get('EZSCAN__DATABASES_HOST'),
+        'PORT': os.environ.get('EZSCAN__DATABASES_PORT'),
     }
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
