@@ -14,7 +14,7 @@ import shellvars
 # print( 'the initial env, ```{}```'.format( pprint.pformat(dict(os.environ)) ) )
 
 PROJECT_DIR_PATH = os.path.dirname( os.path.dirname(os.path.abspath(__file__)) )
-ENV_SETTINGS_FILE = os.environ['EZSCAN__SETTINGS_PATH']  # set in `conf.d/passenger.conf`, and `env/bin/activate`
+ENV_SETTINGS_FILE = os.environ['EZSCAN__ENV_SETTINGS_PATH']  # set in `conf.d/passenger.conf`, and `env/bin/activate`
 
 ## update path
 sys.path.append( PROJECT_DIR_PATH )
@@ -26,7 +26,7 @@ sys.path.append( PROJECT_DIR_PATH )
 ##   - requires apache env_module; info: <https://www.phusionpassenger.com/library/indepth/environment_variables.html>
 
 ## reference django settings
-os.environ['DJANGO_SETTINGS_MODULE'] = 'iip_smr_config.settings'  # so django can access its settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'easyscan_config.settings'  # so django can access its settings
 
 ## load up env vars
 var_dct = shellvars.get_vars( ENV_SETTINGS_FILE )
