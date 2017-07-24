@@ -69,27 +69,6 @@ class Prepper( object ):
         os.chmod( filepath, 0o664 )
         return filename
 
-    # def save_data_file( self, filename_datestring, data_string ):
-    #     """ Saves data file.
-    #         Called by make_data_files() """
-    #     filename = u'%s_%s%s' % ( self.filename_prefix, filename_datestring, self.data_file_suffix )
-    #     filepath = u'%s/%s' % ( self.source_transfer_dir_path, filename )
-    #     buffer1 = data_string.strip()
-    #     buffer2 = buffer1 + u'\n'
-    #     utf8_data_string = buffer2.encode( u'utf-8', u'replace' )
-    #     with open( filepath, u'w' ) as f:
-    #         f.write( utf8_data_string )
-    #     return filename
-
-    # def save_count_file( self, filename_datestring ):
-    #     """ Saves count file.
-    #         Called by make_data_files() """
-    #     filename = u'%s_%s%s' % ( self.filename_prefix, filename_datestring, self.count_file_suffix )
-    #     filepath = u'%s/%s' % ( self.source_transfer_dir_path, filename )
-    #     with open( filepath, u'w' ) as f:
-    #         f.write( '1\n' )
-    #     return filename
-
 
 class Sender( object ):
     """ Container for file-transfer code. """
