@@ -540,8 +540,9 @@ class RequestViewPostHelper( object ):
         """ Transfers data.
             Called by handle_valid_form() """
         ( data_filename, count_filename ) = prepper.make_data_files( datetime_object=scnrqst.create_datetime, data_string=scnrqst.las_conversion )
+        log.debug( 'data_filename, ```%s```' % data_filename )
+        log.debug( 'count_filename, ```%s```' % count_filename )
         try:
-            # log.debug( 'here-A' )
             sender.transfer_files( data_filename, count_filename )
             log.debug( 'RequestViewPostHelper(); here-B' )
             scnrqst.status = 'transferred'

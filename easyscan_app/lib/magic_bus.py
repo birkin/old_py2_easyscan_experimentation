@@ -56,6 +56,7 @@ class Prepper( object ):
         utf8_data_string = buffer2.encode( u'utf-8', u'replace' )
         with open( filepath, u'w' ) as f:
             f.write( utf8_data_string )
+        os.chmod( filepath, 0o664 )
         return filename
 
     def save_count_file( self, filename_datestring ):
@@ -65,7 +66,29 @@ class Prepper( object ):
         filepath = u'%s/%s' % ( self.source_transfer_dir_path, filename )
         with open( filepath, u'w' ) as f:
             f.write( '1\n' )
+        os.chmod( filepath, 0o664 )
         return filename
+
+    # def save_data_file( self, filename_datestring, data_string ):
+    #     """ Saves data file.
+    #         Called by make_data_files() """
+    #     filename = u'%s_%s%s' % ( self.filename_prefix, filename_datestring, self.data_file_suffix )
+    #     filepath = u'%s/%s' % ( self.source_transfer_dir_path, filename )
+    #     buffer1 = data_string.strip()
+    #     buffer2 = buffer1 + u'\n'
+    #     utf8_data_string = buffer2.encode( u'utf-8', u'replace' )
+    #     with open( filepath, u'w' ) as f:
+    #         f.write( utf8_data_string )
+    #     return filename
+
+    # def save_count_file( self, filename_datestring ):
+    #     """ Saves count file.
+    #         Called by make_data_files() """
+    #     filename = u'%s_%s%s' % ( self.filename_prefix, filename_datestring, self.count_file_suffix )
+    #     filepath = u'%s/%s' % ( self.source_transfer_dir_path, filename )
+    #     with open( filepath, u'w' ) as f:
+    #         f.write( '1\n' )
+    #     return filename
 
 
 class Sender( object ):
@@ -93,11 +116,14 @@ class Sender( object ):
     def build_filepaths( self, data_filename, count_filename ):
         """ Builds and returns tuple of source and remote filepaths.
             Called by transfer_files() """
-        data_source_fp = u'%s/%s' % ( self.LOCAL_DIR, data_filename )
-        data_remote_fp = u'%s/%s' % ( self.REMOTE_DATA_DIR, data_filename )
-        count_source_fp = u'%s/%s' % ( self.LOCAL_DIR, count_filename )
-        count_remote_fp = u'%s/%s' % ( self.REMOTE_COUNT_DIR, count_filename )
-        log.debug( u'in lib.magic_bus.Sender.build_filepaths(); paths built' )
+        data_source_fp = '%s/%s' % ( self.LOCAL_DIR, data_filename )
+        data_remote_fp = '%s/%s' % ( self.REMOTE_DATA_DIR, data_filename )
+        count_source_fp = '%s/%s' % ( self.LOCAL_DIR, count_filename )
+        count_remote_fp = '%s/%s' % ( self.REMOTE_COUNT_DIR, count_filename )
+        log.debug( 'data_source_fp, ```%s```' % data_source_fp )
+        log.debug( 'data_remote_fp, ```%s```' % data_remote_fp )
+        log.debug( 'count_source_fp, ```%s```' % count_source_fp )
+        log.debug( 'count_remote_fp, ```%s```' % count_remote_fp )
         return ( data_source_fp, data_remote_fp, count_source_fp, count_remote_fp )
 
     def setup_ssh( self ):
