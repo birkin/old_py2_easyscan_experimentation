@@ -24,9 +24,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ['EZSCAN__SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-temp_DEBUG = os.environ['EZSCAN__DEBUG']
-assert temp_DEBUG in [ 'True', '' ], Exception( 'DEBUG env setting is, "%s"; must be either "True" or ""' % temp_DEBUG )
-DEBUG = bool( temp_DEBUG )
+# temp_DEBUG = os.environ['EZSCAN__DEBUG']
+# assert temp_DEBUG in [ 'True', '' ], Exception( 'DEBUG env setting is, "%s"; must be either "True" or ""' % temp_DEBUG )
+# DEBUG = bool( temp_DEBUG )
+
+DEBUG = json.loads( os.environ['EZSCAN__DEBUG'] )
 
 TEMPLATE_DEBUG = DEBUG
 
