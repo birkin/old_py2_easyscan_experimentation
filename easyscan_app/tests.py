@@ -3,11 +3,13 @@
 from __future__ import unicode_literals
 
 import datetime, pprint
+# from easyscan_app.models import LasDataMaker, ScanRequest, StatsBuilder
 from django.http import QueryDict
 from django.test import TestCase
-from easyscan_app.models import LasDataMaker, ScanRequest, StatsBuilder
+from easyscan_app.lib.data_prepper import LasDataMaker
 from easyscan_app.lib.magic_bus import Prepper
 from easyscan_app.lib.spacer import Spacer
+from easyscan_app.models import ScanRequest, StatsBuilder
 
 
 # maker = LasDataMaker()
