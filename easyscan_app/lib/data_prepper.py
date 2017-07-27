@@ -73,18 +73,31 @@ class LasDataMaker( object ):
         log.debug( 'LasDataMaker(); data, ```{0}```'.format(data) )
         return data
 
+    # def add_email( self, patron_email ):
+    #     """ Adds email.
+    #         Called by make_utf8_notes_field() """
+    #     line_1_start = 'PATRON_EMAIL...'
+    #     line_1 = spcr.add_spacer( line_1_start )
+    #     line_2_start = ' '
+    #     line_2 = spcr.add_spacer( line_2_start )
+    #     line_3_start = '{nrml} | {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
+    #     line_3 = spcr.add_spacer( line_3_start )
+    #     line_4_start = ' '
+    #     line_4 = spcr.add_spacer( line_4_start )
+    #     data = line_1 + line_2 + line_3 + line_4
+    #     log.debug( 'data, ```{0}```'.format(data) )
+    #     return data
+
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        line_1_start = 'PATRON_EMAIL...'
+        line_1_start = 'email: %s' % patron_email
         line_1 = spcr.add_spacer( line_1_start )
-        line_2_start = ' '
+        line_2_start = 'EMAIL: %s' % patron_email.upper()
         line_2 = spcr.add_spacer( line_2_start )
-        line_3_start = '{nrml} | {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
+        line_3_start = ' '
         line_3 = spcr.add_spacer( line_3_start )
-        line_4_start = ' '
-        line_4 = spcr.add_spacer( line_4_start )
-        data = line_1 + line_2 + line_3 + line_4
+        data = line_1 + line_2 + line_3
         log.debug( 'data, ```{0}```'.format(data) )
         return data
 

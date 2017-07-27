@@ -89,7 +89,8 @@ class LasDataMakerTest( TestCase ):
         email = 'a@a.edu'
         expected_lst = [
             'email: a@a.edu                                    ',  # 50 characters
-            'EMAIL: A@A.EDU                                    '
+            'EMAIL: A@A.EDU                                    ',
+            '                                                  '
             ]
         self.assertEqual(
             ''.join( expected_lst ),
