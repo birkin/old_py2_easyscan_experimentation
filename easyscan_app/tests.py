@@ -74,9 +74,8 @@ class LasDataMakerTest( TestCase ):
     #     """ Checks for space before and after actual email line. """
     #     email = 'a@a.edu'
     #     expected_lst = [
-    #         'PATRON_EMAIL...                                   ',  # 50 characters
-    #         '                                                  ',
-    #         'a@a.edu | A@A.EDU                                 ',
+    #         'email: a@a.edu                                    ',  # 50 characters
+    #         'EMAIL: A@A.EDU                                    ',
     #         '                                                  '
     #         ]
     #     self.assertEqual(
@@ -88,7 +87,9 @@ class LasDataMakerTest( TestCase ):
         """ Checks for space before and after actual email line. """
         email = 'a@a.edu'
         expected_lst = [
-            'email: a@a.edu                                    ',  # 50 characters
+            '                                                  ',  # 50 characters
+            'email: a@a.edu                                    ',
+            '                                                  ',
             'EMAIL: A@A.EDU                                    ',
             '                                                  '
             ]
@@ -114,29 +115,6 @@ class LasDataMakerTest( TestCase ):
             ''.join( expected_lst ),
             self.maker.add_article_chapter_title( initial_data, article_chapter_title )
             )
-
-    # def test__make_notes_field( self ):
-    #     """ Checks for proper spacing. """
-    #     patron_email = 'a@a.edu'
-    #     item_chap_vol_title = 'test-article-title'
-    #     item_page_range_other = 'test-range'
-    #     item_other = 'test-other'
-    #     expected_lst = [
-    #         'PATRON_EMAIL...                                   ',  # 50 characters
-    #         '                                                  ',
-    #         'a@a.edu | A@A.EDU                                 ',
-    #         '                                                  ',
-    #         'ARTICLE-CHAPTER-TITLE...                          ',
-    #         '                                                  ',
-    #         'test-article-title                                ',
-    #         '                                                  ',
-    #         'PAGE-RANGE: test-range                            ',
-    #         'PAGE-OTHER: test-other                            ',
-    #         ]
-    #     self.assertEqual(
-    #         ''.join( expected_lst ),
-    #         self.maker.make_notes_field( patron_email, item_chap_vol_title, item_page_range_other, item_other )
-    #         )
 
     def test__make_notes_field( self ):
         """ Checks for proper spacing. """
