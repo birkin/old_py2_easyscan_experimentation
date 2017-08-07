@@ -123,7 +123,9 @@ class LasDataMakerTest( TestCase ):
         item_page_range_other = 'test-range'
         item_other = 'test-other'
         expected_lst = [
-            'email: a@a.edu                                    ',  # 50 characters
+            '                                                  ',  # 50 characters
+            'email: a@a.edu                                    ',
+            '                                                  ',
             'EMAIL: A@A.EDU                                    ',
             '                                                  ',
             'ARTICLE-CHAPTER-TITLE...                          ',

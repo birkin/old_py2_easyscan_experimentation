@@ -76,29 +76,31 @@ class LasDataMaker( object ):
     # def add_email( self, patron_email ):
     #     """ Adds email.
     #         Called by make_utf8_notes_field() """
-    #     line_1_start = 'PATRON_EMAIL...'
+    #     line_1_start = 'email: %s' % patron_email
     #     line_1 = spcr.add_spacer( line_1_start )
-    #     line_2_start = ' '
+    #     line_2_start = 'EMAIL: %s' % patron_email.upper()
     #     line_2 = spcr.add_spacer( line_2_start )
-    #     line_3_start = '{nrml} | {uppr}'.format( nrml=patron_email, uppr=patron_email.upper() )
+    #     line_3_start = ' '
     #     line_3 = spcr.add_spacer( line_3_start )
-    #     line_4_start = ' '
-    #     line_4 = spcr.add_spacer( line_4_start )
-    #     data = line_1 + line_2 + line_3 + line_4
+    #     data = line_1 + line_2 + line_3
     #     log.debug( 'data, ```{0}```'.format(data) )
     #     return data
 
     def add_email( self, patron_email ):
         """ Adds email.
             Called by make_utf8_notes_field() """
-        line_1_start = 'email: %s' % patron_email
-        line_1 = spcr.add_spacer( line_1_start )
-        line_2_start = 'EMAIL: %s' % patron_email.upper()
-        line_2 = spcr.add_spacer( line_2_start )
-        line_3_start = ' '
-        line_3 = spcr.add_spacer( line_3_start )
-        data = line_1 + line_2 + line_3
-        log.debug( 'data, ```{0}```'.format(data) )
+        desired_start_lines = [
+            ' ',
+            'email: %s' % patron_email,
+            ' ',
+            'EMAIL: %s' % patron_email.upper(),
+            ' '
+            ]
+        data = ''
+        for start_line in desired_start_lines:
+            spaced_line = spcr.add_spacer( start_line )
+            data = data + spaced_line
+        log.debug( 'data, ```%s```' % data )
         return data
 
     def add_article_chapter_title( self, data, item_chap_vol_title ):
