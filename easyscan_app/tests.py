@@ -74,16 +74,19 @@ class LasDataMakerTest( TestCase ):
         """ Checks for space before and after actual email line. """
         email = 'a@a.edu'
         expected_lst = [
-            '--------------------------------------------------', # 50 characters
+            '------------------------------------------------  ',  # 50 characters
             '                                                  ',
             'email: a@a.edu                                    ',
             '                                                  ',
             'EMAIL: A@A.EDU                                    ',
             '                                                  '
             ]
+        result = self.maker.add_email( email )
+        # print( 'expected, ```%s```' % ''.join( expected_lst ) )
+        # print( 'resulttt, ```%s```' % result )
         self.assertEqual(
             ''.join( expected_lst ),
-            self.maker.add_email( email )
+            result
             )
 
     # def test__add_email( self ):
@@ -126,7 +129,8 @@ class LasDataMakerTest( TestCase ):
         item_page_range_other = 'test-range'
         item_other = 'test-other'
         expected_lst = [
-            '                                                  ',  # 50 characters
+            '------------------------------------------------  ',  # 50 characters
+            '                                                  ',
             'email: a@a.edu                                    ',
             '                                                  ',
             'EMAIL: A@A.EDU                                    ',
