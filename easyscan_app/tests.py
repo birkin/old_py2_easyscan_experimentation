@@ -70,24 +70,12 @@ class LasDataMakerTest( TestCase ):
             u"The title was 'Zen', I think.",
             self.maker.strip_stuff(u'The title was `Zen`, I think.') )
 
-    # def test__add_email( self ):
-    #     """ Checks for space before and after actual email line. """
-    #     email = 'a@a.edu'
-    #     expected_lst = [
-    #         'email: a@a.edu                                    ',  # 50 characters
-    #         'EMAIL: A@A.EDU                                    ',
-    #         '                                                  '
-    #         ]
-    #     self.assertEqual(
-    #         ''.join( expected_lst ),
-    #         self.maker.add_email( email )
-    #         )
-
     def test__add_email( self ):
         """ Checks for space before and after actual email line. """
         email = 'a@a.edu'
         expected_lst = [
-            '                                                  ',  # 50 characters
+            '--------------------------------------------------', # 50 characters
+            '                                                  ',
             'email: a@a.edu                                    ',
             '                                                  ',
             'EMAIL: A@A.EDU                                    ',
@@ -97,6 +85,21 @@ class LasDataMakerTest( TestCase ):
             ''.join( expected_lst ),
             self.maker.add_email( email )
             )
+
+    # def test__add_email( self ):
+    #     """ Checks for space before and after actual email line. """
+    #     email = 'a@a.edu'
+    #     expected_lst = [
+    #         '                                                  ',  # 50 characters
+    #         'email: a@a.edu                                    ',
+    #         '                                                  ',
+    #         'EMAIL: A@A.EDU                                    ',
+    #         '                                                  '
+    #         ]
+    #     self.assertEqual(
+    #         ''.join( expected_lst ),
+    #         self.maker.add_email( email )
+    #         )
 
     def test__add_article_chapter_title( self ):
         """ Checks for space before and after article-chapter-title line. """
