@@ -46,6 +46,13 @@ easyScan confirmation
       margin-top: 1em; }
     p {
       font-size: 125%; }
+    p.print_note {
+        font-size: 125%;
+        margin-top:1.5em;
+        font-style: italic;
+        padding-left: 5%;
+        padding-right: 20%;
+    }
     span#email {
       color: red;}
     hr {
@@ -87,6 +94,7 @@ easyScan confirmation
 
 <div id="info">
 <p>Your scan-request has been submitted, and you'll soon receive a confirmation email. In most cases material is scanned within 2 business days.</p>
+<p class="print_note">(On occasion you may see a 'scan' link next to a non-print item. If you've attempted to request such a scan, the Annex staff will email you and remind you that this scanning service is only for <strong>print</strong> materials.)</p>
 <p class="additional_lines">The scan will be emailed to &lt;<span id="email">{{ email }}</span>&gt;.</p>
 <p class="additional_lines">If you have questions, feel free to email {{ email_general_help|urlize }} or call {{ phone_general_help }}.</p>
 </div>
