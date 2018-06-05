@@ -393,6 +393,7 @@ class RequestViewGetHelper( object ):
             bibnum = request.GET.get( 'bibnum', '' )
             if len( bibnum ) == 8:
                 title = self.hit_availability_api( bibnum )
+        title = title[0:199]
         log.debug( 'RequestViewGetHelper(); title, %s' % title )
         return title
 
