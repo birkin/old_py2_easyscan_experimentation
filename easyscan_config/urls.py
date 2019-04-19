@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url( r'^dev_josiah_easyscan.js/$',  'easyscan_app.views.easyscan_js', name=u'easyscan_js_url' ),  # replaces hardcoded urls for easy local development
     url( r'^dev_josiah_request_item.js/$',  'easyscan_app.views.request_item_js', name=u'request_item_js_url' ),  # replaces hardcoded urls for easy local development
 
+    url( r'^version/$',  'easyscan_app.views.version', name=u'version_url' ),
+
     url(r'^admin/', include(admin.site.urls)),
 
     url( r'^$',  RedirectView.as_view(pattern_name=u'info_url') ),
