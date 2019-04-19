@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 import datetime, logging, os, pprint
 from django.conf import settings as project_settings
 from django.contrib.auth import logout
@@ -30,6 +32,11 @@ def info( request ):
         u'phone_general_help': os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
         }
     return render( request, u'easyscan_app_templates/info.html', context )
+
+
+def version( request ):
+    """ Returns branch and commit info. """
+    return HttpResponse( 'version info coming' )
 
 
 def request_def( request ):
