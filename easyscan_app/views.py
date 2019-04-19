@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 
-import datetime, logging, os, pprint
+import datetime, json, logging, os, pprint
+from .lib import version_helper
 from django.conf import settings as project_settings
 from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
@@ -36,7 +37,13 @@ def info( request ):
 
 def version( request ):
     """ Returns branch and commit info. """
-    return HttpResponse( 'version info coming' )
+    rq_now = datetime.datetime.now()
+    commit = version_helper.get_commit()
+    branch = version_helper.get_branch()
+    info_txt = commit.replace( 'commit', branch )
+    context = version_helper.make_context( request, rq_now, info_txt )
+    output = json.dumps( context, sort_keys=True, indent=2 )
+    return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
 def request_def( request ):
