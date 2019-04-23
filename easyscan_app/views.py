@@ -28,7 +28,7 @@ stats_builder = models.StatsBuilder()
 
 def info( request ):
     """ Returns info page. """
-    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     context = {
         u'email_general_help': os.environ[u'EZSCAN__EMAIL_GENERAL_HELP'],
         u'phone_general_help': os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
@@ -38,7 +38,7 @@ def info( request ):
 
 def version( request ):
     """ Returns branch and commit info. """
-    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     rq_now = datetime.datetime.now()
     commit = version_helper.get_commit()
     branch = version_helper.get_branch()
@@ -67,7 +67,8 @@ def request_def( request ):
 
 def shib_login( request ):
     """ Examines shib headers, sets session-auth, & returns user to request page. """
-    log.debug( u'in views.shib_login(); starting' )
+    # log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     if request.method == u'POST':  # from request_login.html
         log.debug( u'in views.shib_login(); post detected' )
         return HttpResponseRedirect( os.environ[u'EZSCAN__SHIB_LOGIN_URL'] )  # forces reauth if user clicked logout link
@@ -81,6 +82,7 @@ def shib_login( request ):
 def confirmation( request ):
     """ Logs user out & displays confirmation screen after submission.
         TODO- refactor commonalities with shib_logout() """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     try:
         barcode = request.session[u'item_info'][u'barcode']
     except:
@@ -96,6 +98,7 @@ def confirmation( request ):
 
 def shib_logout( request ):
     """ Clears session, hits shib logout, and redirects user to landing page. """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     request.session[u'authz_info'][u'authorized'] = False
     logout( request )
     scheme = u'https' if request.is_secure() else u'http'
@@ -111,6 +114,7 @@ def shib_logout( request ):
 
 def stats_v1( request ):
     """ Prepares stats for given dates; returns json. """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     ## grab & validate params
     if stats_builder.check_params( request.GET, request.META[u'SERVER_NAME'] ) == False:
         return HttpResponseBadRequest( stats_builder.output, content_type=u'application/javascript; charset=utf-8' )
@@ -125,6 +129,7 @@ def stats_v1( request ):
 
 def try_again( request ):
     """ Displays recent requests with both a try-again link and a view-in-admin link. """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     basic_auth_ok = basic_auth_helper.check_basic_auth( request )
     log.debug( u'in views.try_again(); basic_auth_ok, `%s`' % basic_auth_ok )
     if basic_auth_ok:
@@ -137,6 +142,7 @@ def try_again( request ):
 def try_again_confirmation( request, scan_request_id ):
     """ Confirms, on GET, that the user wants to try the request again.
         Performs, on POST, the transfer. """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     log.debug( u'in views.try_again_confirmation()' )
     if request.method == u'GET':
         if not request.session.get(u'try_again_page_accessed') == True:

@@ -652,6 +652,7 @@ class ShibViewHelper( object ):
                 'email': shib_dict['email'],
                 'patron_barcode': shib_dict['patron_barcode'] }
             request.session['shib_login_error'] = False
+        log.debug( 'session updated' )
         return
 
     # end class ShibViewHelper
@@ -672,7 +673,8 @@ class ShibChecker( object ):
         if 'Shibboleth-eppn' in request.META:
             shib_dict = self.grab_shib_from_meta( request )
         else:
-            if request.get_host() == '127.0.0.1' and project_settings.DEBUG == True:
+            # if request.get_host() == '127.0.0.1' and project_settings.DEBUG == True:
+            if '127.0.0.1' in request.get_host() and project_settings.DEBUG == True:  # handles runserver, where get_host returns '127.0.0.1:8000'
                 shib_dict = json.loads( self.TEST_SHIB_JSON )
         log.debug( 'ShibChecker(); shib_dict is: %s' % pprint.pformat(shib_dict) )
         return shib_dict

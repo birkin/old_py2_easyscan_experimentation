@@ -113,7 +113,8 @@ easyScan request
 
 <div id="form">
 
-    <form id="citation_form" action="/easyscan/request/" method="POST">{% csrf_token %}
+    <!-- action="/easyscan/request/" -->
+    <form id="citation_form" action="{% url 'request_url' %}" method="POST">{% csrf_token %}
 
         <div class="fieldWrapper">
             <p id="article_chapter_title">{{ form.article_chapter_title.label }}</p>
