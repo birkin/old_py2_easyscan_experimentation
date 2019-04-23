@@ -351,9 +351,9 @@ class RequestViewGetHelper( object ):
             Called by views.request_def() """
         log.debug( 'RequestViewGetHelper(); referrer, `%s`' % request.META.get('HTTP_REFERER', 'not_in_request_meta'), )
         self.store_remote_source_url( request )
-        https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
-        if https_check['is_secure'] == False:
-            return HttpResponseRedirect( https_check['redirect_url'] )
+        # https_check = self.check_https( request.is_secure(), request.get_host(), request.get_full_path() )
+        # if https_check['is_secure'] == False:
+        #     return HttpResponseRedirect( https_check['redirect_url'] )
         title = self.check_title( request )
         self.initialize_session( request, title )
         return_response = self.build_response( request )
