@@ -56,8 +56,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'easyscan_config.urls'
 
-WSGI_APPLICATION = 'easyscan_config.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
