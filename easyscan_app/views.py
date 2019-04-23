@@ -28,6 +28,7 @@ stats_builder = models.StatsBuilder()
 
 def info( request ):
     """ Returns info page. """
+    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
     context = {
         u'email_general_help': os.environ[u'EZSCAN__EMAIL_GENERAL_HELP'],
         u'phone_general_help': os.environ[u'EZSCAN__PHONE_GENERAL_HELP']
@@ -37,6 +38,7 @@ def info( request ):
 
 def version( request ):
     """ Returns branch and commit info. """
+    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
     rq_now = datetime.datetime.now()
     commit = version_helper.get_commit()
     branch = version_helper.get_branch()
@@ -49,6 +51,7 @@ def version( request ):
 def request_def( request ):
     """ On GET, redirects to login options, or displays form to specify requested scan-content.
         On POST, saves data and redirects to confirmation page. """
+    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
     if request.method == u'GET':
         return_response = request_view_get_helper.handle_get( request )
         return return_response
