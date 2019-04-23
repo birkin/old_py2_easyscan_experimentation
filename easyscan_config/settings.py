@@ -30,8 +30,6 @@ SECRET_KEY = os.environ['EZSCAN__SECRET_KEY']
 
 DEBUG = json.loads( os.environ['EZSCAN__DEBUG'] )
 
-TEMPLATE_DEBUG = DEBUG
-
 ALLOWED_HOSTS = json.loads( os.environ['EZSCAN__ALLOWED_HOSTS'] )  # list
 
 
@@ -110,7 +108,24 @@ STATIC_ROOT = os.environ['EZSCAN__STATIC_ROOT']  # needed for collectstatic comm
 
 # Templates
 
-TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
+# TEMPLATE_DIRS = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )  # list
+
+template_dirs = json.loads( os.environ['EZSCAN__TEMPLATE_DIRS'] )
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': template_dirs,
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 
 # Email
