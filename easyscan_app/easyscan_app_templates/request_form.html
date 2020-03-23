@@ -83,6 +83,48 @@ easyScan request
     hr {
         margin-top: 2em; }
 
+    /***** alert *****/
+    div#alert {
+        background-color : #FFE6A0 ;
+        /*font-family : CircularStd ;*/
+        padding : 25px ;
+        margin-top : 1.1em ;
+        margin-bottom : 0 ;
+    }
+    h2.alert {
+        /*color : #222 !important ;*/
+        font-size: 2.25em;
+        margin-bottom: .7em;
+        font-weight: bolder;
+        color:darkred;
+        margin-top: 0;
+        /*margin-bottom: 0;*/
+    }
+    p.alert {
+        font-weight: bolder;
+        font-size: 1.75em;
+        /*margin-bottom: .7em;*/
+        margin-top: 0;
+        /*margin-bottom: 0;*/
+    }
+    p.alert_nonbold {
+        font-size: 1.5em;
+        /*line-height: 120%;*/
+        line-height: 100%;
+        margin-top: 1em;
+        /*margin-bottom: 0;*/
+    }
+    p.description {
+        text-decoration: line-through;
+        margin-top: 0;
+        /*margin-bottom: 0;*/
+    }
+    /*****************/
+    hr#alert_hr {
+        margin-top: .5em;
+    }
+    /*****************/
+
 </style>
 
  <h1>easyScan request</h1>
@@ -105,7 +147,18 @@ easyScan request
 </div> <!-- #requested_item -->
 
 <div id="rules">
-  <p class="rules_lines">This service permits scans of up to 50 pages, or one chapter, from non-special-collections print materials located at the Annex (Brown's offsite Library storage facility).</p>
+  <!-- <p class="rules_lines">This service permits scans of up to 50 pages, or one chapter, from non-special-collections print materials located at the Annex (Brown's offsite Library storage facility).</p> -->
+  <p class="rules_lines description">This service permits scans of up to 50 pages, or one chapter, from non-special-collections print materials located at the Annex (Brown's offsite Library storage facility).</p>
+
+  <div id="alert">
+      <h2 class="alert"><strong>Important Notice</strong></h2>
+      <p class="alert"><strong>We are increasing our scanning services.</strong></p>
+      <p class="alert_nonbold">( Physical delivery of items from the Library Annex has been suspended until further notice. )</p>
+      <p class="alert_nonbold">We will conduct scans and deliver them to your email address in the order in which they are received, in as timely a manner as possible.</p>
+      <p class="alert_nonbold">We are assessing Library services on an ongoing basis. Check <a href="https://blogs.brown.edu/libnews/covid/">the Library's COVID-19 announcements page</a> frequently for updates on Library services.</p>
+      <hr id="alert_hr"/>
+  </div>
+
   <p class="print_note">(On occasion you may see a 'scan' link next to a non-print item. If you attempt to request such a scan, the Annex staff will email you and remind you that this scanning service is only for <strong>print</strong> materials.)</p>
   <p class="rules_lines">In most cases material is scanned within 2 business days. Notification will be sent to your Brown email address.</p>
 </div>
