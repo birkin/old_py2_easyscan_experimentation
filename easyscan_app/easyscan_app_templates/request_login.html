@@ -10,14 +10,15 @@ easyScan login
 <style>
     h1 {
       font-size: 2.5em;
-      margin-top: 2em;
+      margin-top: 1em;
+      margin-bottom: 1em;
       text-transform: none }
     hr {
       margin-top: 2em; }
     form {
       margin-top: 2em; }
     div#requested_item {
-      margin-top: 4em;
+      margin-top: 3em;
       /*color: gray;*/ }
     dt, dd {
       font-family:sans-serif;
@@ -37,7 +38,9 @@ easyScan login
     div#rules {
       float:left;
       clear:left;
-      margin-top: 3em; }
+      margin-top: 1em;
+      margin-bottom: 0;
+    }
     p {
       margin-bottom: 1em;
       font-size: 125%; }
@@ -48,8 +51,8 @@ easyScan login
       font-size: 125%;
       margin-top:1.5em;
       font-style: italic;
-      padding-left: 5%;
-      padding-right: 5%;
+      /*padding-left: 5%;*/
+      /*padding-right: 5%;*/
       widows: 3;
     }
     h3#please {
@@ -77,7 +80,7 @@ easyScan login
         /*font-family : CircularStd ;*/
         padding : 25px ;
         /*margin-top : 1.1em ;*/
-        margin-top : -1em ;
+        margin-top : 0 ;
         margin-bottom : 0 ;
     }
     h2.alert {
@@ -118,6 +121,15 @@ easyScan login
 
  <h1>easyScan request</h1>
 
+  <div id="alert">
+      <h2 class="alert"><strong>Important Notice</strong></h2>
+      <p class="alert"><strong>We are increasing our scanning services.</strong></p>
+      <!-- <p class="alert_nonbold">( Physical delivery of items from the Library Annex has been suspended until further notice. )</p> -->
+      <p class="alert_nonbold">We will conduct scans and deliver them to your email address in the order in which they are received, in as timely a manner as possible.</p>
+      <p class="alert_nonbold">We are assessing Library services on an ongoing basis. Check <a href="https://blogs.brown.edu/libnews/covid/">the Library's COVID-19 announcements page</a> frequently for updates on Library services.</p>
+      <hr id="alert_hr"/>
+  </div>
+
  <div id="requested_item">
 
     <p>You're requesting a scan for part of …</p>
@@ -138,17 +150,8 @@ easyScan login
 <div id="rules">
   <!-- <p>This service permits scans of up to 50 pages, or one chapter, from non-special-collections print materials located at the Annex (Brown's offsite Library storage facility).</p> -->
 
-  <div id="alert">
-      <h2 class="alert"><strong>Important Notice</strong></h2>
-      <p class="alert"><strong>We are increasing our scanning services.</strong></p>
-      <!-- <p class="alert_nonbold">( Physical delivery of items from the Library Annex has been suspended until further notice. )</p> -->
-      <p class="alert_nonbold">We will conduct scans and deliver them to your email address in the order in which they are received, in as timely a manner as possible.</p>
-      <p class="alert_nonbold">We are assessing Library services on an ongoing basis. Check <a href="https://blogs.brown.edu/libnews/covid/">the Library's COVID-19 announcements page</a> frequently for updates on Library services.</p>
-      <hr id="alert_hr"/>
-  </div>
-
   <p class="print_note">(On occasion you may see a 'scan' link next to a non-print item. If you attempt to request such a scan, the Annex staff will email you and remind you that this scanning service is only for <strong>print</strong> materials.)</p>
-  <p>In most cases material is scanned within 2 business days. Notification will be sent to your Brown email address.</p>
+  <p>In most cases material is scanned within 72 hours. Notification will be sent to your Brown email address.</p>
 </div>
 
 <div>
