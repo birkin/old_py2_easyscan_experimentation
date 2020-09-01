@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.utils.http import urlquote
 from easyscan_app import models
 from easyscan_app.easyscan_forms import CitationForm
+from easyscan_app.lib.validator import Validator
 
 
 log = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ try_again_helper = models.TryAgainHelper()
 try_again_confirmation_helper = models.TryAgainConfirmationHelper()
 basic_auth_helper = models.BasicAuthHelper()
 stats_builder = models.StatsBuilder()
+validator = Validator()
 
 
 def info( request ):
@@ -51,18 +53,40 @@ def version( request ):
 def request_def( request ):
     """ On GET, redirects to login options, or displays form to specify requested scan-content.
         On POST, saves data and redirects to confirmation page. """
-    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
-    if request.method == u'GET':
-        return_response = request_view_get_helper.handle_get( request )
-        return return_response
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    if request.method == 'GET':
+        if validator.validate_source(request) is False:
+            resp = validator.prepare_badrequest_response( request )
+            return resp
+        else:
+            return_response = request_view_get_helper.handle_get( request )
+            return return_response
     else:  # form POST
         form = CitationForm( request.POST )
         if form.is_valid():
             redirect_url = request_view_post_helper.handle_valid_form( request )
             return HttpResponseRedirect( redirect_url )
         else:
-            request.session[u'form_data'] = request.POST; log.debug( u'in views.request_def(); posted form invalid' )
-            return HttpResponseRedirect( reverse(u'request_url'), {u'form': form} )
+            request.session['form_data'] = request.POST
+            log.debug( 'in views.request_def(); posted form invalid' )
+            return HttpResponseRedirect( reverse('request_url'), {u'form': form} )
+
+
+# def request_def( request ):
+#     """ On GET, redirects to login options, or displays form to specify requested scan-content.
+#         On POST, saves data and redirects to confirmation page. """
+#     log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
+#     if request.method == u'GET':
+#         return_response = request_view_get_helper.handle_get( request )
+#         return return_response
+#     else:  # form POST
+#         form = CitationForm( request.POST )
+#         if form.is_valid():
+#             redirect_url = request_view_post_helper.handle_valid_form( request )
+#             return HttpResponseRedirect( redirect_url )
+#         else:
+#             request.session[u'form_data'] = request.POST; log.debug( u'in views.request_def(); posted form invalid' )
+#             return HttpResponseRedirect( reverse(u'request_url'), {u'form': form} )
 
 
 def shib_login( request ):
