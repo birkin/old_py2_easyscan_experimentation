@@ -9,7 +9,7 @@ from django.test import TestCase
 from easyscan_app.lib.data_prepper import LasDataMaker
 from easyscan_app.lib.magic_bus import Prepper
 from easyscan_app.lib.spacer import Spacer
-from easyscan_app.models import ScanRequest, StatsBuilder
+from easyscan_app.models import RequestViewGetHelper, ScanRequest, StatsBuilder
 
 
 # maker = LasDataMaker()
@@ -369,3 +369,12 @@ class StatsBuilderTest( TestCase ):
         self.assertEqual( 1, len(results) )
 
 
+class RequestViewGetHelperTest( TestCase):
+    """ Tests models.py RequestViewGetHelper() """
+
+    def setUp(self):
+        self.helper = RequestViewGetHelper()
+
+    def test_hit_availability_api( self ):
+        """ Checks for proper title. """
+        self.assertEqual( 'Zen and zen classics', self.helper.hit_availability_api('b1234549')  )
